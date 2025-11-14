@@ -3,7 +3,6 @@ package com.vatek.hrmtoolnextgen.dto.request;
 import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,20 +15,21 @@ import java.util.Collection;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "Payload for creating a new employee account")
-public class CreateUserRequest {
-
-    @NotEmpty
-    @Schema(description = "Unique email address used for login")
+@Schema(description = "Payload for updating an existing employee account")
+public class UpdateUserRequest {
+    @Schema(description = "Updated email address")
     private String email;
 
-    @Schema(description = "Detailed profile information for the employee")
+    @Schema(description = "Updated profile information")
     private UserInfoDto userInfo;
 
-    @Schema(description = "Optional avatar image file")
+    @Schema(description = "Replacement avatar image file")
     private MultipartFile avatarImage;
 
-    @NotEmpty
-    @Schema(description = "Roles that define permissions for the employee")
+    @Schema(description = "New role assignments")
     private Collection<RoleDto> roles;
+
+    @Schema(description = "Whether the employee account is active")
+    private Boolean active;
 }
+

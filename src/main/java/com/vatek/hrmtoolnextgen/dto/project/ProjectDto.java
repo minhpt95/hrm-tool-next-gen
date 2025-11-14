@@ -2,27 +2,45 @@ package com.vatek.hrmtoolnextgen.dto.project;
 
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Project data exposed via the API")
 public class ProjectDto {
+    @Schema(description = "Unique identifier of the project")
     private Long id;
+
+    @Schema(description = "Project name")
     private String name;
+
+    @Schema(description = "Project description")
     private String description;
+
+    @Schema(description = "Flag indicating whether the project is soft deleted")
     private Boolean isDelete;
+
+    @Schema(description = "Lifecycle status of the project")
     private EProjectStatus projectStatus;
+
+    @Schema(description = "Assigned project manager summary")
     private UserDto managerUser;
+
+    @Schema(description = "Team members in this project")
     private List<UserDto> members;
+
+    @Schema(description = "Planned start time")
+    private ZonedDateTime startTime;
+
+    @Schema(description = "Planned end time")
     private ZonedDateTime endTime;
 }

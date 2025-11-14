@@ -26,6 +26,7 @@ public class SwaggerConfig {
 
         final String securitySchemeName = "bearerAuth";
         final String deviceIdHeaderName = "device-id";
+        final String idempotencyKeyHeaderName = "idempotency-key";
 
         return new OpenAPI()
                 .addSecurityItem(
@@ -53,6 +54,14 @@ public class SwaggerConfig {
                                                 .name(deviceIdHeaderName)
                                                 .in("header")
                                                 .description("Device ID for tracking requests")
+                                                .required(false)
+                                                .schema(new StringSchema())
+                                )
+                                .addParameters(idempotencyKeyHeaderName,
+                                        new Parameter()
+                                                .name(idempotencyKeyHeaderName)
+                                                .in("header")
+                                                .description("Idempotency key for ensuring request idempotency. Must be unique per request. Used to prevent duplicate processing of the same request.")
                                                 .required(false)
                                                 .schema(new StringSchema())
                                 )

@@ -1,0 +1,31 @@
+package com.vatek.hrmtoolnextgen.repository.jpa;
+
+import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+
+public interface UserRepository extends JpaRepository<UserEntity, Long> , JpaSpecificationExecutor<UserEntity> {
+
+    Optional<UserEntity> findByEmailOrUserInfo_IdentityCard(String email,String identityCard);
+
+    Optional<UserEntity> findByEmail(String email);
+
+    int countAllByEmail(String email);
+
+    Page<UserEntity> findAll(Pageable pageable);
+
+    Optional<UserEntity> findAllByEmail(String email);
+
+    UserEntity findUserEntityByEmail(String email);
+
+    Collection<UserEntity> findUserEntitiesByIdIn(List<UUID> id);
+
+}

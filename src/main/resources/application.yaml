@@ -1,0 +1,76 @@
+﻿spring:
+  application:
+    name: hrm-tool-next-gen
+  profiles:
+    active: '@spring.profiles.active@'
+  output:
+    ansi:
+      enabled: always
+  mail:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  devtools:
+    restart:
+      enabled: false
+      poll-interval: 2s
+      quiet-period: 1s
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 15MB
+      max-file-size: 20MB
+      max-request-size: 20MB
+  main:
+    allow-bean-definition-overriding: true
+  liquibase:
+    enabled: true
+    url: '${spring.datasource.url}'
+    user: '${spring.datasource.username}'
+    password: '${spring.datasource.password}'
+    driver-class-name: '${spring.datasource.driverClassName}'
+    change-log: classpath:/db/master.xml
+    database-change-log-table: database-liquibase-changelog
+    database-change-log-lock-table: database-liquibase-changelog-lock
+
+  rabbitmq:
+    virtual-host: '${spring.profiles.active}'
+    connection-timeout: PT5S
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: PT2S
+          max-attempts: 3
+          multiplier: 1.5
+          max-interval: PT10S
+application:
+  name: '@project.artifactId@'
+build:
+  version: '@project.version@'
+  timestamp: '@timestamp@'
+logging:
+  level:
+    com:
+      vatek:
+        hrmtoolnextgen: DEBUG
+hrm:
+  app:
+    jwtSecret: ODLIcaTIveCUtEstaRONYXiEDUcTAuTe
+    jwtExpiration: '86400000'
+    refreshTokenExpiration: '86400000'
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+    version: OPENAPI_3_1
+  packagesToScan: com.vatek.hrmtoolnextgen.controller

@@ -1,0 +1,46 @@
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 10
+  mail:
+    host: smtp.mailtrap.io
+    port: '587'
+    username: 655f2d35bd07a8
+    password: be71dfab64c415
+  datasource:
+    url: 'jdbc:mysql://localhost:3306/hrm?createDatabaseIfNotExist=true&useLegacyDatetimeCode=false'
+    username: mysqladmin
+    password: mysqladmin
+    driverClassName: com.mysql.cj.jdbc.Driver
+  docker:
+    compose:
+      enabled: true
+      file: compose.yaml
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false
+    hibernate:
+      ddl-auto: none
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: rabbitmq_admin
+    password: rabbitmq_admin
+system:
+  name:
+    mail: HRM System
+aws:
+  s3:
+    accessKeyId: AKIA2ZKIEPJATUNMPXY3
+    secretAccessKey: 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
+    region: ap-southeast-1
+    bucket: mrsoolx
+    object:
+      url: 'https://${aws.s3.bucket}.s3.${aws.s3.region}.amazonawszcom/'
+server:
+  address: 0.0.0.0
+  port: 8081

@@ -1,0 +1,5 @@
+'created_by','created_time','modified_by','modified_time','role'
+'ADMIN',now,,,'ADMIN'
+'ADMIN',now,,,'PROJECT_MANAGER'
+'ADMIN',now,,,'USER'
+'ADMIN',now,,,'IT_ADMIN'

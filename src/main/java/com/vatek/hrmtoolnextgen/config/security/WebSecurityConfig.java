@@ -1,0 +1,125 @@
+package com.vatek.hrmtoolnextgen.config.security;
+
+import com.vatek.hrmtoolnextgen.component.jwt.JwtAuthTokenFilter;
+import com.vatek.hrmtoolnextgen.component.jwt.UnauthorizedHandler;
+import com.vatek.hrmtoolnextgen.constant.RoleConstant;
+import com.vatek.hrmtoolnextgen.service.security.UserDetailsServiceImpl;
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.access.vote.AffirmativeBased;
+import org.springframework.security.access.vote.RoleHierarchyVoter;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Log4j2
+@Configuration
+@EnableWebSecurity
+@AllArgsConstructor
+public class WebSecurityConfig implements WebMvcConfigurer {
+    private final UserDetailsServiceImpl userDetailsService;
+    private final UnauthorizedHandler unauthorizedHandler;
+    @Bean
+    public JwtAuthTokenFilter authenticationJwtTokenFilter() {
+        return new JwtAuthTokenFilter();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        var authProvider = new DaoAuthenticationProvider();
+
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfiguration) throws Exception {
+        return authConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        String hierarchy =
+                RoleConstant.ADMIN +
+                " > " +
+                RoleConstant.IT_ADMIN +
+                " > " +
+                RoleConstant.PROJECT_MANAGER +
+                " > " +
+                RoleConstant.USER;
+        return RoleHierarchyImpl.fromHierarchy(hierarchy);
+    }
+
+    @Bean
+    public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
+        DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
+        expressionHandler.setRoleHierarchy(roleHierarchy);
+        return expressionHandler;
+    }
+
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y,10);
+    }
+
+    @Bean
+    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        // 1. CORS and CSRF Configuration
+        http
+                .cors(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable); // Use new lambda style for disabling
+
+
+        // 2. Authorization Rules
+        http
+                .authorizeHttpRequests(authz -> authz
+                                // Permit access to public endpoints
+                                .requestMatchers(
+                                        "/api/auth/**",
+                                        "/swagger-ui/**", // Permit Swagger UI
+                                        "/v3/api-docs/**" // Permit OpenAPI v3 docs (adjust path if necessary)
+                                ).permitAll()
+                                .anyRequest().authenticated()
+                );
+
+        http
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler)
+                );
+
+        http
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+
+        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+}
+

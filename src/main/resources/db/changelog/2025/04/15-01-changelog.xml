@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1744714464317-1" author="minhp">
+        <createTable tableName="day_off">
+            <column name="request_title" type="VARCHAR(255)"/>
+            <column name="request_reason" type="VARCHAR(255)"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="date_off" type="DATE">
+                <constraints primaryKey="true" primaryKeyName="pk_day_off"/>
+            </column>
+            <column name="type_day_off" type="VARCHAR(255)">
+                <constraints primaryKey="true" primaryKeyName="pk_day_off"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_day_off"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-2" author="minhp">
+        <createTable tableName="projects">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_projects"/>
+            </column>
+            <column name="create_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="DATETIME"/>
+            <column name="last_modified_by" type="BIGINT"/>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="project_status" type="VARCHAR(255)"/>
+            <column name="start_time" type="DATETIME"/>
+            <column name="end_time" type="DATETIME"/>
+            <column name="project_manager" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-3" author="minhp">
+        <createTable tableName="roles">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_roles"/>
+            </column>
+            <column name="create_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="DATETIME"/>
+            <column name="last_modified_by" type="BIGINT"/>
+            <column name="user_role" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-4" author="minhp">
+        <createTable tableName="timesheets">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_timesheets"/>
+            </column>
+            <column name="create_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="DATETIME"/>
+            <column name="last_modified_by" type="BIGINT"/>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="working_hours" type="INT"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="working_day" type="DATE"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="project_id" type="BIGINT"/>
+            <column name="user_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-5" author="minhp">
+        <createTable tableName="user_info_entity_program_language">
+            <column name="user_info_entity_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="program_language" type="SMALLINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-6" author="minhp">
+        <createTable tableName="user_infos">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_infos"/>
+            </column>
+            <column name="create_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="DATETIME"/>
+            <column name="last_modified_by" type="BIGINT"/>
+            <column name="first_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="identity_card" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone_number" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="avatar_url" type="VARCHAR(255)"/>
+            <column name="current_address" type="VARCHAR(255)"/>
+            <column name="permanent_address" type="VARCHAR(255)"/>
+            <column name="user_level" type="VARCHAR(255)"/>
+            <column name="user_position" type="VARCHAR(255)"/>
+            <column name="active" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-7" author="minhp">
+        <createTable tableName="users">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_users"/>
+            </column>
+            <column name="create_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="DATETIME"/>
+            <column name="last_modified_by" type="BIGINT"/>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)"/>
+            <column name="active" type="BOOLEAN"/>
+            <column name="user_info_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-8" author="minhp">
+        <createTable tableName="users_projects_working">
+            <column name="project_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-9" author="minhp">
+        <createTable tableName="users_roles">
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1744714464317-10" author="minhp">
+        <addUniqueConstraint columnNames="identity_card" constraintName="uc_user_infos_identity_card"
+                             tableName="user_infos"/>
+    </changeSet>
+    <changeSet id="1744714464317-11" author="minhp">
+        <addUniqueConstraint columnNames="phone_number" constraintName="uc_user_infos_phone_number"
+                             tableName="user_infos"/>
+    </changeSet>
+    <changeSet id="1744714464317-12" author="minhp">
+        <addUniqueConstraint columnNames="email" constraintName="uc_users_email" tableName="users"/>
+    </changeSet>
+    <changeSet id="1744714464317-13" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="day_off" constraintName="FK_DAY_OFF_ON_USER"
+                                 referencedColumnNames="id" referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1744714464317-14" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="project_manager" baseTableName="projects"
+                                 constraintName="FK_PROJECTS_ON_PROJECT_MANAGER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1744714464317-15" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="timesheets"
+                                 constraintName="FK_TIMESHEETS_ON_PROJECT" referencedColumnNames="id"
+                                 referencedTableName="projects"/>
+    </changeSet>
+    <changeSet id="1744714464317-16" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="timesheets"
+                                 constraintName="FK_TIMESHEETS_ON_USER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1744714464317-17" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="user_info_id" baseTableName="users"
+                                 constraintName="FK_USERS_ON_USERINFO" referencedColumnNames="id"
+                                 referencedTableName="user_infos"/>
+    </changeSet>
+    <changeSet id="1744714464317-18" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="users_projects_working"
+                                 constraintName="fk_useprowor_on_project_entity" referencedColumnNames="id"
+                                 referencedTableName="projects"/>
+    </changeSet>
+    <changeSet id="1744714464317-19" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="users_projects_working"
+                                 constraintName="fk_useprowor_on_user_entity" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1744714464317-20" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="user_info_entity_id" baseTableName="user_info_entity_program_language"
+                                 constraintName="fk_userinfoentity_programlanguage_on_user_info_entity"
+                                 referencedColumnNames="id" referencedTableName="user_infos"/>
+    </changeSet>
+    <changeSet id="1744714464317-21" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="users_roles"
+                                 constraintName="fk_userol_on_role_entity" referencedColumnNames="id"
+                                 referencedTableName="roles"/>
+    </changeSet>
+    <changeSet id="1744714464317-22" author="minhp">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="users_roles"
+                                 constraintName="fk_userol_on_user_entity" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+
+</databaseChangeLog>

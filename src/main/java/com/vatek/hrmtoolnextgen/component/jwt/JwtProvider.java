@@ -1,0 +1,80 @@
+package com.vatek.hrmtoolnextgen.component.jwt;
+
+import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
+import com.vatek.hrmtoolnextgen.util.DateUtils;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+import javax.crypto.SecretKey;
+import java.time.Instant;
+
+@Component
+@Log4j2
+@RequiredArgsConstructor
+public class JwtProvider {
+
+    @Value("${hrm.app.jwtSecret}")
+    private String jwtSecret;
+
+    @Value("${hrm.app.jwtExpiration}")
+    private long jwtExpiration;
+
+    private final UserTokenRedisRepository userTokenRedisRepository;
+
+    public String generateJwtToken(Authentication authentication) {
+        UserPrincipalDto userPrincipal = (UserPrincipalDto) authentication.getPrincipal();
+        return generateJwtToken(userPrincipal);
+    }
+
+    public String generateJwtToken(UserPrincipalDto userPrincipal) {
+        return generateTokenFromEmail(userPrincipal.getEmail(),userPrincipal.getId());
+    }
+
+    public String generateTokenFromEmail(String email, Long id) {
+        Instant expired = Instant.now().plusMillis(jwtExpiration);
+
+        return Jwts
+                .builder()
+                .id(String.valueOf(id))
+                .subject(email)
+                .issuedAt(DateUtils.convertInstantToDate(Instant.now()))
+                .expiration(DateUtils.convertInstantToDate(expired))
+                .signWith(getSecretKey())
+                .compact();
+    }
+
+    public String getEmailFromJwtToken(String token) {
+        return getSignedClaims(token).getPayload().getSubject();
+    }
+
+    public Long getRemainTimeFromJwtToken(String token) {
+        return getSignedClaims(token)
+                .getPayload()
+                .getExpiration()
+                .getTime() - DateUtils.getInstantLong();
+    }
+
+    public boolean validateJwtToken(String authToken) {
+        try {
+            return getRemainTimeFromJwtToken(authToken) > 0;
+        } catch (Exception e) {
+            log.error("Error validateJwtToken -> Message : ",e);
+        }
+        return false;
+    }
+
+    private Jws<Claims> getSignedClaims(String authToken) {
+        return Jwts.parser().verifyWith(getSecretKey()).build().parseSignedClaims(authToken);
+    }
+
+    private SecretKey getSecretKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    }
+}

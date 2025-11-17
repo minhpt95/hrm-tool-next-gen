@@ -26,8 +26,8 @@ public class CreateProjectRequest {
     private String projectDescription;
 
     @NotNull
-    @Schema(description = "Email of the assigned project manager")
-    private String projectManager;
+    @Schema(description = "ID of the assigned project manager")
+    private Long projectManager;
 
     @Schema(description = "IDs of users to add as project members")
     private List<Long> memberId;

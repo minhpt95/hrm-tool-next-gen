@@ -11,8 +11,8 @@
     <groupId>com.vatek</groupId>
     <artifactId>hrm-tool-next-gen</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>${project.name}</name>
-    <description>${project.description}</description>
+    <name>HRM Tool Next Gen</name>
+    <description>Backend services for the HRM Tool Next Gen platform</description>
     <properties>
         <name>Vatek HRM Tool Next Gen</name>
         <description>Backend HRM Tool using Spring Boot Next Gen</description>
@@ -154,6 +154,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 

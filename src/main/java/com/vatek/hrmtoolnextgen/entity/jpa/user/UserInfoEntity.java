@@ -13,10 +13,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "user_infos")
-@Data
 public class UserInfoEntity extends IdentityEntity {
 
     @Column(name = "first_name",nullable = false)

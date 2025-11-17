@@ -24,7 +24,7 @@ public class UserDto {
     private UserInfoDto userInfo;
 
     @Schema(description = "Account enabled flag")
-    private boolean isEnabled;
+    private boolean enabled;
 
     @Schema(description = "Roles granted to the employee")
     private Collection<RoleDto> roles;

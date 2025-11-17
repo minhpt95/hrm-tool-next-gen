@@ -10,16 +10,19 @@ import org.mapstruct.*;
 @Mapper(
         componentModel = "spring",
         uses = {UserMapping.class},
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        implementationName = "ProjectCrudMappingImpl"
 )
 public interface ProjectMapping extends BasePagingMapper<ProjectDto, ProjectEntity> {
     
     @Override
+    @Mapping(target = "delete", source = "isDelete")
     ProjectEntity toEntity(ProjectDto dto);
 
     @Mappings({
             @Mapping(target = "managerUser", source = "projectManager"),
-            @Mapping(target = "members", source = "members")
+            @Mapping(target = "members", source = "members"),
+            @Mapping(target = "isDelete", source = "delete")
     })
     @Override
     ProjectDto toDto(ProjectEntity entity);
@@ -31,7 +34,8 @@ public interface ProjectMapping extends BasePagingMapper<ProjectDto, ProjectEnti
     @Mapping(target = "startTime", ignore = true)
     @Mapping(target = "endTime", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "isDelete", ignore = true)
+    @Mapping(target = "delete", ignore = true)
+    @Mapping(target = "active", ignore = true)
     @Mapping(target = "timesheetEntities", ignore = true)
     ProjectEntity fromCreateRequest(CreateProjectRequest request);
 
@@ -42,7 +46,8 @@ public interface ProjectMapping extends BasePagingMapper<ProjectDto, ProjectEnti
     @Mapping(target = "startTime", ignore = true)
     @Mapping(target = "endTime", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "isDelete", ignore = true)
+    @Mapping(target = "delete", ignore = true)
+    @Mapping(target = "active", ignore = true)
     @Mapping(target = "timesheetEntities", ignore = true)
     void updateEntityFromRequest(UpdateProjectRequest request, @MappingTarget ProjectEntity entity);
 }

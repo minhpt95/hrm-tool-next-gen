@@ -49,7 +49,7 @@ public class ProjectService {
     public ProjectDto createProject(CreateProjectRequest request) {
         // Check if project name already exists
         projectRepository.findAll().stream()
-                .filter(p -> p.getName().equalsIgnoreCase(request.getProjectName()) && !p.getIsDelete())
+                .filter(p -> p.getName().equalsIgnoreCase(request.getProjectName()) && !p.isDelete())
                 .findFirst()
                 .ifPresent(p -> {
                     throw new BadRequestException("Project with name '" + request.getProjectName() + "' already exists");
@@ -59,8 +59,8 @@ public class ProjectService {
         
         // Set project manager
         if (request.getProjectManager() != null) {
-            UserEntity manager = userRepository.findByEmail(request.getProjectManager())
-                    .orElseThrow(() -> new BadRequestException("Project manager not found with email: " + request.getProjectManager()));
+            UserEntity manager = userRepository.findById(request.getProjectManager())
+                    .orElseThrow(() -> new BadRequestException("Project manager not found with id: " + request.getProjectManager()));
             projectEntity.setProjectManager(manager);
         }
 
@@ -81,7 +81,7 @@ public class ProjectService {
             members.forEach(projectEntity::addMemberToProject);
         }
 
-        projectEntity.setIsDelete(false);
+        projectEntity.setDelete(false);
         ProjectEntity savedEntity = projectRepository.save(projectEntity);
         log.info("Created project with id: {}", savedEntity.getId());
         return projectMapping.toDto(savedEntity);
@@ -92,7 +92,7 @@ public class ProjectService {
         ProjectEntity projectEntity = projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Project not found with id: " + id));
 
-        if (projectEntity.getIsDelete()) {
+        if (projectEntity.isDelete()) {
             throw new BadRequestException("Cannot update deleted project");
         }
 
@@ -100,7 +100,7 @@ public class ProjectService {
         if (request.getProjectName() != null && !request.getProjectName().equals(projectEntity.getName())) {
             projectRepository.findAll().stream()
                     .filter(p -> p.getName().equalsIgnoreCase(request.getProjectName()) 
-                            && !p.getIsDelete() 
+                            && !p.isDelete() 
                             && !p.getId().equals(id))
                     .findFirst()
                     .ifPresent(p -> {
@@ -113,8 +113,8 @@ public class ProjectService {
 
         // Update project manager
         if (request.getProjectManager() != null) {
-            UserEntity manager = userRepository.findByEmail(request.getProjectManager())
-                    .orElseThrow(() -> new BadRequestException("Project manager not found with email: " + request.getProjectManager()));
+            UserEntity manager = userRepository.findById(request.getProjectManager())
+                    .orElseThrow(() -> new BadRequestException("Project manager not found with id: " + request.getProjectManager()));
             projectEntity.setProjectManager(manager);
         }
 
@@ -151,11 +151,11 @@ public class ProjectService {
         ProjectEntity projectEntity = projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Project not found with id: " + id));
 
-        if (projectEntity.getIsDelete()) {
+        if (projectEntity.isDelete()) {
             throw new BadRequestException("Project already deleted");
         }
 
-        projectEntity.setIsDelete(true);
+        projectEntity.setDelete(true);
         projectRepository.save(projectEntity);
         log.info("Deleted project with id: {}", id);
     }

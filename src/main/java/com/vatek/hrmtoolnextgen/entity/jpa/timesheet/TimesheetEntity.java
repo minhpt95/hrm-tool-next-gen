@@ -8,18 +8,15 @@ import com.vatek.hrmtoolnextgen.enumeration.ETimesheetStatus;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetType;
 import jakarta.persistence.*;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.time.ZonedDateTime;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "timesheets")
-@Data
+@Getter
+@Setter
 public class TimesheetEntity extends IdentityEntity {
     @Column
     private String title;

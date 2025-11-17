@@ -24,6 +24,7 @@ public interface UserMapping extends BasePagingMapper<UserDto, UserEntity> {
     @Mappings({
             @Mapping(target = "id",source = "id"),
             @Mapping(target = "roles",source = "roles"),
+            @Mapping(target = "enabled", source = "active"),
     })
     @Named("toCustomDto")
     UserDto toCustomDto(UserEntity userEntity);

@@ -5,18 +5,17 @@ import com.vatek.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "projects")
-@Data
+@Getter
+@Setter
 public class ProjectEntity extends IdentityEntity {
     @Column
     private String name;
@@ -49,7 +48,6 @@ public class ProjectEntity extends IdentityEntity {
             CascadeType.REFRESH,
     })
     private Collection<UserEntity> members;
-
 
     public void addMemberToProject(UserEntity userEntity) {
         if(members == null){

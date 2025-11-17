@@ -1,6 +1,7 @@
 package com.vatek.hrmtoolnextgen.config.security;
 
 import com.vatek.hrmtoolnextgen.component.jwt.JwtAuthTokenFilter;
+import com.vatek.hrmtoolnextgen.component.jwt.JwtProvider;
 import com.vatek.hrmtoolnextgen.component.jwt.UnauthorizedHandler;
 import com.vatek.hrmtoolnextgen.constant.RoleConstant;
 import com.vatek.hrmtoolnextgen.service.security.UserDetailsServiceImpl;
@@ -39,9 +40,10 @@ import java.util.List;
 public class WebSecurityConfig implements WebMvcConfigurer {
     private final UserDetailsServiceImpl userDetailsService;
     private final UnauthorizedHandler unauthorizedHandler;
+    private final JwtProvider jwtProvider;
     @Bean
     public JwtAuthTokenFilter authenticationJwtTokenFilter() {
-        return new JwtAuthTokenFilter();
+        return new JwtAuthTokenFilter(jwtProvider, userDetailsService);
     }
 
     @Bean

@@ -122,7 +122,7 @@ public class UserService {
 
         // Update active status
         if (request.getActive() != null) {
-            userEntity.setActive(request.getActive());
+            userEntity.setActive(Boolean.TRUE.equals(request.getActive()));
         }
 
         // Update user info

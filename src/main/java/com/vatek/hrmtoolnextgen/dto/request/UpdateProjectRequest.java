@@ -23,8 +23,8 @@ public class UpdateProjectRequest {
     @Schema(description = "Updated project description")
     private String projectDescription;
 
-    @Schema(description = "Email of the new project manager")
-    private String projectManager;
+    @Schema(description = "ID of the new project manager")
+    private Long projectManager;
 
     @Schema(description = "Replacement list of member IDs")
     private List<Long> memberId;

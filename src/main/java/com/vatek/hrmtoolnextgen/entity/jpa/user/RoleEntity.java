@@ -3,13 +3,17 @@ package com.vatek.hrmtoolnextgen.entity.jpa.user;
 import com.vatek.hrmtoolnextgen.entity.common.IdentityEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Collection;
 
 @Entity
 @Table(name = "roles")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoleEntity extends IdentityEntity {

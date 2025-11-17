@@ -6,8 +6,8 @@ import com.vatek.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.Fetch;
@@ -16,10 +16,10 @@ import org.hibernate.annotations.FetchMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 public class UserEntity extends IdentityEntity {
 
     @Column(name = "email",unique = true,nullable = false)
@@ -27,9 +27,6 @@ public class UserEntity extends IdentityEntity {
 
     @Column(name = "password")
     private String password;
-
-    @Column(name = "active")
-    private boolean active;
 
     @OneToOne(targetEntity = UserInfoEntity.class,cascade = CascadeType.ALL)
     @Fetch(value = FetchMode.JOIN)

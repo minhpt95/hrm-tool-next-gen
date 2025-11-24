@@ -25,12 +25,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
@@ -41,6 +39,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     private final UserDetailsServiceImpl userDetailsService;
     private final UnauthorizedHandler unauthorizedHandler;
     private final JwtProvider jwtProvider;
+
     @Bean
     public JwtAuthTokenFilter authenticationJwtTokenFilter() {
         return new JwtAuthTokenFilter(jwtProvider, userDetailsService);
@@ -48,9 +47,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        var authProvider = new DaoAuthenticationProvider();
-
-        authProvider.setUserDetailsService(userDetailsService);
+        var authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
 
         return authProvider;
@@ -65,12 +62,12 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     public RoleHierarchy roleHierarchy() {
         String hierarchy =
                 RoleConstant.ADMIN +
-                " > " +
-                RoleConstant.IT_ADMIN +
-                " > " +
-                RoleConstant.PROJECT_MANAGER +
-                " > " +
-                RoleConstant.USER;
+                        " > " +
+                        RoleConstant.IT_ADMIN +
+                        " > " +
+                        RoleConstant.PROJECT_MANAGER +
+                        " > " +
+                        RoleConstant.USER;
         return RoleHierarchyImpl.fromHierarchy(hierarchy);
     }
 
@@ -81,10 +78,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         return expressionHandler;
     }
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y,10);
+        return new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y, 10);
     }
 
     @Bean
@@ -99,13 +95,13 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         // 2. Authorization Rules
         http
                 .authorizeHttpRequests(authz -> authz
-                                // Permit access to public endpoints
-                                .requestMatchers(
-                                        "/api/auth/**",
-                                        "/swagger-ui/**", // Permit Swagger UI
-                                        "/v3/api-docs/**" // Permit OpenAPI v3 docs (adjust path if necessary)
-                                ).permitAll()
-                                .anyRequest().authenticated()
+                        // Permit access to public endpoints
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/swagger-ui/**", // Permit Swagger UI
+                                "/v3/api-docs/**" // Permit OpenAPI v3 docs (adjust path if necessary)
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 );
 
         http
@@ -122,6 +118,11 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        WebMvcConfigurer.super.addArgumentResolvers(resolvers);
     }
 }
 

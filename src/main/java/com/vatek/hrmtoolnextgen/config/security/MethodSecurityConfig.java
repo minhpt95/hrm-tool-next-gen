@@ -1,29 +1,24 @@
 package com.vatek.hrmtoolnextgen.config.security;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
-@AllArgsConstructor
-public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+@EnableMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor
+public class MethodSecurityConfig {
 
-    private WebSecurityConfig webSecurityConfig;
+    private final WebSecurityConfig webSecurityConfig;
 
-    @Override
-    protected AuthenticationManager authenticationManager() throws Exception {
-        return super.authenticationManager();
-    }
-
-    @Override
-    protected MethodSecurityExpressionHandler createExpressionHandler() {
-        var d = new DefaultMethodSecurityExpressionHandler();
-        d.setRoleHierarchy(webSecurityConfig.roleHierarchy());
-        return d;
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        var handler = new DefaultMethodSecurityExpressionHandler();
+        handler.setRoleHierarchy(webSecurityConfig.roleHierarchy());
+        return handler;
     }
 }
+

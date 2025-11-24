@@ -7,8 +7,6 @@ import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 
 import javax.sql.DataSource;
 
@@ -17,7 +15,6 @@ import javax.sql.DataSource;
 @Log4j2
 @EnableConfigurationProperties(LiquibaseProperties.class)
 public class LiquibaseConfiguration {
-    private final Environment env;
 
     @Bean
     public SpringLiquibase liquibase(DataSource dataSource, LiquibaseProperties liquibaseProperties) {
@@ -32,3 +29,4 @@ public class LiquibaseConfiguration {
         return liquibase;
     }
 }
+

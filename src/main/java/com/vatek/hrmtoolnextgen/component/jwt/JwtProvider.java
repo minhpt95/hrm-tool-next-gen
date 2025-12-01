@@ -26,8 +26,6 @@ public class JwtProvider {
     @Value("${hrm.app.jwtExpiration}")
     private long jwtExpiration;
 
-    private final UserTokenRedisRepository userTokenRedisRepository;
-
     public String generateJwtToken(Authentication authentication) {
         UserPrincipalDto userPrincipal = (UserPrincipalDto) authentication.getPrincipal();
         return generateJwtToken(userPrincipal);

@@ -1,0 +1,10 @@
+# Ignore sensitive files
+secrets.yaml
+secrets.yaml.local
+secrets.local.yaml
+*.secret.yaml
+
+# Temporary files
+*.tmp
+*.bak
+

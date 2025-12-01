@@ -1,0 +1,41 @@
+spring:
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:redis-service}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      database: ${SPRING_DATA_REDIS_DATABASE:10}
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql-service:3306/hrm?createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driverClassName: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:com.mysql.cj.jdbc.Driver}
+  docker:
+    compose:
+      enabled: false
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+    hibernate:
+      ddl-auto: none
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq-service}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME}
+    password: ${SPRING_RABBITMQ_PASSWORD}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:hrm}
+server:
+  address: 0.0.0.0
+  port: ${SERVER_PORT:8081}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+

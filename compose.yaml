@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: hrm-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: hrm
+      MYSQL_USER: mysqladmin
+      MYSQL_PASSWORD: mysqladmin
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "mysqladmin", "-pmysqladmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hrm-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: hrm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - hrm-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hrm-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq_admin
+      RABBITMQ_DEFAULT_PASS: rabbitmq_admin
+      RABBITMQ_DEFAULT_VHOST: local
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - hrm-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hrm-app
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/hrm?createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: mysqladmin
+      SPRING_DATASOURCE_PASSWORD: mysqladmin
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_DATABASE: 10
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: rabbitmq_admin
+      SPRING_RABBITMQ_PASSWORD: rabbitmq_admin
+      SPRING_RABBITMQ_VIRTUAL_HOST: local
+      SERVER_PORT: 8081
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - hrm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  hrm-network:
+    driver: bridge
+

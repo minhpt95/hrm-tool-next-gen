@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${sys:PID} --- [%15.15t] %-40.40c{1.} : %m%n%ex</Property>
+        <Property name="LOG_DIR">logs</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console Appender with Custom JSON Layout (Colored) -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <CustomJsonLayout charset="UTF-8" colorEnabled="true"/>
+        </Console>
+
+        <!-- File Appender with Custom JSON Layout -->
+        <RollingFile name="FileAppender" fileName="${LOG_DIR}/app.log"
+                     filePattern="${LOG_DIR}/app-%d{yyyy-MM-dd}-%i.log.gz">
+            <CustomJsonLayout charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
+        <!-- Error File Appender with Custom JSON Layout -->
+        <RollingFile name="ErrorFileAppender" fileName="${LOG_DIR}/error/app-error.log"
+                     filePattern="${LOG_DIR}/error/app-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <CustomJsonLayout charset="UTF-8"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
+        <!-- Debug File Appender with Custom JSON Layout -->
+        <RollingFile name="DebugFileAppender" fileName="${LOG_DIR}/debug/app-debug.log"
+                     filePattern="${LOG_DIR}/debug/app-debug-%d{yyyy-MM-dd}-%i.log.gz">
+            <CustomJsonLayout charset="UTF-8"/>
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
+        <!-- Info File Appender with Custom JSON Layout -->
+        <RollingFile name="InfoFileAppender" fileName="${LOG_DIR}/info/app-info.log"
+                     filePattern="${LOG_DIR}/info/app-info-%d{yyyy-MM-dd}-%i.log.gz">
+            <CustomJsonLayout charset="UTF-8"/>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
+        <!-- Performance File Appender with Custom JSON Layout -->
+        <RollingFile name="PerfFileAppender" fileName="${LOG_DIR}/perf/app-perf.log"
+                     filePattern="${LOG_DIR}/perf/app-perf-%d{yyyy-MM-dd}-%i.log.gz">
+            <CustomJsonLayout charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
+        <!-- Trace File Appender with Custom JSON Layout -->
+        <RollingFile name="TraceFileAppender" fileName="${LOG_DIR}/trace/app-trace.log"
+                     filePattern="${LOG_DIR}/trace/app-trace-%d{yyyy-MM-dd}-%i.log.gz">
+            <CustomJsonLayout charset="UTF-8"/>
+            <ThresholdFilter level="TRACE" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Application Loggers -->
+        <Logger name="com.vatek.hrmtoolnextgen" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="ErrorFileAppender"/>
+            <AppenderRef ref="DebugFileAppender"/>
+            <AppenderRef ref="InfoFileAppender"/>
+            <AppenderRef ref="PerfFileAppender"/>
+            <AppenderRef ref="TraceFileAppender"/>
+        </Logger>
+
+        <!-- Root Logger -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="ErrorFileAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
+

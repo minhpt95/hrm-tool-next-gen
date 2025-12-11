@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -192,7 +191,7 @@ public class AuthService {
         List<RoleEntity> roles = roleRepository.findByUserRoleIn(registerRequest.getRoles().stream().toList());
 
         if (!roles.isEmpty()) {
-            userEntity.setRoles(new HashSet<>(roles));
+            userEntity.setRoles(roles);
         }
 
         String password = CommonUtils.randomPassword(12);

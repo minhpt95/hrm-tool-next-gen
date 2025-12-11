@@ -5,10 +5,8 @@ import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
-import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserInfoEntity;
-import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.mapping.UserMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
@@ -21,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -98,7 +95,7 @@ public class UserService {
             var roles = request.getRoles().stream()
                     .map(roleRepository::findByUserRole)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toList());
             userEntity.setRoles(roles);
         }
 
@@ -165,7 +162,7 @@ public class UserService {
             var roles = request.getRoles().stream()
                     .map(roleRepository::findByUserRole)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toList());
             userEntity.setRoles(roles);
         }
 

@@ -9,12 +9,11 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 
-public interface UserRepository extends JpaRepository<UserEntity, Long> , JpaSpecificationExecutor<UserEntity> {
+public interface UserRepository extends JpaRepository<UserEntity, Long>, JpaSpecificationExecutor<UserEntity> {
 
-    Optional<UserEntity> findByEmailOrUserInfo_IdentityCard(String email,String identityCard);
+    Optional<UserEntity> findByEmailOrUserInfo_IdentityCard(String email, String identityCard);
 
     Optional<UserEntity> findByEmail(String email);
 
@@ -26,6 +25,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> , JpaSpe
 
     UserEntity findUserEntityByEmail(String email);
 
-    Collection<UserEntity> findUserEntitiesByIdIn(List<UUID> id);
+    Collection<UserEntity> findUserEntitiesByIdIn(List<Long> ids);
 
 }

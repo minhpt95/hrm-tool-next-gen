@@ -26,22 +26,22 @@ public class ProjectEntity extends IdentityEntity {
     @Column(name = "project_status")
     @Enumerated(EnumType.STRING)
     private EProjectStatus projectStatus;
-
-    @Column(name = "start_time")
+    
+    @Column(name = "start_time", columnDefinition = "DATE")
     private ZonedDateTime startTime;
 
-    @Column(name = "end_time")
+    @Column(name = "end_time", columnDefinition = "DATE")
     private ZonedDateTime endTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_manager")
     private UserEntity projectManager;
 
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "projectEntity")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "projectEntity")
     @OrderBy("workingDay asc")
     private Collection<TimesheetEntity> timesheetEntities = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY,mappedBy = "workingProject",cascade = {
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "workingProject", cascade = {
             CascadeType.DETACH,
             CascadeType.MERGE,
             CascadeType.PERSIST,
@@ -50,7 +50,7 @@ public class ProjectEntity extends IdentityEntity {
     private Collection<UserEntity> members;
 
     public void addMemberToProject(UserEntity userEntity) {
-        if(members == null){
+        if (members == null) {
             members = new ArrayList<>();
         }
         members.add(userEntity);

@@ -2,6 +2,7 @@ package com.vatek.hrmtoolnextgen.entity.jpa.dayoff;
 
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EDayOffStatus;
+import com.vatek.hrmtoolnextgen.enumeration.EDayOffType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,7 +41,7 @@ public class DayOffEntity {
 
         @Column
         @Enumerated(EnumType.STRING)
-        private EDayOffStatus typeDayOff;
+        private EDayOffType type;
 
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "user_id")

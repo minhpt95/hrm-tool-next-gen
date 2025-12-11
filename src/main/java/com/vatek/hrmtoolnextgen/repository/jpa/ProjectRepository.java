@@ -11,9 +11,7 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long>, J
     @Override
     @EntityGraph(attributePaths = {
             "projectManager",
-            "projectManager.roles",
-            "members",
-            "members.roles"
+            "members"
     })
     Page<ProjectEntity> findAll(Pageable pageable);
 }

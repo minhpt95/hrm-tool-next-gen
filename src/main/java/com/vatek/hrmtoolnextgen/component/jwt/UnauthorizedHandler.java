@@ -21,6 +21,6 @@ public class UnauthorizedHandler implements AuthenticationEntryPoint {
                          AuthenticationException e)
             throws IOException {
 
-        log.error("Unauthorized error. Message - {}", e.getMessage());
+        log.error("Unauthorized error. Message : {} , {}", request.getRequestURL(), e);
     }
 }

@@ -11,7 +11,9 @@ public enum EUserRole implements GrantedAuthority {
     ADMIN(RoleConstant.ADMIN),
     IT_ADMIN(RoleConstant.IT_ADMIN),
     PROJECT_MANAGER(RoleConstant.PROJECT_MANAGER),
-    USER(RoleConstant.USER),;
+    USER(RoleConstant.USER),
+    HR(RoleConstant.HR),
+    ;
 
     private final String authority;
 

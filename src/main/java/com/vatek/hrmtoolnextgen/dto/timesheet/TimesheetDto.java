@@ -1,6 +1,7 @@
 package com.vatek.hrmtoolnextgen.dto.timesheet;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetStatus;
@@ -21,6 +22,7 @@ public class TimesheetDto {
     private String description;
     private Integer workingHours;
     private ETimesheetType timesheetType;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate workingDay;
     private ETimesheetStatus status;
     private ProjectDto projectEntity;

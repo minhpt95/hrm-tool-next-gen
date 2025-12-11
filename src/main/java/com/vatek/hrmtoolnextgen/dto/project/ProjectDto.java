@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.dto.project;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -39,8 +40,10 @@ public class ProjectDto {
     private List<UserDto> members;
 
     @Schema(description = "Planned start time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate startTime;
 
     @Schema(description = "Planned end time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate endTime;
 }

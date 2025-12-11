@@ -26,8 +26,8 @@
                 identity_card,
                 phone_number
             ) VALUES (
-                NOW(),
-                'SYSTEM',
+                CURRENT_TIMESTAMP,
+                0,
                 FALSE,
                 TRUE,
                 'Admin',
@@ -62,8 +62,8 @@
                 password,
                 user_info_id
             ) VALUES (
-                NOW(),
-                'SYSTEM',
+                CURRENT_TIMESTAMP,
+                0,
                 FALSE,
                 TRUE,
                 'admin@vatek.com',
@@ -90,8 +90,8 @@
                 is_active,
                 user_role
             ) VALUES (
-                NOW(),
-                'SYSTEM',
+                CURRENT_TIMESTAMP,
+                0,
                 FALSE,
                 TRUE,
                 'ADMIN'

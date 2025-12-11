@@ -17,24 +17,24 @@ import java.util.Optional;
 public class JpaAuditingConfig {
 
     @Bean
-    public AuditorAware<String> auditorProvider() {
+    public AuditorAware<Long> auditorProvider() {
         return new SpringSecurityAuditorAware();
     }
 
     /**
      * Implementation of AuditorAware to get the current user ID from Spring Security context
-     * Returns the user ID as String to match the database column type (VARCHAR)
+     * Returns the user ID as Long to match the database column type (BIGINT)
      */
-    private static class SpringSecurityAuditorAware implements AuditorAware<String> {
+    private static class SpringSecurityAuditorAware implements AuditorAware<Long> {
 
         @Override
-        public Optional<String> getCurrentAuditor() {
+        public Optional<Long> getCurrentAuditor() {
             try {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
                 if (authentication == null || !authentication.isAuthenticated()) {
-                    log.debug("No authentication found, returning SYSTEM as default auditor");
-                    return Optional.of("SYSTEM");
+                    log.debug("No authentication found, returning 0 (system) as auditor");
+                    return Optional.of(0L);
                 }
 
                 Object principal = authentication.getPrincipal();
@@ -43,17 +43,16 @@ public class JpaAuditingConfig {
                     UserPrincipalDto userPrincipal = (UserPrincipalDto) principal;
                     Long userId = userPrincipal.getId();
                     if (userId != null) {
-                        String userIdString = String.valueOf(userId);
-                        log.debug("Current auditor: {}", userIdString);
-                        return Optional.of(userIdString);
+                        log.debug("Current auditor: {}", userId);
+                        return Optional.of(userId);
                     }
                 }
 
-                log.debug("Principal is not UserPrincipalDto or has no ID, returning SYSTEM as default auditor");
-                return Optional.of("SYSTEM");
+                log.debug("Principal is not UserPrincipalDto or has no ID, returning 0 (system) as auditor");
+                return Optional.of(0L);
             } catch (Exception e) {
-                log.warn("Error getting current auditor: {}, using SYSTEM as default", e.getMessage());
-                return Optional.of("SYSTEM");
+                log.warn("Error getting current auditor: {}, using 0 (system) as default", e.getMessage());
+                return Optional.of(0L);
             }
         }
     }

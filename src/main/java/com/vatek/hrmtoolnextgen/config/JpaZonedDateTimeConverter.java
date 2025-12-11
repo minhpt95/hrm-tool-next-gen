@@ -9,7 +9,7 @@ import java.time.ZonedDateTime;
 
 /**
  * JPA Converter to convert between LocalDateTime (database) and ZonedDateTime (entity)
- * MySQL DATETIME doesn't store timezone information, so we convert to/from system default timezone
+ * PostgreSQL TIMESTAMP doesn't store timezone information, so we convert to/from system default timezone
  */
 @Converter(autoApply = true)
 public class JpaZonedDateTimeConverter implements AttributeConverter<ZonedDateTime, LocalDateTime> {

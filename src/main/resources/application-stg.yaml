@@ -10,10 +10,10 @@ spring:
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
   datasource:
-    url: 'jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:hrm_stg}?useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true&useSSL=true&requireSSL=true'
+    url: 'jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hrm_stg}'
     username: ${DB_USERNAME:}
     password: ${DB_PASSWORD:}
-    driverClassName: com.mysql.cj.jdbc.Driver
+    driverClassName: org.postgresql.Driver
   docker:
     compose:
       enabled: false

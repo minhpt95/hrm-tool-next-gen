@@ -31,7 +31,7 @@ public class AuditableEntity implements Serializable {
     private static final long serialVersionUID = 4017054090299241908L;
 
     @CreatedDate
-    @Column(name = "create_date", nullable = false, updatable = false, columnDefinition = "DATETIME")
+    @Column(name = "create_date", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
     @Convert(converter = com.vatek.hrmtoolnextgen.config.JpaZonedDateTimeConverter.class)
     @JsonIgnore
     private ZonedDateTime createdDate;
@@ -42,7 +42,7 @@ public class AuditableEntity implements Serializable {
     private String createdBy;
 
     @LastModifiedDate
-    @Column(name = "last_modified_date", columnDefinition = "DATETIME")
+    @Column(name = "last_modified_date", columnDefinition = "TIMESTAMP")
     @Convert(converter = com.vatek.hrmtoolnextgen.config.JpaZonedDateTimeConverter.class)
     @JsonIgnore
     private ZonedDateTime lastModifiedDate;

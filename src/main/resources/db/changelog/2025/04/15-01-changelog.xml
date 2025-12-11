@@ -23,17 +23,17 @@
     </changeSet>
     <changeSet id="1744714464317-2" author="minhp">
         <createTable tableName="projects">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_projects"/>
             </column>
-            <column name="create_date" type="DATETIME">
+            <column name="create_date" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="create_by" type="VARCHAR(255)">
+            <column name="create_by" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="last_modified_date" type="DATETIME"/>
-            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="BIGINT"/>
             <column name="is_delete" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
@@ -50,17 +50,17 @@
     </changeSet>
     <changeSet id="1744714464317-3" author="minhp">
         <createTable tableName="roles">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_roles"/>
             </column>
-            <column name="create_date" type="DATETIME">
+            <column name="create_date" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="create_by" type="VARCHAR(255)">
+            <column name="create_by" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="last_modified_date" type="DATETIME"/>
-            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="BIGINT"/>
             <column name="is_delete" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
@@ -72,17 +72,17 @@
     </changeSet>
     <changeSet id="1744714464317-4" author="minhp">
         <createTable tableName="timesheets">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_timesheets"/>
             </column>
-            <column name="create_date" type="DATETIME">
+            <column name="create_date" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="create_by" type="VARCHAR(255)">
+            <column name="create_by" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="last_modified_date" type="DATETIME"/>
-            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="BIGINT"/>
             <column name="is_delete" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
@@ -109,17 +109,17 @@
     </changeSet>
     <changeSet id="1744714464317-6" author="minhp">
         <createTable tableName="user_infos">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_infos"/>
             </column>
-            <column name="create_date" type="DATETIME">
+            <column name="create_date" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="create_by" type="VARCHAR(255)">
+            <column name="create_by" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="last_modified_date" type="DATETIME"/>
-            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="BIGINT"/>
             <column name="is_delete" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
@@ -148,17 +148,17 @@
     </changeSet>
     <changeSet id="1744714464317-7" author="minhp">
         <createTable tableName="users">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_users"/>
             </column>
-            <column name="create_date" type="DATETIME">
+            <column name="create_date" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="create_by" type="VARCHAR(255)">
+            <column name="create_by" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="last_modified_date" type="DATETIME"/>
-            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="BIGINT"/>
             <column name="is_delete" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>

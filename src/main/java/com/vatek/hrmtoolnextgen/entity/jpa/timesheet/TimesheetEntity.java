@@ -1,7 +1,6 @@
 package com.vatek.hrmtoolnextgen.entity.jpa.timesheet;
 
 
-import com.vatek.hrmtoolnextgen.config.JpaZonedDateTimeDateConverter;
 import com.vatek.hrmtoolnextgen.entity.common.IdentityEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
@@ -33,7 +32,6 @@ public class TimesheetEntity extends IdentityEntity {
     private ETimesheetType type;
 
     @Column(columnDefinition = "DATE")
-    @Convert(converter = JpaZonedDateTimeDateConverter.class)
     private ZonedDateTime workingDay;
 
     @Column

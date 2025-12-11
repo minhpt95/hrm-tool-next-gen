@@ -23,8 +23,8 @@
                 is_active,
                 user_role
             ) VALUES (
-                NOW(),
-                'SYSTEM',
+                CURRENT_TIMESTAMP,
+                0,
                 FALSE,
                 TRUE,
                 'ADMIN'
@@ -49,8 +49,8 @@
                 is_active,
                 user_role
             ) VALUES (
-                NOW(),
-                'SYSTEM',
+                CURRENT_TIMESTAMP,
+                0,
                 FALSE,
                 TRUE,
                 'IT_ADMIN'
@@ -75,8 +75,8 @@
                 is_active,
                 user_role
             ) VALUES (
-                NOW(),
-                'SYSTEM',
+                CURRENT_TIMESTAMP,
+                0,
                 FALSE,
                 TRUE,
                 'PROJECT_MANAGER'
@@ -101,8 +101,8 @@
                 is_active,
                 user_role
             ) VALUES (
-                NOW(),
-                'SYSTEM',
+                CURRENT_TIMESTAMP,
+                0,
                 FALSE,
                 TRUE,
                 'USER'
@@ -127,8 +127,8 @@
                 is_active,
                 user_role
             ) VALUES (
-                NOW(),
-                'SYSTEM',
+                CURRENT_TIMESTAMP,
+                0,
                 FALSE,
                 TRUE,
                 'HR'

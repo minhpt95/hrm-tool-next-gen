@@ -10,10 +10,10 @@ spring:
     username: 655f2d35bd07a8
     password: be71dfab64c415
   datasource:
-    url: 'jdbc:mysql://localhost:3306/hrm?createDatabaseIfNotExist=true&useLegacyDatetimeCode=false'
-    username: mysqladmin
-    password: mysqladmin
-    driverClassName: com.mysql.cj.jdbc.Driver
+    url: 'jdbc:postgresql://localhost:5432/hrm'
+    username: postgres
+    password: postgres
+    driverClassName: org.postgresql.Driver
   docker:
     compose:
       enabled: false

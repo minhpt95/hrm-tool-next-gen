@@ -5,10 +5,10 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:6379}
       database: ${SPRING_DATA_REDIS_DATABASE:10}
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql-service:3306/hrm?createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true}
-    username: ${SPRING_DATASOURCE_USERNAME:mysqladmin}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres-service:5432/hrm}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD}
-    driverClassName: com.mysql.cj.jdbc.Driver
+    driverClassName: org.postgresql.Driver
   docker:
     compose:
       enabled: false

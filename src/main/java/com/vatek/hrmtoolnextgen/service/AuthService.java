@@ -183,8 +183,11 @@ public class AuthService {
         userEntity = userMapping.createUser(registerRequest);
 
         userEntity.setActive(true);
-        // Note: createdBy and createdDate for userEntity and userInfo will be automatically 
-        // set by JPA Auditing based on the current authenticated user from SecurityContext
+        if (userPrincipal == null) {
+            userEntity.getUserInfo().setCreatedBy("SYSTEM");
+        } else {
+            userEntity.getUserInfo().setCreatedBy(String.valueOf(userPrincipal.getId()));
+        }
 
         List<RoleEntity> roles = roleRepository.findByUserRoleIn(registerRequest.getRoles().stream().map(RoleDto::getUserRole).toList());
 
@@ -195,7 +198,8 @@ public class AuthService {
         String password = CommonUtils.randomPassword(12);
 
         userEntity.setPassword(passwordEncoder.encode(password));
-        // Note: createdBy and createdDate will be automatically set by JPA Auditing
+        userEntity.setCreatedBy("SYSTEM");
+        userEntity.setCreatedDate(ZonedDateTime.now());
 
         userEntity = userRepository.save(userEntity);
 

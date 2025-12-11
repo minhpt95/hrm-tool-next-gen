@@ -30,7 +30,10 @@ public class UpdateUserRequest {
 
     @NotEmpty
     @ArraySchema(
-            arraySchema = @Schema(description = "Roles that define permissions for the employee"),
+            arraySchema = @Schema(
+                    description = "Roles that define permissions for the employee",
+                    example = "[\"USER\",\"HR\"]"
+            ),
             schema = @Schema(implementation = EUserRole.class)
     )
     private Collection<EUserRole> roles;

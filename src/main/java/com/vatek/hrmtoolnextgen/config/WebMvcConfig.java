@@ -64,18 +64,38 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         @Override
         public Collection<EUserRole> convert(String source) {
+            if (source == null || source.trim().isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            String trimmed = source.trim();
+            // Accept JSON arrays (e.g., ["HR","ADMIN"]) or plain comma/space-separated (e.g., HR,ADMIN)
+            // First try JSON
             try {
-                if (source == null || source.trim().isEmpty()) {
-                    return new ArrayList<>();
-                }
-                // Try to parse as JSON array
                 List<EUserRole> roles = objectMapper.readValue(
-                    source,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, EUserRole.class)
+                        trimmed,
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, EUserRole.class)
                 );
-                return roles != null ? roles : new ArrayList<>();
+                if (roles != null) {
+                    return roles;
+                }
+            } catch (Exception ignored) {
+                // fall through to simple parsing
+            }
+
+            // Fallback: split by comma/space and map to enum
+            try {
+                String[] parts = trimmed.split("[,\\s]+");
+                List<EUserRole> roles = new ArrayList<>();
+                for (String part : parts) {
+                    if (part.isBlank()) {
+                        continue;
+                    }
+                    roles.add(EUserRole.valueOf(part.trim()));
+                }
+                return roles;
             } catch (Exception e) {
-                log.warn("Failed to parse Collection<EUserRole> from JSON string: {}", source, e);
+                log.warn("Failed to parse Collection<EUserRole> from string: {}", source, e);
                 return new ArrayList<>();
             }
         }

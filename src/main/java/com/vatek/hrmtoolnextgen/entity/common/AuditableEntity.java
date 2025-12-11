@@ -30,14 +30,14 @@ public class AuditableEntity implements Serializable {
     private static final long serialVersionUID = 4017054090299241908L;
 
     @CreatedDate
-    @Column(name = "create_date",nullable = false,updatable = false)
+    @Column(name = "create_date", nullable = false, updatable = false)
     @JsonIgnore
     private ZonedDateTime createdDate = ZonedDateTime.now();
 
     @CreatedBy
-    @Column(name = "create_by",nullable = false,updatable = false)
+    @Column(name = "create_by", nullable = false, updatable = false)
     @JsonIgnore
-    private String createdBy;
+    private Long createdBy;
 
     @LastModifiedDate
     @Column(name = "last_modified_date")

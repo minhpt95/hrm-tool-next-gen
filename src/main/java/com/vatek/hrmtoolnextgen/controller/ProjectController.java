@@ -53,11 +53,11 @@ public class ProjectController {
         ProjectDto project = projectService.getProjectById(id);
         return ResponseEntity.ok(buildSuccessResponse(project, request));
     }
-    
+
     @PostMapping
     @Operation(
             summary = "Create project",
-            description = "Creates a new project, assigns a manager, and optionally adds team members. Idempotent via the `idempotency-key` header."
+            description = "Creates a new project, assigns a manager, and optionally adds team members"
     )
     public ResponseEntity<CommonSuccessResponse<ProjectDto>> createProject(
             @Valid @RequestBody CreateProjectRequest createProjectRequest,

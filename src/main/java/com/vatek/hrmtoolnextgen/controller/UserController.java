@@ -54,11 +54,11 @@ public class UserController {
         UserDto user = userService.getUserById(id);
         return ResponseEntity.ok(buildSuccessResponse(user, request));
     }
-    
+
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Create user",
-            description = "Creates a new employee profile. Idempotent via the `idempotency-key` header."
+            description = "Creates a new employee profile"
     )
     public ResponseEntity<CommonSuccessResponse<UserDto>> createUser(
             @Valid @ModelAttribute CreateUserRequest createUserRequest,

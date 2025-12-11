@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @AllArgsConstructor
@@ -47,6 +49,30 @@ public class ProjectController {
                 .build();
 
         PaginationResponse<ProjectDto> projects = projectService.getAllProjects(paginationRequest);
+        return ResponseEntity.ok(buildSuccessResponse(projects, request));
+    }
+
+    @GetMapping("/member/{memberId}")
+    @Operation(
+            summary = "List projects by member",
+            description = "Returns all active projects where the given user is a member."
+    )
+    public ResponseEntity<CommonSuccessResponse<List<ProjectDto>>> getProjectsByMemberId(
+            @PathVariable Long memberId,
+            HttpServletRequest request) {
+        List<ProjectDto> projects = projectService.getProjectsByMemberId(memberId);
+        return ResponseEntity.ok(buildSuccessResponse(projects, request));
+    }
+
+    @GetMapping("/manager/{managerId}")
+    @Operation(
+            summary = "List projects by manager",
+            description = "Returns all active projects managed by the given user."
+    )
+    public ResponseEntity<CommonSuccessResponse<List<ProjectDto>>> getProjectsByManagerId(
+            @PathVariable Long managerId,
+            HttpServletRequest request) {
+        List<ProjectDto> projects = projectService.getProjectsByManagerId(managerId);
         return ResponseEntity.ok(buildSuccessResponse(projects, request));
     }
 

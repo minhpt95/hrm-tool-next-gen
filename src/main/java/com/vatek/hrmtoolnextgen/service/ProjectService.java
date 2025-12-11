@@ -7,6 +7,7 @@ import com.vatek.hrmtoolnextgen.dto.request.UpdateProjectRequest;
 import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
+import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.mapping.ProjectMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.ProjectRepository;
@@ -37,6 +38,22 @@ public class ProjectService {
         Page<ProjectEntity> entityPage = projectRepository.findAll(CommonUtils.buildPageable(paginationRequest));
         Page<ProjectDto> dtoPage = projectMapping.toDtoPageable(entityPage);
         return CommonUtils.buildPaginationResponse(dtoPage, paginationRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjectDto> getProjectsByMemberId(Long memberId) {
+        ensureUserExists(memberId);
+        List<ProjectEntity> projects = projectRepository.findDistinctByMembers_IdAndDeleteFalseAndProjectStatus(
+                memberId, EProjectStatus.IN_PROGRESS);
+        return projectMapping.toDto(projects);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjectDto> getProjectsByManagerId(Long managerId) {
+        ensureUserExists(managerId);
+        List<ProjectEntity> projects = projectRepository.findByProjectManager_IdAndDeleteFalseAndProjectStatus(
+                managerId, EProjectStatus.IN_PROGRESS);
+        return projectMapping.toDto(projects);
     }
 
     @Transactional(readOnly = true)
@@ -159,6 +176,11 @@ public class ProjectService {
         projectEntity.setDelete(true);
         projectRepository.save(projectEntity);
         log.info("Deleted project with id: {}", id);
+    }
+
+    private void ensureUserExists(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("User not found with id: " + userId));
     }
 
     private LocalDate parseDate(String dateString) {

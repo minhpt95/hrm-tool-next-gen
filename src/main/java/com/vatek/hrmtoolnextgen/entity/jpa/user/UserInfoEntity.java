@@ -5,9 +5,12 @@ import com.vatek.hrmtoolnextgen.enumeration.EUserLevel;
 import com.vatek.hrmtoolnextgen.enumeration.EUserPosition;
 import com.vatek.hrmtoolnextgen.enumeration.EUserProgramLanguage;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.Set;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,16 +20,16 @@ import java.util.Set;
 @Table(name = "user_infos")
 public class UserInfoEntity extends IdentityEntity {
 
-    @Column(name = "first_name",nullable = false)
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(name = "last_name",nullable = false)
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(name = "identity_card",unique = true,nullable = false)
+    @Column(name = "identity_card", unique = true, nullable = false)
     private String identityCard;
 
-    @Column(name = "phone_number",unique = true,nullable = false)
+    @Column(name = "phone_number", unique = true, nullable = false)
     private String phoneNumber1;
 
     @Column(name = "avatar_url")
@@ -42,11 +45,11 @@ public class UserInfoEntity extends IdentityEntity {
     private EUserLevel userLevel;
 
     @ElementCollection(targetClass = EUserProgramLanguage.class, fetch = FetchType.EAGER)
-    private Set<EUserProgramLanguage> programLanguage;
+    private List<EUserProgramLanguage> programLanguage;
 
     @Enumerated(EnumType.STRING)
     private EUserPosition userPosition;
 
     @OneToOne(mappedBy = "userInfo")
     private UserEntity user;
- }
+}

@@ -39,7 +39,7 @@ public class UserEntity extends IdentityEntity {
             CascadeType.REFRESH
     }, mappedBy = "userEntity")
     @OrderBy("workingDay asc")
-    private Set<TimesheetEntity> timesheets = new HashSet<>();
+    private List<TimesheetEntity> timesheets = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.DETACH,
@@ -56,7 +56,7 @@ public class UserEntity extends IdentityEntity {
                     name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(
                     name = "role_id", referencedColumnName = "id"))
-    private Set<RoleEntity> roles = new HashSet<>();
+    private List<RoleEntity> roles = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.DETACH,

@@ -10,9 +10,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "projects")
@@ -41,7 +39,7 @@ public class ProjectEntity extends IdentityEntity {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "projectEntity")
     @OrderBy("workingDay asc")
-    private Collection<TimesheetEntity> timesheetEntities = new ArrayList<>();
+    private List<TimesheetEntity> timesheetEntities = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "workingProject", cascade = {
             CascadeType.DETACH,
@@ -49,9 +47,12 @@ public class ProjectEntity extends IdentityEntity {
             CascadeType.PERSIST,
             CascadeType.REFRESH,
     })
-    private Set<UserEntity> members = new HashSet<>();
+    private List<UserEntity> members = new ArrayList<>();
 
     public void addMemberToProject(UserEntity userEntity) {
+        if (members == null) {
+            members = new ArrayList<>();
+        }
         members.add(userEntity);
         userEntity.getWorkingProject().add(this);
     }

@@ -10,7 +10,7 @@ spring:
     username: 655f2d35bd07a8
     password: be71dfab64c415
   datasource:
-    url: 'jdbc:postgresql://localhost:5432/hrm'
+    url: 'jdbc:postgresql://localhost:5433/hrm'
     username: postgres
     password: postgres
     driverClassName: org.postgresql.Driver

@@ -26,7 +26,7 @@ public class ProjectEntity extends IdentityEntity {
     @Column(name = "project_status")
     @Enumerated(EnumType.STRING)
     private EProjectStatus projectStatus;
-    
+
     @Column(name = "start_time", columnDefinition = "DATE")
     private ZonedDateTime startTime;
 

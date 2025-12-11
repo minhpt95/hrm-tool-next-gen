@@ -114,7 +114,7 @@ public class AuthService {
 
         // Get user email from token
         String email = jwtProvider.getEmailFromJwtToken(refreshToken);
-        
+
         // Verify user exists
         if (userRepository.findByEmail(email).isEmpty()) {
             throw new UnauthorizedException("User not found");
@@ -184,9 +184,9 @@ public class AuthService {
 
         userEntity.setActive(true);
         if (userPrincipal == null) {
-            userEntity.getUserInfo().setCreatedBy("SYSTEM");
+            userEntity.getUserInfo().setCreatedBy(0L);
         } else {
-            userEntity.getUserInfo().setCreatedBy(String.valueOf(userPrincipal.getId()));
+            userEntity.getUserInfo().setCreatedBy(userPrincipal.getId());
         }
 
         List<RoleEntity> roles = roleRepository.findByUserRoleIn(registerRequest.getRoles().stream().map(RoleDto::getUserRole).toList());
@@ -198,7 +198,7 @@ public class AuthService {
         String password = CommonUtils.randomPassword(12);
 
         userEntity.setPassword(passwordEncoder.encode(password));
-        userEntity.setCreatedBy("SYSTEM");
+        userEntity.setCreatedBy(0L);
         userEntity.setCreatedDate(ZonedDateTime.now());
 
         userEntity = userRepository.save(userEntity);

@@ -9,7 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "roles")
@@ -23,5 +24,5 @@ public class RoleEntity extends IdentityEntity {
     private EUserRole userRole;
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    private Collection<UserEntity> users;
+    private Set<UserEntity> users = new HashSet<>();
 }

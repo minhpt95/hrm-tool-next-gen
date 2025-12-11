@@ -12,7 +12,9 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -37,7 +39,7 @@ public class UserEntity extends IdentityEntity {
             CascadeType.REFRESH
     }, mappedBy = "userEntity")
     @OrderBy("workingDay asc")
-    private List<TimesheetEntity> timesheets = new ArrayList<>();
+    private Set<TimesheetEntity> timesheets = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.DETACH,
@@ -54,7 +56,7 @@ public class UserEntity extends IdentityEntity {
                     name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(
                     name = "role_id", referencedColumnName = "id"))
-    private List<RoleEntity> roles = new ArrayList<>();
+    private Set<RoleEntity> roles = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.DETACH,
@@ -68,7 +70,7 @@ public class UserEntity extends IdentityEntity {
                     name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(
                     name = "project_id", referencedColumnName = "id"))
-    private List<ProjectEntity> workingProject = new ArrayList<>();
+    private Set<ProjectEntity> workingProject = new HashSet<>();
 
     @Transient
     private List<TimesheetEntity> normalHours = new ArrayList<>();

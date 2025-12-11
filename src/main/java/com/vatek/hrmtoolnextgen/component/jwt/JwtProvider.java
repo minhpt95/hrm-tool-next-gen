@@ -26,6 +26,9 @@ public class JwtProvider {
     @Value("${hrm.app.jwtExpiration}")
     private long jwtExpiration;
 
+    @Value("${hrm.app.refreshTokenExpiration}")
+    private long refreshTokenExpiration;
+
     public String generateJwtToken(Authentication authentication) {
         UserPrincipalDto userPrincipal = (UserPrincipalDto) authentication.getPrincipal();
         return generateJwtToken(userPrincipal);
@@ -46,6 +49,28 @@ public class JwtProvider {
                 .expiration(DateUtils.convertInstantToDate(expired))
                 .signWith(getSecretKey())
                 .compact();
+    }
+
+    public String generateRefreshToken(String email, Long id) {
+        Instant expired = Instant.now().plusMillis(refreshTokenExpiration);
+
+        return Jwts
+                .builder()
+                .id(String.valueOf(id))
+                .subject(email)
+                .issuedAt(DateUtils.convertInstantToDate(Instant.now()))
+                .expiration(DateUtils.convertInstantToDate(expired))
+                .signWith(getSecretKey())
+                .compact();
+    }
+
+    public Long getIdFromJwtToken(String token) {
+        try {
+            return Long.parseLong(getSignedClaims(token).getPayload().getId());
+        } catch (Exception e) {
+            log.error("Error getting ID from JWT token", e);
+            return null;
+        }
     }
 
     public String getEmailFromJwtToken(String token) {

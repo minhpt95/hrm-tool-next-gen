@@ -1,6 +1,9 @@
 package com.vatek.hrmtoolnextgen.component.jwt;
 
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.entity.redis.UserTokenRedisEntity;
+import com.vatek.hrmtoolnextgen.enumeration.EUserTokenType;
+import com.vatek.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
 import com.vatek.hrmtoolnextgen.service.security.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +26,7 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
 
     private final JwtProvider tokenProvider;
     private final UserDetailsServiceImpl userDetailsService;
+    private final UserTokenRedisRepository userTokenRedisRepository;
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,
@@ -43,13 +47,22 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
             }
 
             String email = tokenProvider.getEmailFromJwtToken(jwt);
+            Long userId = tokenProvider.getIdFromJwtToken(jwt);
+
+            // Check if token exists in Redis (not invalidated)
+            if (userId != null) {
+                UserTokenRedisEntity storedToken = userTokenRedisRepository
+                        .findUserByUserIdAndTokenType(userId, EUserTokenType.ACCESS_TOKEN);
+                
+                if (storedToken == null || !storedToken.getToken().equals(jwt)) {
+                    // Token was invalidated (logout) or doesn't match
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+            }
 
             UserPrincipalDto userDetails = userDetailsService.loadUserByUsername(email);
-
-            if(!jwt.equals(userDetails.getAccessToken())){
-                filterChain.doFilter(request,response);
-                return;
-            }
+            userDetails.setAccessToken(jwt);
 
             userDetails.setRemainTime(tokenProvider.getRemainTimeFromJwtToken(jwt));
 

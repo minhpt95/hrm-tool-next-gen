@@ -16,6 +16,8 @@ import java.util.concurrent.TimeUnit;
 @Builder
 public class UserTokenRedisEntity {
     @Id
+    private String id; // Composite key: userId:tokenType
+
     @Indexed
     private Long userId;
 

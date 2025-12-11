@@ -4,6 +4,7 @@ import com.vatek.hrmtoolnextgen.component.jwt.JwtAuthTokenFilter;
 import com.vatek.hrmtoolnextgen.component.jwt.JwtProvider;
 import com.vatek.hrmtoolnextgen.component.jwt.UnauthorizedHandler;
 import com.vatek.hrmtoolnextgen.constant.RoleConstant;
+import com.vatek.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
 import com.vatek.hrmtoolnextgen.service.security.UserDetailsServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -36,10 +37,11 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     private final UserDetailsServiceImpl userDetailsService;
     private final UnauthorizedHandler unauthorizedHandler;
     private final JwtProvider jwtProvider;
+    private final UserTokenRedisRepository userTokenRedisRepository;
 
     @Bean
     public JwtAuthTokenFilter authenticationJwtTokenFilter() {
-        return new JwtAuthTokenFilter(jwtProvider, userDetailsService);
+        return new JwtAuthTokenFilter(jwtProvider, userDetailsService, userTokenRedisRepository);
     }
 
     @Bean

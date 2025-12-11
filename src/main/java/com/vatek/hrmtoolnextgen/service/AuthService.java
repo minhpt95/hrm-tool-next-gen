@@ -3,19 +3,26 @@ package com.vatek.hrmtoolnextgen.service;
 import com.vatek.hrmtoolnextgen.component.jwt.JwtProvider;
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.request.LoginRequest;
+import com.vatek.hrmtoolnextgen.dto.request.RefreshTokenRequest;
 import com.vatek.hrmtoolnextgen.dto.request.RegisterRequest;
 import com.vatek.hrmtoolnextgen.dto.response.LoginResponse;
+import com.vatek.hrmtoolnextgen.dto.response.RefreshTokenResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RegisterResponse;
 import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
 import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
+import com.vatek.hrmtoolnextgen.entity.redis.UserTokenRedisEntity;
+import com.vatek.hrmtoolnextgen.enumeration.EUserTokenType;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
+import com.vatek.hrmtoolnextgen.exception.UnauthorizedException;
 import com.vatek.hrmtoolnextgen.mapping.UserMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
+import com.vatek.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
 import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,6 +44,13 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final UserMapping userMapping;
     private final RoleRepository roleRepository;
+    private final UserTokenRedisRepository userTokenRedisRepository;
+
+    @Value("${hrm.app.jwtExpiration}")
+    private long jwtExpiration;
+
+    @Value("${hrm.app.refreshTokenExpiration}")
+    private long refreshTokenExpiration;
 
     public LoginResponse login(LoginRequest loginRequest) {
         // Authentication manager will handle password validation
@@ -51,17 +65,106 @@ public class AuthService {
 
         UserPrincipalDto principal = (UserPrincipalDto) authentication.getPrincipal();
 
-        String jwt = jwtProvider.generateJwtToken(authentication);
+        // Generate tokens
+        String accessToken = jwtProvider.generateJwtToken(authentication);
+        String refreshToken = jwtProvider.generateRefreshToken(principal.getEmail(), principal.getId());
+
+        // Store tokens in Redis
+        saveTokenToRedis(principal.getId(), accessToken, EUserTokenType.ACCESS_TOKEN, jwtExpiration);
+        saveTokenToRedis(principal.getId(), refreshToken, EUserTokenType.REFRESH_TOKEN, refreshTokenExpiration);
 
         return LoginResponse
                 .builder()
                 .id(principal.getId())
-                .accessToken(jwt)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .email(principal.getEmail())
                 .firstName(principal.getFirstName())
                 .lastName(principal.getLastName())
                 .roles(principal.getRoles())
                 .build();
+    }
+
+    public RefreshTokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        String refreshToken = refreshTokenRequest.getRefreshToken();
+
+        // Validate refresh token
+        if (!jwtProvider.validateJwtToken(refreshToken)) {
+            throw new UnauthorizedException("Invalid or expired refresh token");
+        }
+
+        // Get user ID from token
+        Long userId = jwtProvider.getIdFromJwtToken(refreshToken);
+        if (userId == null) {
+            throw new UnauthorizedException("Invalid refresh token");
+        }
+
+        // Verify refresh token exists in Redis
+        UserTokenRedisEntity storedRefreshToken = userTokenRedisRepository
+                .findUserByUserIdAndTokenType(userId, EUserTokenType.REFRESH_TOKEN);
+
+        if (storedRefreshToken == null || !storedRefreshToken.getToken().equals(refreshToken)) {
+            throw new UnauthorizedException("Refresh token not found or invalid");
+        }
+
+        // Get user email from token
+        String email = jwtProvider.getEmailFromJwtToken(refreshToken);
+        
+        // Verify user exists
+        if (userRepository.findByEmail(email).isEmpty()) {
+            throw new UnauthorizedException("User not found");
+        }
+
+        // Generate new tokens
+        String newAccessToken = jwtProvider.generateTokenFromEmail(email, userId);
+        String newRefreshToken = jwtProvider.generateRefreshToken(email, userId);
+
+        // Invalidate old tokens and store new ones
+        invalidateUserTokens(userId);
+        saveTokenToRedis(userId, newAccessToken, EUserTokenType.ACCESS_TOKEN, jwtExpiration);
+        saveTokenToRedis(userId, newRefreshToken, EUserTokenType.REFRESH_TOKEN, refreshTokenExpiration);
+
+        return RefreshTokenResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .type("Bearer")
+                .build();
+    }
+
+    public void logout(UserPrincipalDto userPrincipal) {
+        if (userPrincipal != null && userPrincipal.getId() != null) {
+            invalidateUserTokens(userPrincipal.getId());
+            log.info("User {} logged out successfully", userPrincipal.getEmail());
+        }
+    }
+
+    private void saveTokenToRedis(Long userId, String token, EUserTokenType tokenType, long expiration) {
+        String id = userId + ":" + tokenType.name();
+        UserTokenRedisEntity tokenEntity = UserTokenRedisEntity.builder()
+                .id(id)
+                .userId(userId)
+                .tokenType(tokenType)
+                .token(token)
+                .ttl(expiration)
+                .build();
+
+        userTokenRedisRepository.save(tokenEntity);
+    }
+
+    private void invalidateUserTokens(Long userId) {
+        // Delete access token
+        UserTokenRedisEntity accessToken = userTokenRedisRepository
+                .findUserByUserIdAndTokenType(userId, EUserTokenType.ACCESS_TOKEN);
+        if (accessToken != null) {
+            userTokenRedisRepository.delete(accessToken);
+        }
+
+        // Delete refresh token
+        UserTokenRedisEntity refreshToken = userTokenRedisRepository
+                .findUserByUserIdAndTokenType(userId, EUserTokenType.REFRESH_TOKEN);
+        if (refreshToken != null) {
+            userTokenRedisRepository.delete(refreshToken);
+        }
     }
 
     @Transactional

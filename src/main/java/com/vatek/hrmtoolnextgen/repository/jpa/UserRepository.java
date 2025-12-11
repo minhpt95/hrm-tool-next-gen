@@ -3,6 +3,7 @@ package com.vatek.hrmtoolnextgen.repository.jpa;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -19,6 +20,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>, JpaSpec
 
     int countAllByEmail(String email);
 
+    @EntityGraph(attributePaths = {"userInfo", "roles"})
     Page<UserEntity> findAll(Pageable pageable);
 
     Optional<UserEntity> findAllByEmail(String email);

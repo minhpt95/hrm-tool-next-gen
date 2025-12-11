@@ -93,6 +93,11 @@ public class AuthService {
             throw new UnauthorizedException("Invalid or expired refresh token");
         }
 
+        // Ensure it's actually a refresh token, not an access token
+        if (!jwtProvider.isRefreshToken(refreshToken)) {
+            throw new UnauthorizedException("Token provided is not a refresh token");
+        }
+
         // Get user ID from token
         Long userId = jwtProvider.getIdFromJwtToken(refreshToken);
         if (userId == null) {

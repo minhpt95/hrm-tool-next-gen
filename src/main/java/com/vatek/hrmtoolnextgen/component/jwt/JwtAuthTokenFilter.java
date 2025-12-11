@@ -46,6 +46,12 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
                 return;
             }
 
+            // Ensure it's an access token, not a refresh token
+            if (!tokenProvider.isAccessToken(jwt)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             String email = tokenProvider.getEmailFromJwtToken(jwt);
             Long userId = tokenProvider.getIdFromJwtToken(jwt);
 

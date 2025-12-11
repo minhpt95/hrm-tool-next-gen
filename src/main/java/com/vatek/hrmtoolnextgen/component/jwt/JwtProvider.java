@@ -45,6 +45,7 @@ public class JwtProvider {
                 .builder()
                 .id(String.valueOf(id))
                 .subject(email)
+                .claim("token_type", "access")
                 .issuedAt(DateUtils.convertInstantToDate(Instant.now()))
                 .expiration(DateUtils.convertInstantToDate(expired))
                 .signWith(getSecretKey())
@@ -58,6 +59,7 @@ public class JwtProvider {
                 .builder()
                 .id(String.valueOf(id))
                 .subject(email)
+                .claim("token_type", "refresh")
                 .issuedAt(DateUtils.convertInstantToDate(Instant.now()))
                 .expiration(DateUtils.convertInstantToDate(expired))
                 .signWith(getSecretKey())
@@ -71,6 +73,24 @@ public class JwtProvider {
             log.error("Error getting ID from JWT token", e);
             return null;
         }
+    }
+
+    public String getTokenTypeFromJwtToken(String token) {
+        try {
+            Object tokenType = getSignedClaims(token).getPayload().get("token_type");
+            return tokenType != null ? tokenType.toString() : null;
+        } catch (Exception e) {
+            log.error("Error getting token type from JWT token", e);
+            return null;
+        }
+    }
+
+    public boolean isAccessToken(String token) {
+        return "access".equals(getTokenTypeFromJwtToken(token));
+    }
+
+    public boolean isRefreshToken(String token) {
+        return "refresh".equals(getTokenTypeFromJwtToken(token));
     }
 
     public String getEmailFromJwtToken(String token) {

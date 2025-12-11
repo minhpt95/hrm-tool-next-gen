@@ -5,6 +5,7 @@ import com.vatek.hrmtoolnextgen.dto.holiday.HolidayDto;
 import com.vatek.hrmtoolnextgen.exception.InternalServerException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -95,8 +96,9 @@ public class HolidayService {
         int startYear = startDate.getYear();
         int endYear = endDate.getYear();
 
+        HolidayService self = getSelf();
         for (int year = startYear; year <= endYear; year++) {
-            List<HolidayDto> yearHolidays = getHolidays(year);
+            List<HolidayDto> yearHolidays = self.getHolidays(year);
             allHolidays.addAll(yearHolidays.stream()
                     .filter(holiday -> {
                         LocalDate holidayDate = holiday.getDate();
@@ -115,7 +117,8 @@ public class HolidayService {
      * @return true if the date is a holiday
      */
     public boolean isHoliday(LocalDate date) {
-        List<HolidayDto> holidays = getHolidays(date.getYear());
+        HolidayService self = getSelf();
+        List<HolidayDto> holidays = self.getHolidays(date.getYear());
         return holidays.stream()
                 .anyMatch(holiday -> holiday.getDate().equals(date));
     }
@@ -126,7 +129,23 @@ public class HolidayService {
      * @return List of holidays for current year
      */
     public List<HolidayDto> getCurrentYearHolidays() {
-        return getHolidays(LocalDate.now().getYear());
+        HolidayService self = getSelf();
+        return self.getHolidays(LocalDate.now().getYear());
+    }
+
+    /**
+     * Get the proxy of this service to enable cache interception
+     *
+     * @return The proxied service instance
+     */
+    private HolidayService getSelf() {
+        try {
+            return (HolidayService) AopContext.currentProxy();
+        } catch (IllegalStateException e) {
+            // If proxy is not available, return this instance (fallback)
+            log.warn("AopContext proxy not available, cache may not work for self-invocation");
+            return this;
+        }
     }
 
     private HolidayDto mapToHolidayDto(CalendarificResponse.CalendarificHoliday holiday) {

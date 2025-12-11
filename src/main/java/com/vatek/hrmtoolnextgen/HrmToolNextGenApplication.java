@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -25,6 +26,7 @@ import java.util.TimeZone;
 @EnableAsync(proxyTargetClass = true)
 @EnableWebMvc
 @EnableCaching
+@EnableAspectJAutoProxy(exposeProxy = true)
 @RequiredArgsConstructor
 @EnableJpaRepositories(basePackages = "com.vatek.hrmtoolnextgen.repository.jpa")
 @EnableRedisRepositories(basePackages = "com.vatek.hrmtoolnextgen.repository.redis")

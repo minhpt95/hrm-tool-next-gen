@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -39,8 +39,8 @@ public class ProjectDto {
     private List<UserDto> members;
 
     @Schema(description = "Planned start time")
-    private ZonedDateTime startTime;
+    private LocalDate startTime;
 
     @Schema(description = "Planned end time")
-    private ZonedDateTime endTime;
+    private LocalDate endTime;
 }

@@ -80,7 +80,7 @@ public class SseController {
         sseService.sendEvent(userId, "test", Map.of(
                 "message", message,
                 "userId", userId,
-                "timestamp", java.time.ZonedDateTime.now().toString()
+                "timestamp", java.time.LocalDateTime.now().toString()
         ));
 
         return ResponseEntity.ok(Map.of(

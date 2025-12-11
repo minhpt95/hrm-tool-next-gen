@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -18,13 +18,13 @@ public class SseEventDto {
     private String event;
     private Object data;
     private String comment;
-    private ZonedDateTime timestamp;
+    private LocalDateTime timestamp;
 
     public static SseEventDto create(String event, Object data) {
         return SseEventDto.builder()
                 .event(event)
                 .data(data)
-                .timestamp(ZonedDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
     }
 
@@ -33,7 +33,7 @@ public class SseEventDto {
                 .id(id)
                 .event(event)
                 .data(data)
-                .timestamp(ZonedDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
     }
 }

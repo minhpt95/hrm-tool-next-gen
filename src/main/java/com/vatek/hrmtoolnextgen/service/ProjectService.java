@@ -9,8 +9,6 @@ import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.mapping.ProjectMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.ProjectRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
-import com.vatek.hrmtoolnextgen.util.CommonUtils;
-import com.vatek.hrmtoolnextgen.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -18,7 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,10 +64,10 @@ public class ProjectService {
 
         // Set start time
         if (request.getStartDate() != null && !request.getStartDate().isBlank()) {
-            ZonedDateTime startTime = parseDate(request.getStartDate());
+            LocalDate startTime = parseDate(request.getStartDate());
             projectEntity.setStartTime(startTime);
         } else {
-            projectEntity.setStartTime(DateUtils.getZonedDateTimeNow());
+            projectEntity.setStartTime(LocalDate.now());
         }
 
         // Add members
@@ -160,15 +158,14 @@ public class ProjectService {
         log.info("Deleted project with id: {}", id);
     }
 
-    private ZonedDateTime parseDate(String dateString) {
+    private LocalDate parseDate(String dateString) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            return ZonedDateTime.parse(dateString, formatter.withZone(java.time.ZoneId.systemDefault()));
+            return LocalDate.parse(dateString, formatter);
         } catch (Exception e) {
             try {
-                // Try parsing as LocalDate and convert to ZonedDateTime
-                java.time.LocalDate localDate = java.time.LocalDate.parse(dateString, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                return localDate.atStartOfDay(java.time.ZoneId.systemDefault());
+                // Try parsing as LocalDate to provide a helpful error
+                return java.time.LocalDate.parse(dateString, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
             } catch (Exception e2) {
                 log.error("Error parsing date: {}", dateString, e2);
                 throw new BadRequestException("Invalid date format. Expected format: dd/MM/yyyy");

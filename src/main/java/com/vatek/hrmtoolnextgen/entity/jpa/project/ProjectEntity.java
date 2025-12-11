@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -28,10 +28,10 @@ public class ProjectEntity extends IdentityEntity {
     private EProjectStatus projectStatus;
 
     @Column(name = "start_time", columnDefinition = "DATE")
-    private ZonedDateTime startTime;
+    private LocalDate startTime;
 
     @Column(name = "end_time", columnDefinition = "DATE")
-    private ZonedDateTime endTime;
+    private LocalDate endTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_manager")

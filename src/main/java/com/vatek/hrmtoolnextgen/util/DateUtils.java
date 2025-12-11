@@ -5,8 +5,8 @@ import lombok.extern.log4j.Log4j2;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -16,31 +16,30 @@ public class DateUtils {
         return Date.from(instant);
     }
 
-    public static String convertZoneDateTimeToStringDate(ZonedDateTime stringDate) {
-        return convertZoneDateTimeToStringDate(stringDate, null);
+    public static String convertLocalDateToStringDate(LocalDate localDate) {
+        return convertLocalDateToStringDate(localDate, null);
     }
 
-    public static String convertZoneDateTimeToStringDate(ZonedDateTime instant, String datePattern) {
+    public static String convertLocalDateToStringDate(LocalDate instant, String datePattern) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(datePattern != null ? datePattern : DateConstant.DD_MM_YYYY).withZone(ZoneId.systemDefault());
         return dateTimeFormatter.format(instant);
     }
 
     public static Long getInstantLong() {
-        return ZonedDateTime.now().toInstant().toEpochMilli();
+        return Instant.now().toEpochMilli();
     }
 
-    public static ZonedDateTime getZonedDateTimeNow() {
-        return ZonedDateTime.now(ZoneId.systemDefault());
+    public static LocalDateTime getLocalDateTimeNow() {
+        return LocalDateTime.now(ZoneId.systemDefault());
     }
 
-    public static ZonedDateTime convertStringDateToZoneDateTime(String stringDate) {
-        return convertStringDateToZoneDateTime(stringDate, null);
+    public static LocalDate convertStringDateToLocalDate(String stringDate) {
+        return convertStringDateToLocalDate(stringDate, null);
     }
 
-    public static ZonedDateTime convertStringDateToZoneDateTime(String stringDate, String datePattern) {
+    public static LocalDate convertStringDateToLocalDate(String stringDate, String datePattern) {
         String pattern = datePattern != null ? datePattern : DateConstant.DD_MM_YYYY;
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(pattern);
-        LocalDate localDate = LocalDate.parse(stringDate, dateTimeFormatter);
-        return localDate.atStartOfDay(ZoneId.systemDefault());
+        return LocalDate.parse(stringDate, dateTimeFormatter);
     }
 }

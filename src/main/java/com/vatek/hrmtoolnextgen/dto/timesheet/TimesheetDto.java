@@ -10,8 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -22,7 +21,7 @@ public class TimesheetDto {
     private String description;
     private Integer workingHours;
     private ETimesheetType timesheetType;
-    private ZonedDateTime workingDay;
+    private LocalDate workingDay;
     private ETimesheetStatus status;
     private ProjectDto projectEntity;
     private UserDto userEntity;

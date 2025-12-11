@@ -31,7 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -199,7 +199,7 @@ public class AuthService {
 
         userEntity.setPassword(passwordEncoder.encode(password));
         userEntity.setCreatedBy(0L);
-        userEntity.setCreatedDate(ZonedDateTime.now());
+        userEntity.setCreatedDate(LocalDateTime.now());
 
         userEntity = userRepository.save(userEntity);
 

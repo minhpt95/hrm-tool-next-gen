@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.TimeZone;
 
 @SpringBootApplication
@@ -43,7 +43,7 @@ public class HrmToolNextGenApplication {
     @EventListener(ApplicationReadyEvent.class)
     public void setApplicationTimeZone() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        log.info("TimeZone : {} , ZoneDateTime : {} ", TimeZone::getDefault, ZonedDateTime::now);
+        log.info("TimeZone : {} , ZoneDateTime : {} ", TimeZone::getDefault, LocalDateTime::now);
     }
 
 

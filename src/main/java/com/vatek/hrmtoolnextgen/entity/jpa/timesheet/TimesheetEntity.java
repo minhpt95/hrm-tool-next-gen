@@ -11,7 +11,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "timesheets")
@@ -32,7 +32,7 @@ public class TimesheetEntity extends IdentityEntity {
     private ETimesheetType type;
 
     @Column(columnDefinition = "DATE")
-    private ZonedDateTime workingDay;
+    private LocalDate workingDay;
 
     @Column
     @Enumerated(EnumType.STRING)

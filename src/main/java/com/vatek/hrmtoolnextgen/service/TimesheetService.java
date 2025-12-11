@@ -34,7 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -71,9 +72,9 @@ public class TimesheetService {
             );
         }
 
-        ZonedDateTime workingDayInstant = DateUtils.convertStringDateToZoneDateTime(form.getWorkingDay());
+        LocalDate workingDayDate = DateUtils.convertStringDateToLocalDate(form.getWorkingDay());
 
-        var workingDayInstantDayOfWeek = workingDayInstant.getDayOfWeek();
+        var workingDayInstantDayOfWeek = workingDayDate.getDayOfWeek();
 
         if (
                 form.getTimesheetType() == ETimesheetType.NORMAL && (workingDayInstantDayOfWeek == DayOfWeek.SATURDAY || workingDayInstantDayOfWeek == DayOfWeek.SUNDAY)
@@ -85,7 +86,10 @@ public class TimesheetService {
 
         Specification<DayOffEntity> dayOffEntitySpecification = (root, query, criteriaBuilder) -> {
             var predicates = new ArrayList<Predicate>();
-            predicates.add(criteriaBuilder.equal(root.get("dayoffEntityId").get("dateOff"), workingDayInstant));
+            predicates.add(criteriaBuilder.equal(
+                    root.get("dayoffEntityId").get("dateOff"),
+                    workingDayDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+            ));
             predicates.add(criteriaBuilder.equal(root.get("dayoffEntityId").get("userId"), currentUser.getId()));
             Predicate[] p = new Predicate[predicates.size()];
             return criteriaBuilder.and(predicates.toArray(p));
@@ -98,7 +102,7 @@ public class TimesheetService {
             var getTimesheetProjection = timesheetRepository
                     .findByUserEntityIdAndWorkingDayAndStatusNot(
                             currentUser.getId(),
-                            workingDayInstant,
+                            workingDayDate,
                             ETimesheetStatus.REJECTED
                     );
 
@@ -152,7 +156,7 @@ public class TimesheetService {
         timesheetEntity.setTitle(form.getTitle());
         timesheetEntity.setDescription(form.getDescription());
         timesheetEntity.setWorkingHours(form.getWorkingHours());
-        timesheetEntity.setWorkingDay(workingDayInstant);
+        timesheetEntity.setWorkingDay(workingDayDate);
         timesheetEntity.setProjectEntity(projectEntity);
         timesheetEntity.setStatus(ETimesheetStatus.IN_PROGRESS);
         timesheetEntity.setUserEntity(userEntity);
@@ -197,7 +201,7 @@ public class TimesheetService {
         }
 
         if (form.getWorkingDay() != null)
-            timesheetEntity.setWorkingDay(DateUtils.convertStringDateToZoneDateTime(form.getWorkingDay(), DateConstant.DD_MM_YYYY));
+            timesheetEntity.setWorkingDay(DateUtils.convertStringDateToLocalDate(form.getWorkingDay(), DateConstant.DD_MM_YYYY));
 
         timesheetEntity = timesheetRepository.save(timesheetEntity);
 

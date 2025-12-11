@@ -16,7 +16,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 
 @MappedSuperclass
 @Getter
@@ -32,7 +32,7 @@ public class AuditableEntity implements Serializable {
     @CreatedDate
     @Column(name = "create_date", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
     @JsonIgnore
-    private ZonedDateTime createdDate;
+    private LocalDateTime createdDate;
 
     @CreatedBy
     @Column(name = "create_by", nullable = false, updatable = false)
@@ -42,7 +42,7 @@ public class AuditableEntity implements Serializable {
     @LastModifiedDate
     @Column(name = "last_modified_date", columnDefinition = "TIMESTAMP")
     @JsonIgnore
-    private ZonedDateTime lastModifiedDate;
+    private LocalDateTime lastModifiedDate;
 
     @LastModifiedBy
     @Column(name = "last_modified_by")

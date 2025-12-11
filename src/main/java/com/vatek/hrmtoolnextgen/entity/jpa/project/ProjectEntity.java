@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.entity.jpa.project;
 
+import com.vatek.hrmtoolnextgen.config.JpaZonedDateTimeDateConverter;
 import com.vatek.hrmtoolnextgen.entity.common.IdentityEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
@@ -28,9 +29,11 @@ public class ProjectEntity extends IdentityEntity {
     private EProjectStatus projectStatus;
     
     @Column(name = "start_time", columnDefinition = "DATE")
+    @Convert(converter = JpaZonedDateTimeDateConverter.class)
     private ZonedDateTime startTime;
 
     @Column(name = "end_time", columnDefinition = "DATE")
+    @Convert(converter = JpaZonedDateTimeDateConverter.class)
     private ZonedDateTime endTime;
 
     @ManyToOne(fetch = FetchType.LAZY)

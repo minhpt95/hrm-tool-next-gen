@@ -1,6 +1,6 @@
 package com.vatek.hrmtoolnextgen.service;
 
-import com.vatek.hrmtoolnextgen.entity.jpa.user.RoleEntity;
+import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
 import jakarta.annotation.PostConstruct;
@@ -23,7 +23,7 @@ public class InitDataService {
     public void init() {
         List<RoleEntity> roles = roleRepository.findAll();
 
-        if(roles.isEmpty()) {
+        if (roles.isEmpty()) {
             RoleEntity adminRole = new RoleEntity();
             adminRole.setUserRole(EUserRole.ADMIN);
             adminRole.setCreatedBy("ADMIN");

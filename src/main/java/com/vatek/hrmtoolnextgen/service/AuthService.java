@@ -2,13 +2,12 @@ package com.vatek.hrmtoolnextgen.service;
 
 import com.vatek.hrmtoolnextgen.component.jwt.JwtProvider;
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
-import com.vatek.hrmtoolnextgen.dto.request.CreateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.request.LoginRequest;
 import com.vatek.hrmtoolnextgen.dto.request.RegisterRequest;
 import com.vatek.hrmtoolnextgen.dto.response.LoginResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RegisterResponse;
 import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
-import com.vatek.hrmtoolnextgen.entity.jpa.user.RoleEntity;
+import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.mapping.UserMapping;
@@ -66,25 +65,25 @@ public class AuthService {
     }
 
     @Transactional
-    public RegisterResponse register(RegisterRequest registerRequest,UserPrincipalDto userPrincipal) {
+    public RegisterResponse register(RegisterRequest registerRequest, UserPrincipalDto userPrincipal) {
         UserEntity userEntity = userRepository.findByEmail(registerRequest.getEmail()).orElse(null);
 
-        if(userEntity != null){
+        if (userEntity != null) {
             throw new BadRequestException("Email already in use");
         }
 
         userEntity = userMapping.createUser(registerRequest);
 
         userEntity.setActive(true);
-        if(userPrincipal == null){
+        if (userPrincipal == null) {
             userEntity.getUserInfo().setCreatedBy("SYSTEM");
-        }else {
+        } else {
             userEntity.getUserInfo().setCreatedBy(String.valueOf(userPrincipal.getId()));
         }
 
         List<RoleEntity> roles = roleRepository.findByUserRoleIn(registerRequest.getRoles().stream().map(RoleDto::getUserRole).toList());
 
-        if(!roles.isEmpty()){
+        if (!roles.isEmpty()) {
             userEntity.setRoles(roles);
         }
 

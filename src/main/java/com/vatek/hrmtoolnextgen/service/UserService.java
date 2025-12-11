@@ -2,9 +2,8 @@ package com.vatek.hrmtoolnextgen.service;
 
 import com.vatek.hrmtoolnextgen.dto.request.CreateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateUserRequest;
-import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
-import com.vatek.hrmtoolnextgen.entity.jpa.user.RoleEntity;
+import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserInfoEntity;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
@@ -20,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,18 +31,18 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserEntity findUserByEmail(String email){
+    public UserEntity findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("User not found with email: " + email));
     }
 
-    public UserEntity findUserById(Long id){
+    public UserEntity findUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("User not found with id: " + id));
     }
 
     @Transactional(readOnly = true)
-    public Page<UserDto> getPageUsers(Pageable pageable){
+    public Page<UserDto> getPageUsers(Pageable pageable) {
         Page<UserEntity> entityPage = userRepository.findAll(pageable);
         return userMapping.toDtoPageable(entityPage);
     }
@@ -73,7 +71,7 @@ public class UserService {
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail(request.getEmail());
         userEntity.setActive(true);
-        
+
         // Generate random password
         String randomPassword = CommonUtils.randomPassword(12);
         userEntity.setPassword(passwordEncoder.encode(randomPassword));

@@ -1,6 +1,5 @@
 package com.vatek.hrmtoolnextgen.controller;
 
-import com.vatek.hrmtoolnextgen.annotation.Idempotent;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.CreateProjectRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateProjectRequest;
@@ -54,8 +53,7 @@ public class ProjectController {
         ProjectDto project = projectService.getProjectById(id);
         return ResponseEntity.ok(buildSuccessResponse(project, request));
     }
-
-    @Idempotent(ttlHours = 24)
+    
     @PostMapping
     @Operation(
             summary = "Create project",

@@ -1,6 +1,5 @@
 package com.vatek.hrmtoolnextgen.controller;
 
-import com.vatek.hrmtoolnextgen.annotation.Idempotent;
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.request.LoginRequest;
 import com.vatek.hrmtoolnextgen.dto.request.RegisterRequest;
@@ -27,13 +26,12 @@ public class AuthController {
 
     @PostMapping(value = "/login")
     public ResponseEntity<CommonSuccessResponse<LoginResponse>> login(
-            @RequestBody LoginRequest loginRequest, 
+            @RequestBody LoginRequest loginRequest,
             HttpServletRequest request) {
         LoginResponse loginResponse = authService.login(loginRequest);
         return ResponseEntity.ok(buildSuccessResponse(loginResponse, request));
     }
 
-    @Idempotent(ttlHours = 24)
     @PostMapping(value = "/register", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<CommonSuccessResponse<RegisterResponse>> register(
             @ModelAttribute RegisterRequest registerRequest,
@@ -42,8 +40,7 @@ public class AuthController {
         RegisterResponse registerResponse = authService.register(registerRequest, userPrincipal);
         return ResponseEntity.ok(buildSuccessResponse(registerResponse, request));
     }
-
-    @Idempotent(ttlHours = 24)
+    
     @PostMapping(value = "/register/temp", consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<CommonSuccessResponse<RegisterResponse>> registerTemp(
             @RequestBody RegisterRequest registerRequest,

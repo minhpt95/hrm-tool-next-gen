@@ -2,9 +2,8 @@ package com.vatek.hrmtoolnextgen.service.security;
 
 
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
-import com.vatek.hrmtoolnextgen.entity.jpa.user.RoleEntity;
+import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
-import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -51,6 +50,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     ) {
         return getGrantedAuthorities(getPrivileges(roles));
     }
+
     private List<String> getPrivileges(Collection<RoleEntity> roles) {
 
         return roles

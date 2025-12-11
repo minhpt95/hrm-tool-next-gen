@@ -1,6 +1,7 @@
-package com.vatek.hrmtoolnextgen.entity.jpa.user;
+package com.vatek.hrmtoolnextgen.entity.jpa.role;
 
 import com.vatek.hrmtoolnextgen.entity.common.IdentityEntity;
+import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,6 @@ public class RoleEntity extends IdentityEntity {
     @Enumerated(EnumType.STRING)
     private EUserRole userRole;
 
-    @ManyToMany(mappedBy = "roles",fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Collection<UserEntity> users;
 }

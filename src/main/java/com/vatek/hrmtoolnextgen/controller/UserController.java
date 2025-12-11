@@ -1,6 +1,5 @@
 package com.vatek.hrmtoolnextgen.controller;
 
-import com.vatek.hrmtoolnextgen.annotation.Idempotent;
 import com.vatek.hrmtoolnextgen.dto.request.CreateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
@@ -55,8 +54,7 @@ public class UserController {
         UserDto user = userService.getUserById(id);
         return ResponseEntity.ok(buildSuccessResponse(user, request));
     }
-
-    @Idempotent(ttlHours = 24)
+    
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Create user",

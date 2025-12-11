@@ -2,19 +2,17 @@ package com.vatek.hrmtoolnextgen.entity.jpa.user;
 
 import com.vatek.hrmtoolnextgen.entity.common.IdentityEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
+import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import jakarta.persistence.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -22,31 +20,31 @@ import java.util.stream.Collectors;
 @Setter
 public class UserEntity extends IdentityEntity {
 
-    @Column(name = "email",unique = true,nullable = false)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     @Column(name = "password")
     private String password;
 
-    @OneToOne(targetEntity = UserInfoEntity.class,cascade = CascadeType.ALL)
+    @OneToOne(targetEntity = UserInfoEntity.class, cascade = CascadeType.ALL)
     @Fetch(value = FetchMode.JOIN)
     private UserInfoEntity userInfo;
 
-    @OneToMany(fetch = FetchType.LAZY,cascade = {
+    @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.DETACH,
             CascadeType.MERGE,
             CascadeType.PERSIST,
             CascadeType.REFRESH
-    },mappedBy = "userEntity")
+    }, mappedBy = "userEntity")
     @OrderBy("workingDay asc")
     private List<TimesheetEntity> timesheets = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY,cascade = {
+    @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.DETACH,
             CascadeType.MERGE,
             CascadeType.PERSIST,
             CascadeType.REFRESH
-    },mappedBy = "projectManager")
+    }, mappedBy = "projectManager")
     private List<ProjectEntity> projectManagements = new ArrayList<>();
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
@@ -58,7 +56,7 @@ public class UserEntity extends IdentityEntity {
                     name = "role_id", referencedColumnName = "id"))
     private List<RoleEntity> roles = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY,cascade = {
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.DETACH,
             CascadeType.MERGE,
             CascadeType.PERSIST,
@@ -82,9 +80,9 @@ public class UserEntity extends IdentityEntity {
     private List<TimesheetEntity> bonusHours = new ArrayList<>();
 
     @PostLoad
-    private void loadToTransientData(){
+    private void loadToTransientData() {
         this.normalHours = timesheets.stream().filter(x -> x.getType() == ETimesheetType.NORMAL).toList();
         this.overtimeHours = timesheets.stream().filter(x -> x.getType() == ETimesheetType.OVERTIME).toList();
-        this.bonusHours = timesheets.stream().filter(x -> x.getType() == ETimesheetType.BONUS).collect(Collectors.toList());
+        this.bonusHours = timesheets.stream().filter(x -> x.getType() == ETimesheetType.BONUS).toList();
     }
- }
+}

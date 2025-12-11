@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!-- Create ADMIN Role -->
+    <changeSet id="create-role-admin" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'ADMIN'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create ADMIN role</comment>
+        <sql>
+            INSERT INTO roles (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                user_role
+            ) VALUES (
+                NOW(),
+                'SYSTEM',
+                FALSE,
+                TRUE,
+                'ADMIN'
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Create IT_ADMIN Role -->
+    <changeSet id="create-role-it-admin" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'IT_ADMIN'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create IT_ADMIN role</comment>
+        <sql>
+            INSERT INTO roles (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                user_role
+            ) VALUES (
+                NOW(),
+                'SYSTEM',
+                FALSE,
+                TRUE,
+                'IT_ADMIN'
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Create PROJECT_MANAGER Role -->
+    <changeSet id="create-role-project-manager" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'PROJECT_MANAGER'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create PROJECT_MANAGER role</comment>
+        <sql>
+            INSERT INTO roles (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                user_role
+            ) VALUES (
+                NOW(),
+                'SYSTEM',
+                FALSE,
+                TRUE,
+                'PROJECT_MANAGER'
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Create USER Role -->
+    <changeSet id="create-role-user" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'USER'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create USER role</comment>
+        <sql>
+            INSERT INTO roles (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                user_role
+            ) VALUES (
+                NOW(),
+                'SYSTEM',
+                FALSE,
+                TRUE,
+                'USER'
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Create HR Role -->
+    <changeSet id="create-role-hr" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'HR'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create HR role</comment>
+        <sql>
+            INSERT INTO roles (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                user_role
+            ) VALUES (
+                NOW(),
+                'SYSTEM',
+                FALSE,
+                TRUE,
+                'HR'
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
+

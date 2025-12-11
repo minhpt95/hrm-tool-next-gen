@@ -67,21 +67,21 @@
                 FALSE,
                 TRUE,
                 'admin@vatek.com',
-                '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+                '$2y$10$6A82Onep5.6eAIzkwRFYj.1wegjlxsc1iWnBSZb2zcKs61XTIMxrG',
                 (SELECT id FROM user_infos WHERE identity_card = 'ADMIN001' LIMIT 1)
             );
         </sql>
     </changeSet>
 
-    <!-- Ensure ROLE_ADMIN exists -->
+    <!-- Ensure ADMIN role exists -->
     <changeSet id="ensure-admin-role-exists" author="system">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="roles"/>
             <sqlCheck expectedResult="0">
-                SELECT COUNT(*) FROM roles WHERE user_role = 'ROLE_ADMIN'
+                SELECT COUNT(*) FROM roles WHERE user_role = 'ADMIN'
             </sqlCheck>
         </preConditions>
-        <comment>Create ROLE_ADMIN role if it doesn't exist</comment>
+        <comment>Create ADMIN role if it doesn't exist</comment>
         <sql>
             INSERT INTO roles (
                 create_date,
@@ -94,7 +94,7 @@
                 'SYSTEM',
                 FALSE,
                 TRUE,
-                'ROLE_ADMIN'
+                'ADMIN'
             );
         </sql>
     </changeSet>
@@ -106,7 +106,7 @@
             <tableExists tableName="users"/>
             <tableExists tableName="roles"/>
             <sqlCheck expectedResult="1">
-                SELECT COUNT(*) FROM roles WHERE user_role = 'ROLE_ADMIN'
+                SELECT COUNT(*) FROM roles WHERE user_role = 'ADMIN'
             </sqlCheck>
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM users WHERE email = 'admin@vatek.com'
@@ -115,7 +115,7 @@
                 SELECT COUNT(*) FROM users_roles ur
                 INNER JOIN users u ON ur.user_id = u.id
                 INNER JOIN roles r ON ur.role_id = r.id
-                WHERE u.email = 'admin@vatek.com' AND r.user_role = 'ROLE_ADMIN'
+                WHERE u.email = 'admin@vatek.com' AND r.user_role = 'ADMIN'
             </sqlCheck>
         </preConditions>
         <comment>Link admin user to ADMIN role</comment>
@@ -127,7 +127,7 @@
             FROM users u
             CROSS JOIN roles r
             WHERE u.email = 'admin@vatek.com'
-            AND r.user_role = 'ROLE_ADMIN'
+            AND r.user_role = 'ADMIN'
             LIMIT 1;
         </sql>
     </changeSet>

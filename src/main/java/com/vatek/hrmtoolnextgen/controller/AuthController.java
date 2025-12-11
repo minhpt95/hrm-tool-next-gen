@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Hidden;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -32,18 +33,10 @@ public class AuthController {
         return ResponseEntity.ok(buildSuccessResponse(loginResponse, request));
     }
 
+    @Hidden
     @PostMapping(value = "/register", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<CommonSuccessResponse<RegisterResponse>> register(
             @ModelAttribute RegisterRequest registerRequest,
-            @AuthenticationPrincipal UserPrincipalDto userPrincipal,
-            HttpServletRequest request) {
-        RegisterResponse registerResponse = authService.register(registerRequest, userPrincipal);
-        return ResponseEntity.ok(buildSuccessResponse(registerResponse, request));
-    }
-    
-    @PostMapping(value = "/register/temp", consumes = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<CommonSuccessResponse<RegisterResponse>> registerTemp(
-            @RequestBody RegisterRequest registerRequest,
             @AuthenticationPrincipal UserPrincipalDto userPrincipal,
             HttpServletRequest request) {
         RegisterResponse registerResponse = authService.register(registerRequest, userPrincipal);

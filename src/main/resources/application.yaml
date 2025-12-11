@@ -63,7 +63,7 @@ logging:
         hrmtoolnextgen: DEBUG
 hrm:
   app:
-    jwtSecret: change-me
+    jwtSecret: 78Obiiz91cAbwzreim1DnLXbn2UGZuKZ
     jwtExpiration: '86400000'
     refreshTokenExpiration: '86400000'
 

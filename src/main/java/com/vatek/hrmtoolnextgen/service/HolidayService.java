@@ -104,7 +104,7 @@ public class HolidayService {
                         LocalDate holidayDate = holiday.getDate();
                         return !holidayDate.isBefore(startDate) && !holidayDate.isAfter(endDate);
                     })
-                    .collect(Collectors.toList()));
+                    .toList());
         }
 
         return allHolidays;
@@ -152,8 +152,8 @@ public class HolidayService {
         HolidayDto dto = new HolidayDto();
         dto.setName(holiday.getName());
         dto.setDescription(holiday.getDescription());
-        dto.setType(holiday.getTypes() != null && !holiday.getTypes().isEmpty() 
-                ? holiday.getTypes().get(0) : "Unknown");
+        dto.setType(holiday.getTypes() != null && !holiday.getTypes().isEmpty()
+                ? holiday.getTypes().getFirst() : "Unknown");
         dto.setIsPublic(holiday.getTypes() != null && holiday.getTypes().contains("National holiday"));
         dto.setCountry(holiday.getCountry() != null ? holiday.getCountry().getId() : COUNTRY_CODE);
 

@@ -94,6 +94,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests(authz -> authz
                         // Permit access to public endpoints
                         .requestMatchers(
+                                "/api/holidays/**",
                                 "/swagger-ui.html",
                                 "/api/auth/**",
                                 "/swagger-ui/**", // Permit Swagger UI

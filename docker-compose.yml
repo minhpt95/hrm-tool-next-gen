@@ -67,7 +67,7 @@ services:
     container_name: hrm-app
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "9000:9000"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/hrm?createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true

@@ -1,0 +1,58 @@
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:10}
+  mail:
+    host: ${MAIL_HOST:smtp.mailtrap.io}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+  datasource:
+    url: 'jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:hrm_test}?createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true'
+    username: ${DB_USERNAME:mysqladmin}
+    password: ${DB_PASSWORD:mysqladmin}
+    driverClassName: com.mysql.cj.jdbc.Driver
+  docker:
+    compose:
+      enabled: false
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: none
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:rabbitmq_admin}
+    password: ${RABBITMQ_PASSWORD:rabbitmq_admin}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST:local}
+system:
+  name:
+    mail: HRM System - Test
+aws:
+  s3:
+    accessKeyId: ${AWS_ACCESS_KEY_ID:}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY:}
+    region: ${AWS_REGION:ap-southeast-1}
+    bucket: ${AWS_S3_BUCKET:hrm-tool-test}
+    object:
+      url: 'https://${aws.s3.bucket}.s3.${aws.s3.region}.amazonaws.com/'
+server:
+  address: 0.0.0.0
+  port: ${SERVER_PORT:9001}
+hrm:
+  app:
+    jwtSecret: ${JWT_SECRET:test-jwt-secret-change-me}
+    jwtExpiration: ${JWT_EXPIRATION:86400000}
+    refreshTokenExpiration: ${REFRESH_TOKEN_EXPIRATION:86400000}
+logging:
+  level:
+    com:
+      vatek:
+        hrmtoolnextgen: INFO
+    root: INFO
+

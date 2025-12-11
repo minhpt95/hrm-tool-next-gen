@@ -21,7 +21,7 @@ import java.util.TimeZone;
 @SpringBootApplication
 @Log4j2
 @EnableScheduling
-@EnableAsync
+@EnableAsync(proxyTargetClass = true)
 @EnableWebMvc
 @RequiredArgsConstructor
 @EnableJpaRepositories(basePackages = "com.vatek.hrmtoolnextgen.repository.jpa")

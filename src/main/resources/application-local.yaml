@@ -16,8 +16,7 @@ spring:
     driverClassName: com.mysql.cj.jdbc.Driver
   docker:
     compose:
-      enabled: true
-      file: compose.yaml
+      enabled: false
   jpa:
     show-sql: true
     properties:
@@ -30,6 +29,7 @@ spring:
     port: 5672
     username: rabbitmq_admin
     password: rabbitmq_admin
+    virtual-host: local
 system:
   name:
     mail: HRM System
@@ -38,9 +38,9 @@ aws:
     accessKeyId: AKIA2ZKIEPJATUNMPXY3
     secretAccessKey: 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
     region: ap-southeast-1
-    bucket: mrsoolx
+    bucket: hrm-tool
     object:
-      url: 'https://${aws.s3.bucket}.s3.${aws.s3.region}.amazonawszcom/'
+      url: 'https://${aws.s3.bucket}.s3.${aws.s3.region}.amazonaws.com/'
 server:
   address: 0.0.0.0
-  port: 8081
+  port: 9000

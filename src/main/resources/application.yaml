@@ -41,7 +41,7 @@
     database-change-log-lock-table: database-liquibase-changelog-lock
 
   rabbitmq:
-    virtual-host: '${spring.profiles.active}'
+    virtual-host: local
     connection-timeout: PT5S
     listener:
       simple:

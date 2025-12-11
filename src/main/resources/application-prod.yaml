@@ -1,0 +1,94 @@
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:10}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:true}
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  datasource:
+    url: 'jdbc:mysql://${DB_HOST:}:${DB_PORT:3306}/${DB_NAME:}?useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true&useSSL=true&requireSSL=true&serverTimezone=UTC'
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+    driverClassName: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME:1800000}
+  docker:
+    compose:
+      enabled: false
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    hibernate:
+      ddl-auto: none
+  rabbitmq:
+    host: ${RABBITMQ_HOST:}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:}
+    password: ${RABBITMQ_PASSWORD:}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST:local}
+    ssl:
+      enabled: ${RABBITMQ_SSL_ENABLED:true}
+system:
+  name:
+    mail: HRM System
+aws:
+  s3:
+    accessKeyId: ${AWS_ACCESS_KEY_ID:}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY:}
+    region: ${AWS_REGION:ap-southeast-1}
+    bucket: ${AWS_S3_BUCKET:hrm-tool-prod}
+    object:
+      url: 'https://${aws.s3.bucket}.s3.${aws.s3.region}.amazonaws.com/'
+server:
+  address: 0.0.0.0
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+    min-response-size: 1024
+hrm:
+  app:
+    jwtSecret: ${JWT_SECRET:}
+    jwtExpiration: ${JWT_EXPIRATION:86400000}
+    refreshTokenExpiration: ${REFRESH_TOKEN_EXPIRATION:86400000}
+logging:
+  level:
+    com:
+      vatek:
+        hrmtoolnextgen: WARN
+    root: WARN
+  file:
+    name: ${LOG_FILE_PATH:/var/log/hrm-tool/application.log}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+

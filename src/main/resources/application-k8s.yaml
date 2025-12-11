@@ -24,7 +24,7 @@ spring:
     port: ${SPRING_RABBITMQ_PORT:5672}
     username: ${SPRING_RABBITMQ_USERNAME}
     password: ${SPRING_RABBITMQ_PASSWORD}
-    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:hrm}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:local}
 server:
   address: 0.0.0.0
   port: ${SERVER_PORT:8081}

@@ -2,7 +2,6 @@ package com.vatek.hrmtoolnextgen.dto.request;
 
 import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
 import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -24,12 +23,11 @@ public class RegisterRequest {
     @NotNull
     private UserInfoDto userInfo;
     @NotEmpty
-    @ArraySchema(
-            arraySchema = @Schema(
-                    description = "Roles that define permissions for the employee",
-                    example = "[\"USER\",\"HR\"]"
-            ),
-            schema = @Schema(implementation = EUserRole.class)
+    @Schema(
+            description = "Roles that define permissions for the employee",
+            type = "array",
+            implementation = EUserRole.class,
+            example = "[\"USER\",\"HR\"]"
     )
     private Collection<EUserRole> roles;
 }

@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,6 +32,20 @@ public class CommonControllerAdvice {
             HttpServletRequest request, 
             BadRequestException ex) {
         return buildErrorResponse(ex, request);
+    }
+
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<CommonResponse> handleInsufficientAuthentication(
+            HttpServletRequest request,
+            InsufficientAuthenticationException ex) {
+        CommonResponse errorResponse = CommonErrorResponse
+                .commonErrorResponseBuilder()
+                .message(ex.getMessage())
+                .httpStatusCode(HttpStatus.UNAUTHORIZED)
+                .path(request.getServletPath())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
     private ResponseEntity<CommonResponse> buildErrorResponse(

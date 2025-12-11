@@ -2,18 +2,17 @@ package com.vatek.hrmtoolnextgen.controller;
 
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.CreateProjectRequest;
+import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateProjectRequest;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
+import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.service.ProjectService;
-import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,12 +32,21 @@ public class ProjectController {
             summary = "List projects",
             description = "Returns a paginated list of projects including managers, members, and lifecycle status."
     )
-    public ResponseEntity<CommonSuccessResponse<Page<ProjectDto>>> getAllProjects(
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<ProjectDto>>> getAllProjects(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
             HttpServletRequest request) {
-        Pageable pageable = CommonUtils.buildPageable(page, size);
-        Page<ProjectDto> projects = projectService.getAllProjects(pageable);
+
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<ProjectDto> projects = projectService.getAllProjects(paginationRequest);
         return ResponseEntity.ok(buildSuccessResponse(projects, request));
     }
 

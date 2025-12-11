@@ -1,19 +1,18 @@
 package com.vatek.hrmtoolnextgen.controller;
 
 import com.vatek.hrmtoolnextgen.dto.request.CreateUserRequest;
+import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
+import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.service.UserService;
-import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +33,21 @@ public class UserController {
             summary = "List users",
             description = "Returns a paginated list of employees with profile and role information."
     )
-    public ResponseEntity<CommonSuccessResponse<Page<UserDto>>> getAllUsers(
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<UserDto>>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
             HttpServletRequest request) {
-        Pageable pageable = CommonUtils.buildPageable(page, size);
-        Page<UserDto> users = userService.getPageUsers(pageable);
+
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<UserDto> users = userService.getPageUsers(paginationRequest);
         return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 

@@ -2,17 +2,19 @@ package com.vatek.hrmtoolnextgen.service;
 
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.CreateProjectRequest;
+import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateProjectRequest;
+import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.mapping.ProjectMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.ProjectRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
+import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +33,10 @@ public class ProjectService {
     private final ProjectMapping projectMapping;
 
     @Transactional(readOnly = true)
-    public Page<ProjectDto> getAllProjects(Pageable pageable) {
-        Page<ProjectEntity> entityPage = projectRepository.findAll(pageable);
-        return projectMapping.toDtoPageable(entityPage);
+    public PaginationResponse<ProjectDto> getAllProjects(PaginationRequest paginationRequest) {
+        Page<ProjectEntity> entityPage = projectRepository.findAll(CommonUtils.buildPageable(paginationRequest));
+        Page<ProjectDto> dtoPage = projectMapping.toDtoPageable(entityPage);
+        return CommonUtils.buildPaginationResponse(dtoPage, paginationRequest);
     }
 
     @Transactional(readOnly = true)

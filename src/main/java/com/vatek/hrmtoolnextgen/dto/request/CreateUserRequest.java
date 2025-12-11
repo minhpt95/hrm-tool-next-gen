@@ -2,6 +2,7 @@ package com.vatek.hrmtoolnextgen.dto.request;
 
 import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,9 @@ public class CreateUserRequest {
     private MultipartFile avatarImage;
 
     @NotEmpty
-    @Schema(description = "Roles that define permissions for the employee")
+    @ArraySchema(
+            arraySchema = @Schema(description = "Roles that define permissions for the employee"),
+            schema = @Schema(implementation = RoleDto.class)
+    )
     private Collection<RoleDto> roles;
 }

@@ -1,7 +1,9 @@
 package com.vatek.hrmtoolnextgen.service;
 
 import com.vatek.hrmtoolnextgen.dto.request.CreateUserRequest;
+import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateUserRequest;
+import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
@@ -14,7 +16,6 @@ import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,9 +43,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserDto> getPageUsers(Pageable pageable) {
-        Page<UserEntity> entityPage = userRepository.findAll(pageable);
-        return userMapping.toDtoPageable(entityPage);
+    public PaginationResponse<UserDto> getPageUsers(PaginationRequest paginationRequest) {
+        Page<UserEntity> entityPage = userRepository.findAll(CommonUtils.buildPageable(paginationRequest));
+        Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
+        return CommonUtils.buildPaginationResponse(dtoPage, paginationRequest);
     }
 
     @Transactional(readOnly = true)

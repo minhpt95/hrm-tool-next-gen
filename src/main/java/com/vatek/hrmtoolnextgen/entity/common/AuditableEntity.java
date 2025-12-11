@@ -37,7 +37,7 @@ public class AuditableEntity implements Serializable {
     @CreatedBy
     @Column(name = "create_by", nullable = false, updatable = false)
     @JsonIgnore
-    private Long createdBy;
+    private String createdBy;
 
     @LastModifiedDate
     @Column(name = "last_modified_date")
@@ -47,5 +47,5 @@ public class AuditableEntity implements Serializable {
     @LastModifiedBy
     @Column(name = "last_modified_by")
     @JsonIgnore
-    private Long lastModifiedBy;
+    private String lastModifiedBy;
 }

@@ -1,6 +1,6 @@
 package com.vatek.hrmtoolnextgen.dto.request;
 
-import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,7 +33,7 @@ public class CreateUserRequest {
     @NotEmpty
     @ArraySchema(
             arraySchema = @Schema(description = "Roles that define permissions for the employee"),
-            schema = @Schema(implementation = RoleDto.class)
+            schema = @Schema(implementation = EUserRole.class)
     )
-    private Collection<RoleDto> roles;
+    private Collection<EUserRole> roles;
 }

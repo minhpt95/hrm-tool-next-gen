@@ -8,6 +8,7 @@ import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserInfoEntity;
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.mapping.UserMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -93,10 +95,10 @@ public class UserService {
 
         // Set roles
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
-            List<RoleEntity> roles = request.getRoles().stream()
-                    .map(roleDto -> roleRepository.findByUserRole(roleDto.getUserRole()))
-                    .filter(role -> role != null)
-                    .collect(Collectors.toList());
+            var roles = request.getRoles().stream()
+                    .map(roleRepository::findByUserRole)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
             userEntity.setRoles(roles);
         }
 
@@ -160,10 +162,10 @@ public class UserService {
 
         // Update roles
         if (request.getRoles() != null) {
-            List<RoleEntity> roles = request.getRoles().stream()
-                    .map(roleDto -> roleRepository.findByUserRole(roleDto.getUserRole()))
-                    .filter(role -> role != null)
-                    .collect(Collectors.toList());
+            var roles = request.getRoles().stream()
+                    .map(roleRepository::findByUserRole)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
             userEntity.setRoles(roles);
         }
 

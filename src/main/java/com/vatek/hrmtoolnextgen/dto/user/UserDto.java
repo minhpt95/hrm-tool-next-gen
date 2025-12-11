@@ -1,5 +1,7 @@
 package com.vatek.hrmtoolnextgen.dto.user;
 
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
+import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,5 +29,5 @@ public class UserDto {
     private boolean enabled;
 
     @Schema(description = "Roles granted to the employee")
-    private Collection<RoleDto> roles;
+    private Collection<EUserRole> roles;
 }

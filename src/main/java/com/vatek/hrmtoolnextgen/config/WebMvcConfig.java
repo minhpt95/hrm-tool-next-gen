@@ -1,8 +1,8 @@
 package com.vatek.hrmtoolnextgen.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +24,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addFormatters(FormatterRegistry registry) {
         registry.addConverter(new StringToUserInfoDtoConverter(objectMapper));
-        registry.addConverter(new StringToRoleDtoCollectionConverter(objectMapper));
+        registry.addConverter(new StringToEUserRoleCollectionConverter(objectMapper));
     }
 
     /**
@@ -53,29 +53,29 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     /**
-     * Converter to parse JSON string to Collection<RoleDto> from form data
+     * Converter to parse JSON string to Collection<EUserRole> from form data
      */
-    private class StringToRoleDtoCollectionConverter implements Converter<String, Collection<RoleDto>> {
+    private class StringToEUserRoleCollectionConverter implements Converter<String, Collection<EUserRole>> {
         private final ObjectMapper objectMapper;
 
-        public StringToRoleDtoCollectionConverter(ObjectMapper objectMapper) {
+        public StringToEUserRoleCollectionConverter(ObjectMapper objectMapper) {
             this.objectMapper = objectMapper;
         }
 
         @Override
-        public Collection<RoleDto> convert(String source) {
+        public Collection<EUserRole> convert(String source) {
             try {
                 if (source == null || source.trim().isEmpty()) {
                     return new ArrayList<>();
                 }
                 // Try to parse as JSON array
-                List<RoleDto> roles = objectMapper.readValue(
+                List<EUserRole> roles = objectMapper.readValue(
                     source,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, RoleDto.class)
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, EUserRole.class)
                 );
                 return roles != null ? roles : new ArrayList<>();
             } catch (Exception e) {
-                log.warn("Failed to parse Collection<RoleDto> from JSON string: {}", source, e);
+                log.warn("Failed to parse Collection<EUserRole> from JSON string: {}", source, e);
                 return new ArrayList<>();
             }
         }

@@ -1,14 +1,15 @@
 package com.vatek.hrmtoolnextgen.dto.request;
 
-import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 
@@ -23,5 +24,9 @@ public class RegisterRequest {
     @NotNull
     private UserInfoDto userInfo;
     @NotEmpty
-    private Collection<RoleDto> roles;
+    @ArraySchema(
+            arraySchema = @Schema(description = "Roles that define permissions for the employee"),
+            schema = @Schema(implementation = EUserRole.class)
+    )
+    private Collection<EUserRole> roles;
 }

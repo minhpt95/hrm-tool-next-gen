@@ -8,7 +8,6 @@ import com.vatek.hrmtoolnextgen.dto.request.RegisterRequest;
 import com.vatek.hrmtoolnextgen.dto.response.LoginResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RefreshTokenResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RegisterResponse;
-import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
 import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.entity.redis.UserTokenRedisEntity;
@@ -32,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -189,10 +189,10 @@ public class AuthService {
             userEntity.getUserInfo().setCreatedBy(userPrincipal.getId());
         }
 
-        List<RoleEntity> roles = roleRepository.findByUserRoleIn(registerRequest.getRoles().stream().map(RoleDto::getUserRole).toList());
+        List<RoleEntity> roles = roleRepository.findByUserRoleIn(registerRequest.getRoles().stream().toList());
 
         if (!roles.isEmpty()) {
-            userEntity.setRoles(roles);
+            userEntity.setRoles(new HashSet<>(roles));
         }
 
         String password = CommonUtils.randomPassword(12);

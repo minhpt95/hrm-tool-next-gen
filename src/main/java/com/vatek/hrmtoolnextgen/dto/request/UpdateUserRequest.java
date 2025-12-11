@@ -1,8 +1,10 @@
 package com.vatek.hrmtoolnextgen.dto.request;
 
-import com.vatek.hrmtoolnextgen.dto.user.RoleDto;
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,8 +28,12 @@ public class UpdateUserRequest {
     @Schema(description = "Replacement avatar image file")
     private MultipartFile avatarImage;
 
-    @Schema(description = "New role assignments")
-    private Collection<RoleDto> roles;
+    @NotEmpty
+    @ArraySchema(
+            arraySchema = @Schema(description = "Roles that define permissions for the employee"),
+            schema = @Schema(implementation = EUserRole.class)
+    )
+    private Collection<EUserRole> roles;
 
     @Schema(description = "Whether the employee account is active")
     private Boolean active;

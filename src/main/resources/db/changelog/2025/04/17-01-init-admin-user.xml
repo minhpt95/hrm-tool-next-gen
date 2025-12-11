@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!-- Insert Admin User Info -->
+    <changeSet id="init-admin-user-info" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user_infos"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM user_infos WHERE identity_card = 'ADMIN001'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create admin user info record</comment>
+        <sql>
+            INSERT INTO user_infos (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                first_name,
+                last_name,
+                identity_card,
+                phone_number
+            ) VALUES (
+                NOW(),
+                'SYSTEM',
+                FALSE,
+                TRUE,
+                'Admin',
+                'User',
+                'ADMIN001',
+                '0000000000'
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Insert Admin User -->
+    <changeSet id="init-admin-user" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="users"/>
+            <tableExists tableName="user_infos"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM users WHERE email = 'admin@vatek.com'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create admin user with hashed password (password: admin123)
+            Note: BCrypt hash generated with $2y$10 rounds. To generate new hash, use:
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y, 10);
+            String hash = encoder.encode("admin123");
+        </comment>
+        <sql>
+            INSERT INTO users (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                email,
+                password,
+                user_info_id
+            ) VALUES (
+                NOW(),
+                'SYSTEM',
+                FALSE,
+                TRUE,
+                'admin@vatek.com',
+                '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+                (SELECT id FROM user_infos WHERE identity_card = 'ADMIN001' LIMIT 1)
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Ensure ROLE_ADMIN exists -->
+    <changeSet id="ensure-admin-role-exists" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'ROLE_ADMIN'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create ROLE_ADMIN role if it doesn't exist</comment>
+        <sql>
+            INSERT INTO roles (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                user_role
+            ) VALUES (
+                NOW(),
+                'SYSTEM',
+                FALSE,
+                TRUE,
+                'ROLE_ADMIN'
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Link Admin User to Admin Role -->
+    <changeSet id="init-admin-user-role" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="users_roles"/>
+            <tableExists tableName="users"/>
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'ROLE_ADMIN'
+            </sqlCheck>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM users WHERE email = 'admin@vatek.com'
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM users_roles ur
+                INNER JOIN users u ON ur.user_id = u.id
+                INNER JOIN roles r ON ur.role_id = r.id
+                WHERE u.email = 'admin@vatek.com' AND r.user_role = 'ROLE_ADMIN'
+            </sqlCheck>
+        </preConditions>
+        <comment>Link admin user to ADMIN role</comment>
+        <sql>
+            INSERT INTO users_roles (user_id, role_id)
+            SELECT 
+                u.id,
+                r.id
+            FROM users u
+            CROSS JOIN roles r
+            WHERE u.email = 'admin@vatek.com'
+            AND r.user_role = 'ROLE_ADMIN'
+            LIMIT 1;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

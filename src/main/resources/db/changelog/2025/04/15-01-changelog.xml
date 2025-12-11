@@ -43,8 +43,8 @@
             <column name="name" type="VARCHAR(255)"/>
             <column name="description" type="VARCHAR(255)"/>
             <column name="project_status" type="VARCHAR(255)"/>
-            <column name="start_time" type="DATETIME"/>
-            <column name="end_time" type="DATETIME"/>
+            <column name="start_time" type="DATE"/>
+            <column name="end_time" type="DATE"/>
             <column name="project_manager" type="BIGINT"/>
         </createTable>
     </changeSet>

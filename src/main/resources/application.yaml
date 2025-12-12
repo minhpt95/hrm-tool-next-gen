@@ -71,9 +71,9 @@ hrm:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html
+    path: /api/swagger-ui.html
   api-docs:
-    path: /v3/api-docs
+    path: /api/v3/api-docs
     version: OPENAPI_3_1
   packagesToScan: com.vatek.hrmtoolnextgen.controller
 

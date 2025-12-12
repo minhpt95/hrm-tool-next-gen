@@ -31,18 +31,14 @@ public class DayOffService {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new BadRequestException("User not found with id: " + userId));
 
-        // Convert datetime strings to LocalDateTime
-        LocalDateTime startDateTime = DateUtils.convertStringDateTimeToLocalDateTime(request.getStartTime());
-        LocalDateTime endDateTime = DateUtils.convertStringDateTimeToLocalDateTime(request.getEndTime());
-
         // Validate that endTime is after startTime
-        if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+        if (request.getEndTime().isBefore(request.getStartTime()) || request.getEndTime().equals(request.getStartTime())) {
             throw new BadRequestException("endTime must be after startTime");
         }
 
         // Validate that startTime and endTime are on the same day
-        LocalDate startDate = startDateTime.toLocalDate();
-        LocalDate endDate = endDateTime.toLocalDate();
+        LocalDate startDate = request.getStartTime().toLocalDate();
+        LocalDate endDate = request.getEndTime().toLocalDate();
         if (!startDate.equals(endDate)) {
             throw new BadRequestException("startTime and endTime must be on the same day");
         }
@@ -72,8 +68,8 @@ public class DayOffService {
         dayOffEntity.setUser(userEntity);
         dayOffEntity.setRequestTitle(request.getRequestTitle());
         dayOffEntity.setRequestReason(request.getRequestReason());
-        dayOffEntity.setStartTime(startDateTime);
-        dayOffEntity.setEndTime(endDateTime);
+        dayOffEntity.setStartTime(request.getStartTime());
+        dayOffEntity.setEndTime(request.getEndTime());
         dayOffEntity.setStatus(EDayOffStatus.PENDING);
 
         DayOffEntity savedEntity = dayOffRepository.save(dayOffEntity);
@@ -85,16 +81,12 @@ public class DayOffService {
 
     @Transactional
     public DayOffDto approveDayOffRequest(ApprovalDayOffRequest request) {
-        // Convert Instant to LocalDateTime for comparison
-        LocalDateTime startDateTime = request.getStartTime().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
-        LocalDateTime endDateTime = request.getEndTime().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
-
         // Find day off by user, startTime, and endTime
         var dayOffs = dayOffRepository.findAll((root, query, cb) -> {
             var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
             predicates.add(cb.equal(root.get("user").get("id"), request.getUserId()));
-            predicates.add(cb.equal(root.get("startTime"), startDateTime));
-            predicates.add(cb.equal(root.get("endTime"), endDateTime));
+            predicates.add(cb.equal(root.get("startTime"), request.getStartTime()));
+            predicates.add(cb.equal(root.get("endTime"), request.getEndTime()));
             predicates.add(cb.equal(root.get("delete"), false));
             return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         });
@@ -115,7 +107,7 @@ public class DayOffService {
         DayOffEntity savedEntity = dayOffRepository.save(dayOffEntity);
         
         log.info("Updated day off request status to {} for user: {} from {} to {}", 
-                request.getStatus(), request.getUserId(), startDateTime, endDateTime);
+                request.getStatus(), request.getUserId(), request.getStartTime(), request.getEndTime());
 
         return toDto(savedEntity);
     }

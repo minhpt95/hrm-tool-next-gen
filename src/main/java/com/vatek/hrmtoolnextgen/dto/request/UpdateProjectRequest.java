@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -32,10 +34,12 @@ public class UpdateProjectRequest {
     @Schema(description = "Updated lifecycle status")
     private EProjectStatus projectStatus;
 
-    @Schema(description = "New start date in dd/MM/yyyy format")
-    private String startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @Schema(description = "New start date")
+    private LocalDate startDate;
 
-    @Schema(description = "End date in dd/MM/yyyy format")
-    private String endDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @Schema(description = "End date")
+    private LocalDate endDate;
 }
 

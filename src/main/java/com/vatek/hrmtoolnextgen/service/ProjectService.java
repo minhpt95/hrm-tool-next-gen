@@ -202,9 +202,8 @@ public class ProjectService {
         }
 
         // Set start time
-        if (request.getStartDate() != null && !request.getStartDate().isBlank()) {
-            LocalDate startTime = parseDate(request.getStartDate());
-            projectEntity.setStartTime(startTime);
+        if (request.getStartDate() != null) {
+            projectEntity.setStartTime(request.getStartDate());
         } else {
             projectEntity.setStartTime(LocalDate.now());
         }
@@ -259,11 +258,11 @@ public class ProjectService {
         }
 
         // Update dates
-        if (request.getStartDate() != null && !request.getStartDate().isBlank()) {
-            projectEntity.setStartTime(parseDate(request.getStartDate()));
+        if (request.getStartDate() != null) {
+            projectEntity.setStartTime(request.getStartDate());
         }
-        if (request.getEndDate() != null && !request.getEndDate().isBlank()) {
-            projectEntity.setEndTime(parseDate(request.getEndDate()));
+        if (request.getEndDate() != null) {
+            projectEntity.setEndTime(request.getEndDate());
         }
 
         // Update members

@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.vatek.hrmtoolnextgen.enumeration.EDayOffStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -9,7 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -20,11 +21,13 @@ public class ApprovalDayOffRequest {
     @Min(1)
     private Long userId;
     
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm")
     @NotNull
-    private Instant startTime;
+    private LocalDateTime startTime;
     
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm")
     @NotNull
-    private Instant endTime;
+    private LocalDateTime endTime;
     
     @NotEmpty
     @NotNull

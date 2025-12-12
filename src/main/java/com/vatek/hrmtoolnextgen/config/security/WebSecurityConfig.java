@@ -101,6 +101,10 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         ).permitAll()
 
                         .requestMatchers(
+                                "/error" // Allow Error
+                        ).permitAll()
+
+                        .requestMatchers(
                                 "/actuator/health" // Health Check
                         ).permitAll()
 

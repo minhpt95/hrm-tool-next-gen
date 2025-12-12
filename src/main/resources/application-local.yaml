@@ -5,10 +5,10 @@ spring:
       port: 6379
       database: 10
   mail:
-    host: smtp.mailtrap.io
+    host: sandbox.smtp.mailtrap.io
     port: '587'
-    username: 655f2d35bd07a8
-    password: be71dfab64c415
+    username: e7293b181fa903
+    password: 2785eee5ecd256
   datasource:
     url: 'jdbc:postgresql://localhost:5433/hrm'
     username: postgres

@@ -19,7 +19,4 @@ public class CommonException extends RuntimeException {
         this.message = message;
     }
 
-    public HttpStatusCode getStatusCode() {
-        return statusCode;
-    }
 }

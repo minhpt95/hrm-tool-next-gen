@@ -24,6 +24,7 @@ import com.vatek.hrmtoolnextgen.repository.jpa.DayOffRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.ProjectRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.TimesheetRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
+import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import com.vatek.hrmtoolnextgen.util.DateUtils;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.vatek.hrmtoolnextgen.util.CommonUtils;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -113,7 +113,7 @@ public class TimesheetService {
                         workingDayDate
                 ));
                 predicates.add(criteriaBuilder.equal(
-                        root.get("user").get("id"), 
+                        root.get("user").get("id"),
                         currentUser.getId()
                 ));
                 // Only check APPROVED day off requests
@@ -129,21 +129,21 @@ public class TimesheetService {
             // Calculate total day off hours and check for full day off
             int totalDayOffHours = 0;
             boolean hasFullDayOff = false;
-            
+
             for (DayOffEntity dayOff : approvedDayOffs) {
                 if (dayOff.getStartTime() == null || dayOff.getEndTime() == null) {
                     continue; // Skip invalid day off entries
                 }
-                
+
                 // Calculate hours between startTime and endTime (LocalDateTime)
                 long secondsDiff = java.time.Duration.between(dayOff.getStartTime(), dayOff.getEndTime()).getSeconds();
                 int dayOffHours = (int) (secondsDiff / 3600); // Convert seconds to hours
-                
+
                 // Check if it's a full day off (8 hours or more)
                 if (dayOffHours >= 8) {
                     hasFullDayOff = true;
                 }
-                
+
                 totalDayOffHours += dayOffHours;
             }
 
@@ -163,9 +163,8 @@ public class TimesheetService {
 
             // Rule 1: Cannot log total more than maxAllowedHours (8 hours normally, or 8 - totalDayOffHours if day off exists)
             if (totalWorkingHours + form.getWorkingHours() > maxAllowedHours) {
-                throw new CommonException(
-                        String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, maxAllowedHours),
-                        HttpStatus.BAD_REQUEST
+                throw new BadRequestException(
+                        String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, maxAllowedHours)
                 );
             }
         }
@@ -263,45 +262,45 @@ public class TimesheetService {
             PaginationRequest paginationRequest,
             ETimesheetStatus status,
             Long projectId) {
-        
+
         // Build specification for filtering
         Specification<TimesheetEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            
+
             // Filter by manager ID (through project's projectManager)
             var projectJoin = root.join("projectEntity");
             predicates.add(cb.equal(projectJoin.get("projectManager").get("id"), managerId));
-            
+
             // Filter by delete = false
             predicates.add(cb.equal(root.get("delete"), false));
-            
+
             // Filter by project if provided
             if (projectId != null) {
                 predicates.add(cb.equal(projectJoin.get("id"), projectId));
             }
-            
+
             // Filter by status if provided
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
             }
-            
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        
+
         // Build pageable with default sort by createdDate desc
         Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "createdDate", "DESC");
-        
+
         Page<TimesheetEntity> entityPage = timesheetRepository.findAll(spec, pageable);
         Page<TimesheetDto> dtoPage = timesheetMapping.toDtoPageable(entityPage);
-        
+
         // Build pagination request for response
-        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank() 
+        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank()
                 ? paginationRequest.getSortBy() : "createdDate";
         String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
                 ? paginationRequest.getDirection() : "DESC";
         PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
                 paginationRequest, actualSortBy, actualDirection);
-        
+
         return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
     }
 }

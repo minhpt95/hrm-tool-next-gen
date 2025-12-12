@@ -29,4 +29,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>, JpaSpec
 
     Collection<UserEntity> findUserEntitiesByIdIn(List<Long> ids);
 
+    @EntityGraph(attributePaths = {"workingProject"})
+    Optional<UserEntity> findById(Long id);
+
+    boolean existsByWorkingProjectIdAndId(Long projectId, Long userId);
 }

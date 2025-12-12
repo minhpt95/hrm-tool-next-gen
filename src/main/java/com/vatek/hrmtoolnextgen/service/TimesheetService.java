@@ -5,13 +5,16 @@ import com.vatek.hrmtoolnextgen.constant.ErrorConstant;
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.request.ApprovalTimesheetRequest;
 import com.vatek.hrmtoolnextgen.dto.request.CreateTimesheetRequest;
+import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateTimesheetRequest;
+import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.timesheet.TimesheetDto;
 import com.vatek.hrmtoolnextgen.entity.common.IdentityEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.dayoff.DayOffEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
+import com.vatek.hrmtoolnextgen.enumeration.EDayOffStatus;
 import com.vatek.hrmtoolnextgen.enumeration.EDayOffType;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetStatus;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetType;
@@ -27,17 +30,21 @@ import com.vatek.hrmtoolnextgen.util.DateUtils;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.vatek.hrmtoolnextgen.util.CommonUtils;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -64,9 +71,8 @@ public class TimesheetService {
             );
         }
 
-        Collection<Long> projectIds = userEntity.getWorkingProject().stream().map(IdentityEntity::getId).toList();
-
-        if (!projectIds.contains(form.getProjectId())) {
+        // Check if user is in the project using a query instead of loading all projects
+        if (!userRepository.existsByWorkingProjectIdAndId(form.getProjectId(), currentUser.getId())) {
             throw new BadRequestException(
                     "You are not in project"
             );
@@ -84,21 +90,12 @@ public class TimesheetService {
             );
         }
 
-        Specification<DayOffEntity> dayOffEntitySpecification = (root, query, criteriaBuilder) -> {
-            var predicates = new ArrayList<Predicate>();
-            predicates.add(criteriaBuilder.equal(
-                    root.get("dayoffEntityId").get("dateOff"),
-                    workingDayDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-            ));
-            predicates.add(criteriaBuilder.equal(root.get("dayoffEntityId").get("userId"), currentUser.getId()));
-            Predicate[] p = new Predicate[predicates.size()];
-            return criteriaBuilder.and(predicates.toArray(p));
-        };
-
-        var getRequestDayOff = dayOffRepository.findAll(dayOffEntitySpecification);
-
+        // Only validate for NORMAL timesheet type
         if (form.getTimesheetType() == ETimesheetType.NORMAL) {
+            // Rule 2: Cannot log on weekend with normal timesheet (already checked above)
+            // This is already implemented in lines 85-91
 
+            // Get existing timesheets for the day (excluding rejected)
             var getTimesheetProjection = timesheetRepository
                     .findByUserEntityIdAndWorkingDayAndStatusNot(
                             currentUser.getId(),
@@ -111,43 +108,54 @@ public class TimesheetService {
                     .mapToInt(TimesheetWorkingHourProjection::getWorkingHours)
                     .sum();
 
-            switch (getRequestDayOff.size()) {
-                case 2 -> throw new CommonException(
-                        ErrorConstant.Message.CANNOT_LOG_ON_FULL_DAY_OFF,
+            // Check for approved day off requests on the same day
+            Specification<DayOffEntity> dayOffEntitySpecification = (root, query, criteriaBuilder) -> {
+                var predicates = new ArrayList<Predicate>();
+                predicates.add(criteriaBuilder.equal(
+                        root.get("dayoffEntityId").get("dateOff"),
+                        workingDayDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                ));
+                predicates.add(criteriaBuilder.equal(
+                        root.get("dayoffEntityId").get("user").get("id"), 
+                        currentUser.getId()
+                ));
+                // Only check APPROVED day off requests
+                predicates.add(criteriaBuilder.equal(root.get("status"), EDayOffStatus.APPROVED));
+                Predicate[] p = new Predicate[predicates.size()];
+                return criteriaBuilder.and(predicates.toArray(p));
+            };
+
+            var approvedDayOffs = dayOffRepository.findAll(dayOffEntitySpecification);
+
+            // Rule 3: Cannot log when request dayoff FULL is approved same day
+            for (DayOffEntity dayOff : approvedDayOffs) {
+                if (dayOff.getDayoffEntityId().getType() == EDayOffType.FULL) {
+                    throw new CommonException(
+                            ErrorConstant.Message.CANNOT_LOG_ON_FULL_DAY_OFF,
+                            HttpStatus.BAD_REQUEST
+                    );
+                }
+            }
+
+            // Rule 4: Cannot log more than (8 - numberOfHours) when request dayoff is PARTIAL
+            int maxAllowedHours = 8;
+            for (DayOffEntity dayOff : approvedDayOffs) {
+                if (dayOff.getDayoffEntityId().getType() == EDayOffType.PARTIAL) {
+                    Integer dayOffHours = dayOff.getNumberOfHours();
+                    if (dayOffHours == null || dayOffHours <= 0) {
+                        throw new BadRequestException("Day off PARTIAL type must have numberOfHours > 0");
+                    }
+                    maxAllowedHours = 8 - dayOffHours;
+                    break; // Only consider the first PARTIAL day off if multiple exist
+                }
+            }
+
+            // Rule 1: Cannot log total more than maxAllowedHours (8 hours normally, or 8 - dayOffHours if PARTIAL day off exists)
+            if (totalWorkingHours + form.getWorkingHours() > maxAllowedHours) {
+                throw new CommonException(
+                        String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, maxAllowedHours),
                         HttpStatus.BAD_REQUEST
                 );
-                case 1 -> {
-                    switch (getRequestDayOff.getFirst().getDayoffEntityId().getType()) {
-                        case FULL -> throw new CommonException(
-                                String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, 5),
-                                HttpStatus.BAD_REQUEST
-                        );
-                        case EDayOffType.MORNING -> {
-                            if (totalWorkingHours + form.getWorkingHours() > 5) {
-                                throw new CommonException(
-                                        String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, 5),
-                                        HttpStatus.BAD_REQUEST
-                                );
-                            }
-                        }
-                        case EDayOffType.AFTERNOON -> {
-                            if (totalWorkingHours + form.getWorkingHours() > 3) {
-                                throw new CommonException(
-                                        String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, 3),
-                                        HttpStatus.BAD_REQUEST
-                                );
-                            }
-                        }
-                    }
-                }
-                case 0 -> {
-                    if (totalWorkingHours + form.getWorkingHours() > 8) {
-                        throw new CommonException(
-                                String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, 8),
-                                HttpStatus.BAD_REQUEST
-                        );
-                    }
-                }
             }
         }
 
@@ -236,5 +244,53 @@ public class TimesheetService {
         timesheetEntity = timesheetRepository.save(timesheetEntity);
 
         return timesheetMapping.toDto(timesheetEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationResponse<TimesheetDto> getTimesheetsByManagerWithFilters(
+            Long managerId,
+            PaginationRequest paginationRequest,
+            ETimesheetStatus status,
+            Long projectId) {
+        
+        // Build specification for filtering
+        Specification<TimesheetEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            // Filter by manager ID (through project's projectManager)
+            var projectJoin = root.join("projectEntity");
+            predicates.add(cb.equal(projectJoin.get("projectManager").get("id"), managerId));
+            
+            // Filter by delete = false
+            predicates.add(cb.equal(root.get("delete"), false));
+            
+            // Filter by project if provided
+            if (projectId != null) {
+                predicates.add(cb.equal(projectJoin.get("id"), projectId));
+            }
+            
+            // Filter by status if provided
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        // Build pageable with default sort by createdDate desc
+        Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "createdDate", "DESC");
+        
+        Page<TimesheetEntity> entityPage = timesheetRepository.findAll(spec, pageable);
+        Page<TimesheetDto> dtoPage = timesheetMapping.toDtoPageable(entityPage);
+        
+        // Build pagination request for response
+        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank() 
+                ? paginationRequest.getSortBy() : "createdDate";
+        String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
+                ? paginationRequest.getDirection() : "DESC";
+        PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
+                paginationRequest, actualSortBy, actualDirection);
+        
+        return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
     }
 }

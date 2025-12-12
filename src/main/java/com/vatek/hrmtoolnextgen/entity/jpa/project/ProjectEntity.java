@@ -21,6 +21,9 @@ public class ProjectEntity extends IdentityEntity {
     private String name;
 
     @Column
+    private String clientName;
+
+    @Column
     private String description;
 
     @Column(name = "project_status")

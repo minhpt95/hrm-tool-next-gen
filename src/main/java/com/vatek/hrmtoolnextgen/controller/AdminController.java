@@ -1,9 +1,14 @@
 package com.vatek.hrmtoolnextgen.controller;
 
+import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.CreateUserRequest;
+import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
+import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
+import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
+import com.vatek.hrmtoolnextgen.service.ProjectService;
 import com.vatek.hrmtoolnextgen.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final UserService userService;
+    private final ProjectService projectService;
 
     @GetMapping("/user/{id}")
     @Operation(
@@ -64,7 +70,7 @@ public class AdminController {
         return ResponseEntity.ok(buildSuccessResponse(user, request));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/user/{id}")
     @Operation(
             summary = "Delete user",
             description = "Soft-deactivates an employee by ID."
@@ -74,6 +80,35 @@ public class AdminController {
             HttpServletRequest request) {
         userService.deleteUser(id);
         return ResponseEntity.ok(buildSuccessResponse(null, request));
+    }
+
+    @GetMapping("/projects")
+    @Operation(
+            summary = "Get all projects (Admin)",
+            description = "Returns a paginated list of all non-deleted projects. Can filter by project name and project status. Default sort by created date descending."
+    )
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<ProjectDto>>> getAllProjects(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
+            @RequestParam(required = false) String projectName,
+            @RequestParam(required = false) EProjectStatus projectStatus,
+            HttpServletRequest request) {
+
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<ProjectDto> projects = projectService.getAllProjectsForAdmin(
+                paginationRequest,
+                projectName,
+                projectStatus
+        );
+        return ResponseEntity.ok(buildSuccessResponse(projects, request));
     }
 
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {

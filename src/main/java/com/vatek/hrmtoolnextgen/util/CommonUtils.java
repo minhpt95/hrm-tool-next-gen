@@ -64,6 +64,43 @@ public class CommonUtils {
                 .build();
     }
 
+    /**
+     * Builds pageable with default sort by createdDate desc if not specified
+     */
+    public static Pageable buildPageableWithDefaultSort(PaginationRequest paginationRequest, String defaultSortBy, String defaultDirection) {
+        String sortBy = paginationRequest.getSortBy();
+        String direction = paginationRequest.getDirection();
+        
+        if (sortBy == null || sortBy.isBlank()) {
+            sortBy = defaultSortBy != null ? defaultSortBy : "createdDate";
+        }
+        if (direction == null || direction.isBlank()) {
+            direction = defaultDirection != null ? defaultDirection : "DESC";
+        }
+        
+        return buildPageable(
+            paginationRequest.getSafePage(),
+            paginationRequest.getSafeSize(),
+            sortBy,
+            direction
+        );
+    }
+
+    /**
+     * Builds pagination request for response with normalized sort values
+     */
+    public static PaginationRequest buildPaginationRequestForResponse(
+            PaginationRequest originalRequest, 
+            String actualSortBy, 
+            String actualDirection) {
+        return PaginationRequest.builder()
+            .page(originalRequest.getPage())
+            .size(originalRequest.getSize())
+            .sortBy(actualSortBy)
+            .direction(actualDirection)
+            .build();
+    }
+
     public static String randomPassword(int length){
         return RandomStringUtils.secure().nextAlphanumeric(length);
     }

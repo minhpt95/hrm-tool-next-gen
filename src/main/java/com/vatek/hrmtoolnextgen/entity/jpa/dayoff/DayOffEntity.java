@@ -22,6 +22,9 @@ public class DayOffEntity {
     @Column
     private String requestReason;
 
+    @Column
+    private Integer numberOfHours;
+
     @EmbeddedId
     private DayOffEntityId dayoffEntityId;
     @Column

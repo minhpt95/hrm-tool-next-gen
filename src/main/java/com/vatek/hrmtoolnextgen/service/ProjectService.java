@@ -13,11 +13,15 @@ import com.vatek.hrmtoolnextgen.mapping.ProjectMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.ProjectRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
 import com.vatek.hrmtoolnextgen.util.CommonUtils;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -41,19 +45,137 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProjectDto> getProjectsByMemberId(Long memberId) {
-        ensureUserExists(memberId);
-        List<ProjectEntity> projects = projectRepository.findDistinctByMembers_IdAndDeleteFalseAndProjectStatus(
-                memberId, EProjectStatus.RUNNING);
-        return projectMapping.toDto(projects);
+    public PaginationResponse<ProjectDto> getAllProjectsForAdmin(
+            PaginationRequest paginationRequest,
+            String projectName,
+            EProjectStatus projectStatus) {
+        
+        // Build specification for filtering
+        Specification<ProjectEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            // Filter by delete = false
+            predicates.add(cb.equal(root.get("delete"), false));
+            
+            // Filter by project name if provided
+            if (StringUtils.hasText(projectName)) {
+                predicates.add(cb.like(
+                    cb.lower(root.get("name")),
+                    "%" + projectName.toLowerCase() + "%"
+                ));
+            }
+            
+            // Filter by project status if provided
+            if (projectStatus != null) {
+                predicates.add(cb.equal(root.get("projectStatus"), projectStatus));
+            }
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        // Build pageable with default sort by createdDate desc
+        Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "createdDate", "DESC");
+        
+        Page<ProjectEntity> entityPage = projectRepository.findAll(spec, pageable);
+        Page<ProjectDto> dtoPage = projectMapping.toDtoPageable(entityPage);
+        
+        // Build pagination request for response
+        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank() 
+                ? paginationRequest.getSortBy() : "createdDate";
+        String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
+                ? paginationRequest.getDirection() : "DESC";
+        PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
+                paginationRequest, actualSortBy, actualDirection);
+        
+        return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
+    }
+
+    /**
+     * Builds a specification for filtering projects by name and status
+     */
+    private Specification<ProjectEntity> buildProjectFilterSpecification(String projectName, EProjectStatus projectStatus) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            // Filter by delete = false
+            predicates.add(cb.equal(root.get("delete"), false));
+            
+            // Filter by project name if provided
+            if (StringUtils.hasText(projectName)) {
+                predicates.add(cb.like(
+                    cb.lower(root.get("name")),
+                    "%" + projectName.toLowerCase() + "%"
+                ));
+            }
+            
+            // Filter by project status if provided
+            if (projectStatus != null) {
+                predicates.add(cb.equal(root.get("projectStatus"), projectStatus));
+            }
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    /**
+     * Executes paginated query and builds response
+     */
+    private PaginationResponse<ProjectDto> executePaginatedProjectQuery(
+            Specification<ProjectEntity> spec,
+            PaginationRequest paginationRequest) {
+        Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "createdDate", "DESC");
+        
+        Page<ProjectEntity> entityPage = projectRepository.findAll(spec, pageable);
+        Page<ProjectDto> dtoPage = projectMapping.toDtoPageable(entityPage);
+        
+        // Build pagination request for response
+        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank() 
+                ? paginationRequest.getSortBy() : "createdDate";
+        String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
+                ? paginationRequest.getDirection() : "DESC";
+        PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
+                paginationRequest, actualSortBy, actualDirection);
+        
+        return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
     }
 
     @Transactional(readOnly = true)
-    public List<ProjectDto> getProjectsByManagerId(Long managerId) {
+    public PaginationResponse<ProjectDto> getProjectsByMemberIdWithFilters(
+            Long memberId,
+            PaginationRequest paginationRequest,
+            String projectName,
+            EProjectStatus projectStatus) {
+        
+        ensureUserExists(memberId);
+        
+        // Build specification for filtering
+        Specification<ProjectEntity> baseSpec = buildProjectFilterSpecification(projectName, projectStatus);
+        Specification<ProjectEntity> spec = baseSpec.and((root, query, cb) -> {
+            // Join members and filter by member ID
+            var membersJoin = root.join("members");
+            query.distinct(true); // Ensure distinct results since we're joining with members
+            return cb.equal(membersJoin.get("id"), memberId);
+        });
+        
+        return executePaginatedProjectQuery(spec, paginationRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationResponse<ProjectDto> getProjectsByManagerIdWithFilters(
+            Long managerId,
+            PaginationRequest paginationRequest,
+            String projectName,
+            EProjectStatus projectStatus) {
+        
         ensureUserExists(managerId);
-        List<ProjectEntity> projects = projectRepository.findByProjectManager_IdAndDeleteFalseAndProjectStatus(
-                managerId, EProjectStatus.RUNNING);
-        return projectMapping.toDto(projects);
+        
+        // Build specification for filtering
+        Specification<ProjectEntity> baseSpec = buildProjectFilterSpecification(projectName, projectStatus);
+        Specification<ProjectEntity> spec = baseSpec.and((root, query, cb) -> 
+            cb.equal(root.get("projectManager").get("id"), managerId)
+        );
+        
+        return executePaginatedProjectQuery(spec, paginationRequest);
     }
 
     @Transactional(readOnly = true)
@@ -65,13 +187,10 @@ public class ProjectService {
 
     @Transactional
     public ProjectDto createProject(CreateProjectRequest request) {
-        // Check if project name already exists
-        projectRepository.findAll().stream()
-                .filter(p -> p.getName().equalsIgnoreCase(request.getProjectName()) && !p.isDelete())
-                .findFirst()
-                .ifPresent(p -> {
-                    throw new BadRequestException("Project with name '" + request.getProjectName() + "' already exists");
-                });
+        // Check if project name already exists using a query instead of loading all projects
+        if (projectRepository.existsByNameIgnoreCaseAndDeleteFalse(request.getProjectName())) {
+            throw new BadRequestException("Project with name '" + request.getProjectName() + "' already exists");
+        }
 
         ProjectEntity projectEntity = projectMapping.fromCreateRequest(request);
 
@@ -116,14 +235,17 @@ public class ProjectService {
 
         // Check if project name already exists (excluding current project)
         if (request.getProjectName() != null && !request.getProjectName().equals(projectEntity.getName())) {
-            projectRepository.findAll().stream()
-                    .filter(p -> p.getName().equalsIgnoreCase(request.getProjectName())
-                            && !p.isDelete()
-                            && !p.getId().equals(id))
-                    .findFirst()
-                    .ifPresent(p -> {
-                        throw new BadRequestException("Project with name '" + request.getProjectName() + "' already exists");
-                    });
+            // Use a query to check if another project with the same name exists
+            Specification<ProjectEntity> nameSpec = (root, query, cb) -> {
+                List<Predicate> predicates = new ArrayList<>();
+                predicates.add(cb.equal(cb.lower(root.get("name")), request.getProjectName().toLowerCase()));
+                predicates.add(cb.equal(root.get("delete"), false));
+                predicates.add(cb.notEqual(root.get("id"), id));
+                return cb.and(predicates.toArray(new Predicate[0]));
+            };
+            if (projectRepository.count(nameSpec) > 0) {
+                throw new BadRequestException("Project with name '" + request.getProjectName() + "' already exists");
+            }
         }
 
         // Update basic fields

@@ -1,13 +1,21 @@
 package com.vatek.hrmtoolnextgen.controller;
 
+import com.vatek.hrmtoolnextgen.dto.dayoff.DayOffDto;
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
+import com.vatek.hrmtoolnextgen.dto.request.ApprovalDayOffRequest;
 import com.vatek.hrmtoolnextgen.dto.request.ApprovalTimesheetRequest;
+import com.vatek.hrmtoolnextgen.dto.request.CreateProjectRequest;
+import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateProjectRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateTimesheetRequest;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
+import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.timesheet.TimesheetDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
+import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
+import com.vatek.hrmtoolnextgen.enumeration.ETimesheetStatus;
+import com.vatek.hrmtoolnextgen.service.DayOffService;
 import com.vatek.hrmtoolnextgen.service.ProjectService;
 import com.vatek.hrmtoolnextgen.service.TimesheetService;
 import com.vatek.hrmtoolnextgen.service.UserService;
@@ -17,11 +25,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -34,6 +42,7 @@ public class ManagerController {
     private final UserService userService;
     private final ProjectService projectService;
     private final TimesheetService timesheetService;
+    private final DayOffService dayOffService;
 
     @GetMapping("/user/{id}")
     @Operation(
@@ -45,6 +54,24 @@ public class ManagerController {
             HttpServletRequest request) {
         UserDto user = userService.getUserById(id);
         return ResponseEntity.ok(buildSuccessResponse(user, request));
+    }
+
+    @PostMapping("/project")
+    @Operation(
+            summary = "Create project",
+            description = "Creates a new project. The current manager will be set as the project manager if not specified in the request."
+    )
+    public ResponseEntity<CommonSuccessResponse<ProjectDto>> createProject(
+            @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
+            @RequestBody CreateProjectRequest createProjectRequest,
+            HttpServletRequest request) {
+        // Set the current manager as the project manager if not specified
+        if (createProjectRequest.getProjectManager() == null) {
+            createProjectRequest.setProjectManager(userPrincipalDto.getId());
+        }
+        ProjectDto project = projectService.createProject(createProjectRequest);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(buildSuccessResponse(project, request));
     }
 
     @PutMapping("/project/{id}")
@@ -95,15 +122,76 @@ public class ManagerController {
     @GetMapping("/project")
     @Operation(
             summary = "List projects by manager",
-            description = "Returns all active projects managed by the given user."
+            description = "Returns a paginated list of all non-deleted projects managed by the current user. Can filter by project name and project status. Default sort by created date descending."
     )
-    public ResponseEntity<CommonSuccessResponse<List<ProjectDto>>> getProjectsByManagerId(
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<ProjectDto>>> getProjectsByManagerId(
             @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
+            @RequestParam(required = false) String projectName,
+            @RequestParam(required = false) EProjectStatus projectStatus,
             HttpServletRequest request) {
-        List<ProjectDto> projects = projectService.getProjectsByManagerId(userPrincipalDto.getId());
+        
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<ProjectDto> projects = projectService.getProjectsByManagerIdWithFilters(
+                userPrincipalDto.getId(),
+                paginationRequest,
+                projectName,
+                projectStatus
+        );
         return ResponseEntity.ok(buildSuccessResponse(projects, request));
     }
 
+    @GetMapping("/timesheet")
+    @Operation(
+            summary = "List timesheets by manager",
+            description = "Returns a paginated list of all non-deleted timesheets from projects managed by the current user. Can filter by status and project. Default sort by created date descending."
+    )
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<TimesheetDto>>> getTimesheetsByManager(
+            @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
+            @RequestParam(required = false) ETimesheetStatus status,
+            @RequestParam(required = false) Long projectId,
+            HttpServletRequest request) {
+        
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<TimesheetDto> timesheets = timesheetService.getTimesheetsByManagerWithFilters(
+                userPrincipalDto.getId(),
+                paginationRequest,
+                status,
+                projectId
+        );
+        return ResponseEntity.ok(buildSuccessResponse(timesheets, request));
+    }
+
+    @PutMapping("/dayoff/approval")
+    @Operation(
+            summary = "Approve or reject day off request",
+            description = "Manager can approve or reject a day off request from a user"
+    )
+    public ResponseEntity<CommonSuccessResponse<DayOffDto>> approveDayOffRequest(
+            @Valid @RequestBody ApprovalDayOffRequest approvalDayOffRequest,
+            HttpServletRequest request) {
+        DayOffDto dayOff = dayOffService.approveDayOffRequest(approvalDayOffRequest);
+        return ResponseEntity.ok(buildSuccessResponse(dayOff, request));
+    }
 
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()

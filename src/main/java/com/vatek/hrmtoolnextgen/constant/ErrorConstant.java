@@ -49,10 +49,12 @@ public class ErrorConstant {
         public static final String CANNOT_UPDATE_ANOTHER_PROJECT = "Cannot update another project";
         public static final String SUCCESS = "SUCCESS.";
         public static final String ALREADY_EXISTS = "%s already exists.";
+        public static final String CANNOT_UPDATE_TIMESHEET = "Cannot update timesheet";
+        public static final String CANNOT_CHANGE_TIMESHEET_STATUS = "Cannot change timesheet status";
         public static final String NOT_FOUND = "%s not found.";
-        public static final String NOT_BLANK =" %s not blank.";
-        public static final String NOT_NULL =" %s not null.";
-        public static final String END_OF_TIME ="Time activate expired";
+        public static final String NOT_BLANK = " %s not blank.";
+        public static final String NOT_NULL = " %s not null.";
+        public static final String END_OF_TIME = "Time activate expired";
         public static final String UNAUTHORIZED = "Unauthorized";
         public static final String OVERLAPPING_DATE = "Range date is overlapping";
         public static final String FROM_DATE_TO_DATE_VALIDATE = "From date must be less than to date";

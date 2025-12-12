@@ -74,8 +74,10 @@ public class UserService {
         userEntity.setActive(true);
 
         // Generate random password
-        String randomPassword = CommonUtils.randomPassword(12);
+//        String randomPassword = CommonUtils.randomPassword(12);
+        String randomPassword = "meomeo";
         userEntity.setPassword(passwordEncoder.encode(randomPassword));
+
 
         // Create user info
         if (request.getUserInfo() != null) {

@@ -61,11 +61,11 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     public RoleHierarchy roleHierarchy() {
         String hierarchy =
                 RoleConstant.ADMIN + " > " + RoleConstant.PROJECT_MANAGER + "\n" +
-                RoleConstant.ADMIN + " > " + RoleConstant.HR + "\n" +
-                RoleConstant.IT_ADMIN + " > " + RoleConstant.PROJECT_MANAGER + "\n" +
-                RoleConstant.IT_ADMIN + " > " + RoleConstant.HR + "\n" +
-                RoleConstant.PROJECT_MANAGER + " > " + RoleConstant.USER + "\n" +
-                RoleConstant.HR + " > " + RoleConstant.USER;
+                        RoleConstant.ADMIN + " > " + RoleConstant.HR + "\n" +
+                        RoleConstant.IT_ADMIN + " > " + RoleConstant.PROJECT_MANAGER + "\n" +
+                        RoleConstant.IT_ADMIN + " > " + RoleConstant.HR + "\n" +
+                        RoleConstant.PROJECT_MANAGER + " > " + RoleConstant.USER + "\n" +
+                        RoleConstant.HR + " > " + RoleConstant.USER;
         return RoleHierarchyImpl.fromHierarchy(hierarchy);
     }
 
@@ -95,12 +95,27 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests(authz -> authz
                         // Permit access to public endpoints
                         .requestMatchers(
-                                "/api/holidays/**",
                                 "/swagger-ui.html",
-                                "/api/auth/**",
                                 "/swagger-ui/**", // Permit Swagger UI
                                 "/v3/api-docs/**" // Permit OpenAPI v3 docs (adjust path if necessary)
                         ).permitAll()
+                        .requestMatchers(
+                                "/actuator/health" // Health Check
+                        ).permitAll()
+                        .requestMatchers(
+                                "/api/admin",
+                                "/api/admin/**"
+                        ).hasAnyRole(RoleConstant.ADMIN, RoleConstant.IT_ADMIN)
+                        .requestMatchers(
+                                "api/manager",
+                                "api/manager/**"
+                        ).hasRole(RoleConstant.PROJECT_MANAGER)
+                        .requestMatchers(
+                                "/api/user",
+                                "/api/user/**"
+                        ).hasRole(RoleConstant.USER)
+
+
                         .anyRequest().authenticated()
                 );
 

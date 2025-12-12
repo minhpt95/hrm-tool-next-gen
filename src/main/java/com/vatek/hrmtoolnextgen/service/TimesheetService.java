@@ -158,7 +158,7 @@ public class TimesheetService {
         timesheetEntity.setWorkingHours(form.getWorkingHours());
         timesheetEntity.setWorkingDay(workingDayDate);
         timesheetEntity.setProjectEntity(projectEntity);
-        timesheetEntity.setStatus(ETimesheetStatus.IN_PROGRESS);
+        timesheetEntity.setStatus(ETimesheetStatus.PENDING);
         timesheetEntity.setUserEntity(userEntity);
         timesheetEntity.setType(form.getTimesheetType());
         timesheetEntity = timesheetRepository.save(timesheetEntity);
@@ -168,11 +168,16 @@ public class TimesheetService {
 
     public TimesheetDto updateTimesheet(UpdateTimesheetRequest form) {
         TimesheetEntity timesheetEntity = timesheetRepository.findById(form.getId()).orElseThrow(
-                () -> new CommonException(
-                        String.format(ErrorConstant.Message.NOT_FOUND, "Timesheet with id : " + form.getId()),
-                        HttpStatus.BAD_REQUEST
+                () -> new BadRequestException(
+                        String.format(ErrorConstant.Message.NOT_FOUND, "Timesheet with id : " + form.getId())
                 )
         );
+
+        if (timesheetEntity.getStatus() != ETimesheetStatus.PENDING) {
+            throw new BadRequestException(
+                    ErrorConstant.Message.CANNOT_UPDATE_TIMESHEET
+            );
+        }
 
         if (form.getTitle() != null) {
             timesheetEntity.setTitle(form.getTitle());
@@ -188,9 +193,8 @@ public class TimesheetService {
 
         if (form.getProjectId() != null) {
             ProjectEntity projectEntity = projectRepository.findById(form.getProjectId()).orElseThrow(
-                    () -> new CommonException(
-                            String.format(ErrorConstant.Message.NOT_FOUND, "Project with id : " + form.getId()),
-                            HttpStatus.BAD_REQUEST
+                    () -> new BadRequestException(
+                            String.format(ErrorConstant.Message.NOT_FOUND, "Project with id : " + form.getId())
                     )
             );
             timesheetEntity.setProjectEntity(projectEntity);
@@ -208,7 +212,7 @@ public class TimesheetService {
         return timesheetMapping.toDto(timesheetEntity);
     }
 
-    public TimesheetDto decisionTimesheet(ApprovalTimesheetRequest form) {
+    public TimesheetDto approvalTimesheet(ApprovalTimesheetRequest form) {
         TimesheetEntity timesheetEntity = timesheetRepository.findById(form.getId()).orElseThrow(
                 () -> new BadRequestException(
                         String.format(ErrorConstant.Message.NOT_FOUND, "Timesheet with id : " + form.getId())
@@ -216,16 +220,17 @@ public class TimesheetService {
         );
 
         switch (timesheetEntity.getStatus()) {
-            case ETimesheetStatus.IN_PROGRESS -> {
+            case ETimesheetStatus.PENDING -> {
                 if (form.getTimesheetStatus() == null) {
                     throw new BadRequestException(
-                            String.format(ErrorConstant.Message.NOT_FOUND, "Status ")
+                            String.format(ErrorConstant.Message.NOT_FOUND, "Status")
                     );
                 }
                 timesheetEntity.setStatus(form.getTimesheetStatus());
             }
-            case APPROVED -> timesheetEntity.setStatus(ETimesheetStatus.REJECTED);
-            case REJECTED -> timesheetEntity.setStatus(ETimesheetStatus.APPROVED);
+            case APPROVED, REJECTED -> {
+                throw new BadRequestException(ErrorConstant.Message.CANNOT_CHANGE_TIMESHEET_STATUS);
+            }
         }
 
         timesheetEntity = timesheetRepository.save(timesheetEntity);

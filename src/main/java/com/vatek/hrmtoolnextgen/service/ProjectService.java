@@ -44,7 +44,7 @@ public class ProjectService {
     public List<ProjectDto> getProjectsByMemberId(Long memberId) {
         ensureUserExists(memberId);
         List<ProjectEntity> projects = projectRepository.findDistinctByMembers_IdAndDeleteFalseAndProjectStatus(
-                memberId, EProjectStatus.IN_PROGRESS);
+                memberId, EProjectStatus.RUNNING);
         return projectMapping.toDto(projects);
     }
 
@@ -52,7 +52,7 @@ public class ProjectService {
     public List<ProjectDto> getProjectsByManagerId(Long managerId) {
         ensureUserExists(managerId);
         List<ProjectEntity> projects = projectRepository.findByProjectManager_IdAndDeleteFalseAndProjectStatus(
-                managerId, EProjectStatus.IN_PROGRESS);
+                managerId, EProjectStatus.RUNNING);
         return projectMapping.toDto(projects);
     }
 
@@ -74,7 +74,7 @@ public class ProjectService {
                 });
 
         ProjectEntity projectEntity = projectMapping.fromCreateRequest(request);
-        
+
         // Set project manager
         if (request.getProjectManager() != null) {
             UserEntity manager = userRepository.findById(request.getProjectManager())
@@ -117,8 +117,8 @@ public class ProjectService {
         // Check if project name already exists (excluding current project)
         if (request.getProjectName() != null && !request.getProjectName().equals(projectEntity.getName())) {
             projectRepository.findAll().stream()
-                    .filter(p -> p.getName().equalsIgnoreCase(request.getProjectName()) 
-                            && !p.isDelete() 
+                    .filter(p -> p.getName().equalsIgnoreCase(request.getProjectName())
+                            && !p.isDelete()
                             && !p.getId().equals(id))
                     .findFirst()
                     .ifPresent(p -> {
@@ -148,7 +148,7 @@ public class ProjectService {
         if (request.getMemberId() != null) {
             // Remove all existing members
             new ArrayList<>(projectEntity.getMembers()).forEach(projectEntity::removeMemberFromProject);
-            
+
             // Add new members
             if (!request.getMemberId().isEmpty()) {
                 List<UserEntity> members = userRepository.findAllById(request.getMemberId());

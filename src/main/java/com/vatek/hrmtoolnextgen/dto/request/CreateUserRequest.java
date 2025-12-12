@@ -1,7 +1,7 @@
 package com.vatek.hrmtoolnextgen.dto.request;
 
-import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.dto.user.UserInfoDto;
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
@@ -12,6 +12,7 @@ import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
@@ -35,7 +36,8 @@ public class CreateUserRequest {
             schema = @Schema(implementation = EUserRole.class),
             arraySchema = @Schema(
                     description = "Roles that define permissions for the employee",
-                    example = "[\"USER\",\"HR\"]"
+                    example = "[\"USER\",\"HR\"]",
+                    implementation = List.class
             )
     )
     private Collection<EUserRole> roles;

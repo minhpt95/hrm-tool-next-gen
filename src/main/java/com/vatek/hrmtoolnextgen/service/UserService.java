@@ -30,6 +30,7 @@ public class UserService {
     private final UserMapping userMapping;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public UserEntity findUserByEmail(String email) {
         return userRepository.findByEmail(email)
@@ -74,8 +75,7 @@ public class UserService {
         userEntity.setActive(true);
 
         // Generate random password
-//        String randomPassword = CommonUtils.randomPassword(12);
-        String randomPassword = "meomeo";
+        String randomPassword = CommonUtils.randomPassword(12);
         userEntity.setPassword(passwordEncoder.encode(randomPassword));
 
 
@@ -103,6 +103,13 @@ public class UserService {
 
         UserEntity savedEntity = userRepository.save(userEntity);
         log.info("Created user with id: {} and email: {}", savedEntity.getId(), savedEntity.getEmail());
+        
+        // Send welcome email with credentials
+        String userName = savedEntity.getUserInfo() != null 
+                ? (savedEntity.getUserInfo().getFirstName() + " " + savedEntity.getUserInfo().getLastName()).trim()
+                : savedEntity.getEmail();
+        emailService.sendWelcomeEmail(savedEntity.getEmail(), userName, randomPassword);
+        
         return userMapping.toDto(savedEntity);
     }
 
@@ -179,5 +186,13 @@ public class UserService {
         userEntity.setActive(false);
         userRepository.save(userEntity);
         log.info("Deactivated user with id: {}", id);
+    }
+
+    @Transactional
+    public void setUserPassword(Long id, String newPassword) {
+        UserEntity userEntity = findUserById(id);
+        userEntity.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(userEntity);
+        log.info("Password updated for user with id: {}", id);
     }
 }

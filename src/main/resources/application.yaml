@@ -7,12 +7,20 @@
     ansi:
       enabled: always
   mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   devtools:
     restart:
       enabled: false
@@ -66,6 +74,9 @@ hrm:
     jwtSecret: 78Obiiz91cAbwzreim1DnLXbn2UGZuKZ
     jwtExpiration: '86400000'
     refreshTokenExpiration: '86400000'
+    resetPasswordTokenExpiration: '3600000'  # 1 hour in milliseconds
+    frontend:
+      url: ${FRONTEND_URL:http://localhost:3000}  # Frontend URL for password reset links
   api:
     prefix: /api
 

@@ -3,6 +3,7 @@ package com.vatek.hrmtoolnextgen.controller;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.CreateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
+import com.vatek.hrmtoolnextgen.dto.request.SetUserPasswordRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
@@ -79,6 +80,19 @@ public class AdminController {
             @PathVariable Long id,
             HttpServletRequest request) {
         userService.deleteUser(id);
+        return ResponseEntity.ok(buildSuccessResponse(null, request));
+    }
+
+    @PutMapping("/user/{id}/password")
+    @Operation(
+            summary = "Set user password",
+            description = "Allows admin to set a new password for a specific user. Password must be at least 6 characters long."
+    )
+    public ResponseEntity<CommonSuccessResponse<Void>> setUserPassword(
+            @PathVariable Long id,
+            @Valid @RequestBody SetUserPasswordRequest setUserPasswordRequest,
+            HttpServletRequest request) {
+        userService.setUserPassword(id, setUserPasswordRequest.getNewPassword());
         return ResponseEntity.ok(buildSuccessResponse(null, request));
     }
 

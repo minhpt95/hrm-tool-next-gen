@@ -2,9 +2,11 @@ package com.vatek.hrmtoolnextgen.service;
 
 import com.vatek.hrmtoolnextgen.component.jwt.JwtProvider;
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.request.ForgotPasswordRequest;
 import com.vatek.hrmtoolnextgen.dto.request.LoginRequest;
 import com.vatek.hrmtoolnextgen.dto.request.RefreshTokenRequest;
 import com.vatek.hrmtoolnextgen.dto.request.RegisterRequest;
+import com.vatek.hrmtoolnextgen.dto.request.ResetPasswordRequest;
 import com.vatek.hrmtoolnextgen.dto.response.LoginResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RefreshTokenResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RegisterResponse;
@@ -44,12 +46,16 @@ public class AuthService {
     private final UserMapping userMapping;
     private final RoleRepository roleRepository;
     private final UserTokenRedisRepository userTokenRedisRepository;
+    private final EmailService emailService;
 
     @Value("${hrm.app.jwtExpiration}")
     private long jwtExpiration;
 
     @Value("${hrm.app.refreshTokenExpiration}")
     private long refreshTokenExpiration;
+
+    @Value("${hrm.app.resetPasswordTokenExpiration:3600000}")
+    private long resetPasswordTokenExpiration; // Default 1 hour in milliseconds
 
     public LoginResponse login(LoginRequest loginRequest) {
         // Authentication manager will handle password validation
@@ -208,5 +214,60 @@ public class AuthService {
                 .email(userEntity.getEmail())
                 .password(password)
                 .build();
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        // Find user by email
+        UserEntity userEntity = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadRequestException("User with email '" + request.getEmail() + "' not found"));
+
+        // Check if user is active
+        if (!userEntity.isActive()) {
+            throw new BadRequestException("User account is not active");
+        }
+
+        // Generate reset password token
+        String resetToken = CommonUtils.randomPassword(32); // Generate a secure random token
+
+        // Store reset token in Redis with expiration (default 1 hour)
+        saveTokenToRedis(userEntity.getId(), resetToken, EUserTokenType.RESET_PASSWORD_TOKEN, resetPasswordTokenExpiration);
+
+        log.info("Password reset token generated for user: {} (email: {})", userEntity.getId(), request.getEmail());
+        
+        // Send email with reset token/link
+        emailService.sendPasswordResetEmail(request.getEmail(), resetToken);
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        // Find the reset token in Redis
+        List<UserTokenRedisEntity> resetTokens = userTokenRedisRepository
+                .findByTokenType(EUserTokenType.RESET_PASSWORD_TOKEN);
+        
+        UserTokenRedisEntity resetTokenEntity = resetTokens.stream()
+                .filter(token -> token.getToken().equals(request.getToken()))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
+
+        Long userId = resetTokenEntity.getUserId();
+
+        // Verify user exists
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        // Check if user is active
+        if (!userEntity.isActive()) {
+            throw new BadRequestException("User account is not active");
+        }
+
+        // Update password
+        userEntity.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(userEntity);
+
+        // Invalidate the reset token
+        userTokenRedisRepository.delete(resetTokenEntity);
+
+        log.info("Password reset successfully for user: {} (email: {})", userId, userEntity.getEmail());
     }
 }

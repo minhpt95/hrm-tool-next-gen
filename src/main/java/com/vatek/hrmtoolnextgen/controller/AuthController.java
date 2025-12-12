@@ -1,8 +1,10 @@
 package com.vatek.hrmtoolnextgen.controller;
 
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.request.ForgotPasswordRequest;
 import com.vatek.hrmtoolnextgen.dto.request.LoginRequest;
 import com.vatek.hrmtoolnextgen.dto.request.RefreshTokenRequest;
+import com.vatek.hrmtoolnextgen.dto.request.ResetPasswordRequest;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.vatek.hrmtoolnextgen.dto.response.LoginResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RefreshTokenResponse;
@@ -52,6 +54,34 @@ public class AuthController {
             HttpServletRequest request) {
         authService.logout(userPrincipal);
         return ResponseEntity.ok(buildSuccessResponse("Logged out successfully", request));
+    }
+
+    @PostMapping(value = "/forgot-password")
+    @Operation(
+            summary = "Forgot password",
+            description = "Generates a password reset token for the user with the provided email and sends it via email."
+    )
+    public ResponseEntity<CommonSuccessResponse<String>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest,
+            HttpServletRequest request) {
+        authService.forgotPassword(forgotPasswordRequest);
+        return ResponseEntity.ok(buildSuccessResponse(
+                "If the email exists, a password reset link has been sent to your email address.",
+                request));
+    }
+
+    @PostMapping(value = "/reset-password")
+    @Operation(
+            summary = "Reset password",
+            description = "Resets the user's password using the reset token received via email. The token must be valid and not expired."
+    )
+    public ResponseEntity<CommonSuccessResponse<String>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest resetPasswordRequest,
+            HttpServletRequest request) {
+        authService.resetPassword(resetPasswordRequest);
+        return ResponseEntity.ok(buildSuccessResponse(
+                "Password has been reset successfully. You can now login with your new password.",
+                request));
     }
 
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {

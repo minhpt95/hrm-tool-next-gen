@@ -25,8 +25,8 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/admin")
-@Tag(name = "Admin", description = "CRUD APIs for Manager")
+@RequestMapping("/manager")
+@Tag(name = "Manager", description = "CRUD APIs for Manager")
 public class ManagerController {
 
     private final UserService userService;

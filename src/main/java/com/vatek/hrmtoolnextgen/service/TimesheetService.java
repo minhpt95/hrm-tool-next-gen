@@ -25,6 +25,7 @@ import com.vatek.hrmtoolnextgen.repository.jpa.ProjectRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.TimesheetRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
 import com.vatek.hrmtoolnextgen.util.DateUtils;
+import com.vatek.hrmtoolnextgen.util.TimeUtils;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -99,9 +100,10 @@ public class TimesheetService {
                             ETimesheetStatus.REJECTED
                     );
 
-            var totalWorkingHours = getTimesheetProjection
+            // Convert LocalTime to hours for calculation
+            double totalWorkingHours = getTimesheetProjection
                     .stream()
-                    .mapToInt(TimesheetWorkingHourProjection::getWorkingHours)
+                    .mapToDouble(proj -> TimeUtils.convertTimeToHours(proj.getWorkingHours()))
                     .sum();
 
             // Check for approved day off requests on the same day
@@ -162,7 +164,8 @@ public class TimesheetService {
             }
 
             // Rule 1: Cannot log total more than maxAllowedHours (8 hours normally, or 8 - totalDayOffHours if day off exists)
-            if (totalWorkingHours + form.getWorkingHours() > maxAllowedHours) {
+            double newWorkingHours = TimeUtils.convertTimeToHours(form.getWorkingHours());
+            if (totalWorkingHours + newWorkingHours > maxAllowedHours) {
                 throw new CommonException(
                         String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, maxAllowedHours),
                         HttpStatus.BAD_REQUEST

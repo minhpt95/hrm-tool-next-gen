@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="change-timesheet-working-hours-to-time-format" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="timesheets"/>
+            <columnExists tableName="timesheets" columnName="working_hours"/>
+        </preConditions>
+        <comment>Change working_hours column from INT to TIME to store LocalTime</comment>
+        
+        <!-- Convert existing integer hours to TIME format -->
+        <sql>
+            UPDATE timesheets 
+            SET working_hours = 
+                CASE 
+                    WHEN working_hours IS NULL THEN NULL
+                    WHEN working_hours = 0 THEN TIME '00:00:00'
+                    ELSE (LPAD(working_hours::text, 2, '0') || ':00:00')::TIME
+                END
+            WHERE working_hours IS NOT NULL;
+        </sql>
+        
+        <!-- Change column type to TIME -->
+        <modifyDataType tableName="timesheets" columnName="working_hours" newDataType="TIME"/>
+    </changeSet>
+
+</databaseChangeLog>
+

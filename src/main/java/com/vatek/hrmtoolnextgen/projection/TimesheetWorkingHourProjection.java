@@ -5,9 +5,10 @@ import com.vatek.hrmtoolnextgen.enumeration.ETimesheetStatus;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetType;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 public interface TimesheetWorkingHourProjection {
-    Integer getWorkingHours();
+    LocalTime getWorkingHours();
     ETimesheetType getType();
     LocalDate getWorkingDay();
     ETimesheetStatus getStatus();

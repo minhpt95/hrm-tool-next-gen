@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "timesheets")
@@ -24,8 +25,8 @@ public class TimesheetEntity extends IdentityEntity {
     @Column
     private String description;
 
-    @Column
-    private Integer workingHours;
+    @Column(name = "working_hours", columnDefinition = "TIME")
+    private LocalTime workingHours;
 
     @Column
     @Enumerated(EnumType.STRING)

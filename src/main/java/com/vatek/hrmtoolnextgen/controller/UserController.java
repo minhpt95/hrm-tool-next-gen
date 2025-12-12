@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/${hrm.api.prefix}/user")
+@RequestMapping("/api/user")
 @Tag(name = "User", description = "CRUD APIs for User")
 public class UserController {
 

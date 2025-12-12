@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/${hrm.api.prefix}/manager")
+@RequestMapping("/api/manager")
 @Tag(name = "Manager", description = "CRUD APIs for Manager")
 public class ManagerController {
 
@@ -93,7 +93,7 @@ public class ManagerController {
         projectService.deleteProject(id);
         return ResponseEntity.ok(buildSuccessResponse(null, request));
     }
-    
+
 
     @PutMapping("/timesheet/approval")
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> approvalTimesheet(

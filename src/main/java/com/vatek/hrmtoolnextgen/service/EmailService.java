@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -25,6 +26,7 @@ public class EmailService {
     @Value("${hrm.app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
+    @Async("emailTaskExecutor")
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
         try {
             // Check if email is configured
@@ -67,6 +69,7 @@ public class EmailService {
         }
     }
 
+    @Async("emailTaskExecutor")
     public void sendWelcomeEmail(String toEmail, String userName, String password) {
         try {
             // Check if email is configured

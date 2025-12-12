@@ -14,7 +14,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -26,8 +25,8 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final UserService userService;
-    
-    @GetMapping("/{id}")
+
+    @GetMapping("/user/{id}")
     @Operation(
             summary = "Get user detail",
             description = "Fetches a single employee by ID, including profile and assigned roles."
@@ -39,8 +38,7 @@ public class AdminController {
         return ResponseEntity.ok(buildSuccessResponse(user, request));
     }
 
-    @PreAuthorize("hasRole(RoleConstant.ADMIN)")
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/user", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Create user",
             description = "Creates a new employee profile"
@@ -53,7 +51,7 @@ public class AdminController {
                 .body(buildSuccessResponse(user, request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/user/{id}")
     @Operation(
             summary = "Update user",
             description = "Updates employee profile, status, and role assignments."

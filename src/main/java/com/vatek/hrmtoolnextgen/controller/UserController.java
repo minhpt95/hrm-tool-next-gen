@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/admin")
-@Tag(name = "Admin", description = "CRUD APIs for Admin User")
+@RequestMapping("/user")
+@Tag(name = "User", description = "CRUD APIs for User")
 public class UserController {
 
     private final TimesheetService timesheetService;
 
-    @PostMapping("/create")
+    @PostMapping("/timesheet")
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> createTimesheet(
             @RequestBody CreateTimesheetRequest createTimesheetReq,
             HttpServletRequest request
@@ -32,7 +32,7 @@ public class UserController {
         return ResponseEntity.ok(buildSuccessResponse(timesheetDto, request));
     }
 
-    @PutMapping("/update")
+    @PutMapping("/timesheet")
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> updateTimesheet(
             @RequestBody UpdateTimesheetRequest updateTimesheetReq,
             HttpServletRequest request

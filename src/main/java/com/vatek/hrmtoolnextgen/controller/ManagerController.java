@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller;
 
+import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.ApprovalTimesheetRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateProjectRequest;
@@ -17,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +35,7 @@ public class ManagerController {
     private final ProjectService projectService;
     private final TimesheetService timesheetService;
 
-    @GetMapping("/{id}")
+    @GetMapping("/user/{id}")
     @Operation(
             summary = "Get user detail",
             description = "Fetches a single employee by ID, including profile and assigned roles."
@@ -45,7 +47,7 @@ public class ManagerController {
         return ResponseEntity.ok(buildSuccessResponse(user, request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/project/{id}")
     @Operation(
             summary = "Update project",
             description = "Updates project metadata, status, manager, and members."
@@ -58,7 +60,7 @@ public class ManagerController {
         return ResponseEntity.ok(buildSuccessResponse(project, request));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/project/{id}")
     @Operation(
             summary = "Delete project",
             description = "Soft-deletes a project by setting its `isDelete` flag."
@@ -70,7 +72,7 @@ public class ManagerController {
         return ResponseEntity.ok(buildSuccessResponse(null, request));
     }
 
-    @PutMapping("/update")
+    @PutMapping("/timesheet")
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> updateTimesheet(
             @RequestBody UpdateTimesheetRequest updateTimesheetReq,
             HttpServletRequest request
@@ -80,7 +82,7 @@ public class ManagerController {
         return ResponseEntity.ok(buildSuccessResponse(timesheetDto, request));
     }
 
-    @PutMapping("/approval-timesheet")
+    @PutMapping("/timesheet/approval")
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> approvalTimesheet(
             ApprovalTimesheetRequest approvalForm,
             HttpServletRequest request
@@ -90,15 +92,15 @@ public class ManagerController {
         return ResponseEntity.ok(buildSuccessResponse(timesheetDto, request));
     }
 
-    @GetMapping("/manager/{managerId}")
+    @GetMapping("/project")
     @Operation(
             summary = "List projects by manager",
             description = "Returns all active projects managed by the given user."
     )
     public ResponseEntity<CommonSuccessResponse<List<ProjectDto>>> getProjectsByManagerId(
-            @PathVariable Long managerId,
+            @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
             HttpServletRequest request) {
-        List<ProjectDto> projects = projectService.getProjectsByManagerId(managerId);
+        List<ProjectDto> projects = projectService.getProjectsByManagerId(userPrincipalDto.getId());
         return ResponseEntity.ok(buildSuccessResponse(projects, request));
     }
 

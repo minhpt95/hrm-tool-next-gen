@@ -99,8 +99,12 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 "/swagger-ui/**", // Permit Swagger UI
                                 "/v3/api-docs/**" // Permit OpenAPI v3 docs (adjust path if necessary)
                         ).permitAll()
+
                         .requestMatchers(
                                 "/actuator/health" // Health Check
+                        ).permitAll()
+                        .requestMatchers(
+                                "/api/auth/login"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/admin",
@@ -114,8 +118,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 "/api/user",
                                 "/api/user/**"
                         ).hasRole(RoleConstant.USER)
-
-
                         .anyRequest().authenticated()
                 );
 

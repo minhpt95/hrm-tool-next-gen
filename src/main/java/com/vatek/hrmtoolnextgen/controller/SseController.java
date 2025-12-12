@@ -17,7 +17,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("/api/sse")
+@RequestMapping("/sse")
 public class SseController {
 
     private final SseService sseService;

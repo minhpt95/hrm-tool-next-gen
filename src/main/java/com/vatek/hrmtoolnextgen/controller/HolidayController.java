@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("/api/holidays")
+@RequestMapping("/holidays")
 @Tag(name = "Holidays", description = "Vietnam holidays and lunar calendar holidays API")
 public class HolidayController {
 

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @Tag(name = "Users", description = "CRUD APIs for managing employees")
 public class UserController {
 

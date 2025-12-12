@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/api/projects")
+@RequestMapping("/projects")
 @Tag(name = "Projects", description = "CRUD APIs for managing projects and team assignments")
 public class ProjectController {
 

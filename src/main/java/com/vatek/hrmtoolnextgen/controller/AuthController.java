@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @Tag(name = "Authentication", description = "Authentication management APIs")
 public class AuthController {
 

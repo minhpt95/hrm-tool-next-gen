@@ -9,13 +9,11 @@ import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.vatek.hrmtoolnextgen.dto.request.UpdateTimesheetRequest;
 import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.timesheet.TimesheetDto;
-import com.vatek.hrmtoolnextgen.entity.common.IdentityEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.dayoff.DayOffEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EDayOffStatus;
-import com.vatek.hrmtoolnextgen.enumeration.EDayOffType;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetStatus;
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetType;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
@@ -41,9 +39,7 @@ import com.vatek.hrmtoolnextgen.util.CommonUtils;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -111,46 +107,61 @@ public class TimesheetService {
             // Check for approved day off requests on the same day
             Specification<DayOffEntity> dayOffEntitySpecification = (root, query, criteriaBuilder) -> {
                 var predicates = new ArrayList<Predicate>();
+                // Check if the date matches (same day)
                 predicates.add(criteriaBuilder.equal(
-                        root.get("dayoffEntityId").get("dateOff"),
-                        workingDayDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                        criteriaBuilder.function("DATE", java.time.LocalDate.class, root.get("startTime")),
+                        workingDayDate
                 ));
                 predicates.add(criteriaBuilder.equal(
-                        root.get("dayoffEntityId").get("user").get("id"), 
+                        root.get("user").get("id"), 
                         currentUser.getId()
                 ));
                 // Only check APPROVED day off requests
                 predicates.add(criteriaBuilder.equal(root.get("status"), EDayOffStatus.APPROVED));
+                // Exclude deleted records
+                predicates.add(criteriaBuilder.equal(root.get("delete"), false));
                 Predicate[] p = new Predicate[predicates.size()];
                 return criteriaBuilder.and(predicates.toArray(p));
             };
 
             var approvedDayOffs = dayOffRepository.findAll(dayOffEntitySpecification);
 
-            // Rule 3: Cannot log when request dayoff FULL is approved same day
+            // Calculate total day off hours and check for full day off
+            int totalDayOffHours = 0;
+            boolean hasFullDayOff = false;
+            
             for (DayOffEntity dayOff : approvedDayOffs) {
-                if (dayOff.getDayoffEntityId().getType() == EDayOffType.FULL) {
-                    throw new CommonException(
-                            ErrorConstant.Message.CANNOT_LOG_ON_FULL_DAY_OFF,
-                            HttpStatus.BAD_REQUEST
-                    );
+                if (dayOff.getStartTime() == null || dayOff.getEndTime() == null) {
+                    continue; // Skip invalid day off entries
                 }
+                
+                // Calculate hours between startTime and endTime (LocalDateTime)
+                long secondsDiff = java.time.Duration.between(dayOff.getStartTime(), dayOff.getEndTime()).getSeconds();
+                int dayOffHours = (int) (secondsDiff / 3600); // Convert seconds to hours
+                
+                // Check if it's a full day off (8 hours or more)
+                if (dayOffHours >= 8) {
+                    hasFullDayOff = true;
+                }
+                
+                totalDayOffHours += dayOffHours;
             }
 
-            // Rule 4: Cannot log more than (8 - numberOfHours) when request dayoff is PARTIAL
-            int maxAllowedHours = 8;
-            for (DayOffEntity dayOff : approvedDayOffs) {
-                if (dayOff.getDayoffEntityId().getType() == EDayOffType.PARTIAL) {
-                    Integer dayOffHours = dayOff.getNumberOfHours();
-                    if (dayOffHours == null || dayOffHours <= 0) {
-                        throw new BadRequestException("Day off PARTIAL type must have numberOfHours > 0");
-                    }
-                    maxAllowedHours = 8 - dayOffHours;
-                    break; // Only consider the first PARTIAL day off if multiple exist
-                }
+            // Rule 3: Cannot log when request dayoff FULL is approved same day (8+ hours)
+            if (hasFullDayOff) {
+                throw new CommonException(
+                        ErrorConstant.Message.CANNOT_LOG_ON_FULL_DAY_OFF,
+                        HttpStatus.BAD_REQUEST
+                );
             }
 
-            // Rule 1: Cannot log total more than maxAllowedHours (8 hours normally, or 8 - dayOffHours if PARTIAL day off exists)
+            // Rule 4: Cannot log more than (8 - totalDayOffHours) when request dayoff exists
+            int maxAllowedHours = 8 - totalDayOffHours;
+            if (maxAllowedHours < 0) {
+                maxAllowedHours = 0; // Cannot log any hours if day off exceeds 8 hours
+            }
+
+            // Rule 1: Cannot log total more than maxAllowedHours (8 hours normally, or 8 - totalDayOffHours if day off exists)
             if (totalWorkingHours + form.getWorkingHours() > maxAllowedHours) {
                 throw new CommonException(
                         String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, maxAllowedHours),

@@ -42,4 +42,14 @@ public class DateUtils {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(pattern);
         return LocalDate.parse(stringDate, dateTimeFormatter);
     }
+
+    public static LocalDateTime convertStringDateTimeToLocalDateTime(String stringDateTime) {
+        return convertStringDateTimeToLocalDateTime(stringDateTime, null);
+    }
+
+    public static LocalDateTime convertStringDateTimeToLocalDateTime(String stringDateTime, String dateTimePattern) {
+        String pattern = dateTimePattern != null ? dateTimePattern : "dd/MM/yyyy HH:mm";
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(pattern);
+        return LocalDateTime.parse(stringDateTime, dateTimeFormatter);
+    }
 }

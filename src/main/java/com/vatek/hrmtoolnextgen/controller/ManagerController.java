@@ -93,16 +93,7 @@ public class ManagerController {
         projectService.deleteProject(id);
         return ResponseEntity.ok(buildSuccessResponse(null, request));
     }
-
-    @PutMapping("/timesheet")
-    public ResponseEntity<CommonSuccessResponse<TimesheetDto>> updateTimesheet(
-            @RequestBody UpdateTimesheetRequest updateTimesheetReq,
-            HttpServletRequest request
-    ) {
-        TimesheetDto timesheetDto = timesheetService.updateTimesheet(updateTimesheetReq);
-
-        return ResponseEntity.ok(buildSuccessResponse(timesheetDto, request));
-    }
+    
 
     @PutMapping("/timesheet/approval")
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> approvalTimesheet(

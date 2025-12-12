@@ -6,7 +6,6 @@ import com.vatek.hrmtoolnextgen.dto.request.CreateDayOffRequest;
 import com.vatek.hrmtoolnextgen.entity.jpa.dayoff.DayOffEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EDayOffStatus;
-import com.vatek.hrmtoolnextgen.enumeration.EDayOffType;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.repository.jpa.DayOffRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
@@ -16,9 +15,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -33,62 +31,79 @@ public class DayOffService {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new BadRequestException("User not found with id: " + userId));
 
-        // Validate numberOfHours based on type
-        if (request.getType() == EDayOffType.PARTIAL) {
-            if (request.getNumberOfHours() == null) {
-                throw new BadRequestException("numberOfHours is required for PARTIAL day off type");
-            }
-            if (request.getNumberOfHours() <= 0) {
-                throw new BadRequestException("numberOfHours must be greater than 0 for PARTIAL day off type");
-            }
-            if (request.getNumberOfHours() >= 8) {
-                throw new BadRequestException("numberOfHours must be less than 8 for PARTIAL day off type");
-            }
+        // Convert datetime strings to LocalDateTime
+        LocalDateTime startDateTime = DateUtils.convertStringDateTimeToLocalDateTime(request.getStartTime());
+        LocalDateTime endDateTime = DateUtils.convertStringDateTimeToLocalDateTime(request.getEndTime());
+
+        // Validate that endTime is after startTime
+        if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+            throw new BadRequestException("endTime must be after startTime");
         }
-        // For FULL type, numberOfHours is not required and can be null
 
-        // Convert date string to Instant
-        LocalDate localDate = DateUtils.convertStringDateToLocalDate(request.getDateOff());
-        Instant dateOffInstant = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        // Validate that startTime and endTime are on the same day
+        LocalDate startDate = startDateTime.toLocalDate();
+        LocalDate endDate = endDateTime.toLocalDate();
+        if (!startDate.equals(endDate)) {
+            throw new BadRequestException("startTime and endTime must be on the same day");
+        }
 
-        // Check if day off request already exists
-        DayOffEntity.DayOffEntityId dayOffId = new DayOffEntity.DayOffEntityId();
-        dayOffId.setDateOff(dateOffInstant);
-        dayOffId.setType(request.getType());
-        dayOffId.setUser(userEntity);
+        // Check for overlapping day off requests on the same date
+        var existingDayOffs = dayOffRepository.findAll((root, query, cb) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+            predicates.add(cb.equal(root.get("user").get("id"), userId));
+            predicates.add(cb.equal(root.get("delete"), false));
+            // Check if the date matches (same day)
+            predicates.add(cb.equal(
+                    cb.function("DATE", LocalDate.class, root.get("startTime")),
+                    startDate
+            ));
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        });
 
-        if (dayOffRepository.findById(dayOffId).isPresent()) {
-            throw new BadRequestException("Day off request already exists for this date and type");
+        for (DayOffEntity existing : existingDayOffs) {
+            // Check if time ranges overlap
+            if (!(endDateTime.isBefore(existing.getStartTime()) || startDateTime.isAfter(existing.getEndTime()))) {
+                throw new BadRequestException("Day off request overlaps with an existing request");
+            }
         }
 
         // Create new day off entity
         DayOffEntity dayOffEntity = new DayOffEntity();
-        dayOffEntity.setDayoffEntityId(dayOffId);
+        dayOffEntity.setUser(userEntity);
         dayOffEntity.setRequestTitle(request.getRequestTitle());
         dayOffEntity.setRequestReason(request.getRequestReason());
-        dayOffEntity.setNumberOfHours(request.getNumberOfHours());
+        dayOffEntity.setStartTime(startDateTime);
+        dayOffEntity.setEndTime(endDateTime);
         dayOffEntity.setStatus(EDayOffStatus.PENDING);
 
         DayOffEntity savedEntity = dayOffRepository.save(dayOffEntity);
-        log.info("Created day off request for user: {} on date: {} with type: {} and hours: {}", 
-                userId, dateOffInstant, request.getType(), request.getNumberOfHours());
+        log.info("Created day off request for user: {} from {} to {}", 
+                userId, startDateTime, endDateTime);
 
         return toDto(savedEntity);
     }
 
     @Transactional
     public DayOffDto approveDayOffRequest(ApprovalDayOffRequest request) {
-        // Build the composite key
-        DayOffEntity.DayOffEntityId dayOffId = new DayOffEntity.DayOffEntityId();
-        dayOffId.setDateOff(request.getDateOff());
-        dayOffId.setType(request.getType());
-        
-        UserEntity userEntity = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new BadRequestException("User not found with id: " + request.getUserId()));
-        dayOffId.setUser(userEntity);
+        // Convert Instant to LocalDateTime for comparison
+        LocalDateTime startDateTime = request.getStartTime().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime endDateTime = request.getEndTime().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
 
-        DayOffEntity dayOffEntity = dayOffRepository.findById(dayOffId)
-                .orElseThrow(() -> new BadRequestException("Day off request not found"));
+        // Find day off by user, startTime, and endTime
+        var dayOffs = dayOffRepository.findAll((root, query, cb) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+            predicates.add(cb.equal(root.get("user").get("id"), request.getUserId()));
+            predicates.add(cb.equal(root.get("startTime"), startDateTime));
+            predicates.add(cb.equal(root.get("endTime"), endDateTime));
+            predicates.add(cb.equal(root.get("delete"), false));
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        });
+
+        if (dayOffs.isEmpty()) {
+            throw new BadRequestException("Day off request not found");
+        }
+
+        DayOffEntity dayOffEntity = dayOffs.get(0);
 
         // Check if already processed
         if (dayOffEntity.getStatus() != EDayOffStatus.PENDING) {
@@ -99,25 +114,25 @@ public class DayOffService {
         dayOffEntity.setStatus(request.getStatus());
         DayOffEntity savedEntity = dayOffRepository.save(dayOffEntity);
         
-        log.info("Updated day off request status to {} for user: {} on date: {}", 
-                request.getStatus(), request.getUserId(), request.getDateOff());
+        log.info("Updated day off request status to {} for user: {} from {} to {}", 
+                request.getStatus(), request.getUserId(), startDateTime, endDateTime);
 
         return toDto(savedEntity);
     }
 
     private DayOffDto toDto(DayOffEntity entity) {
         return DayOffDto.builder()
-                .userId(entity.getDayoffEntityId().getUser().getId())
-                .userName(entity.getDayoffEntityId().getUser().getUserInfo() != null 
-                        ? entity.getDayoffEntityId().getUser().getUserInfo().getFirstName() + " " + 
-                          entity.getDayoffEntityId().getUser().getUserInfo().getLastName()
+                .userId(entity.getUser().getId())
+                .userName(entity.getUser().getUserInfo() != null 
+                        ? entity.getUser().getUserInfo().getFirstName() + " " + 
+                          entity.getUser().getUserInfo().getLastName()
                         : null)
-                .userEmail(entity.getDayoffEntityId().getUser().getEmail())
+                .userEmail(entity.getUser().getEmail())
                 .requestTitle(entity.getRequestTitle())
                 .requestReason(entity.getRequestReason())
-                .dateOff(entity.getDayoffEntityId().getDateOff())
-                .type(entity.getDayoffEntityId().getType())
-                .numberOfHours(entity.getNumberOfHours())
+                .startTime(entity.getStartTime().atZone(java.time.ZoneId.systemDefault()).toInstant())
+                .endTime(entity.getEndTime().atZone(java.time.ZoneId.systemDefault()).toInstant())
+                .dateOff(entity.getStartTime().toLocalDate().atStartOfDay(java.time.ZoneId.systemDefault()).toInstant())
                 .status(entity.getStatus())
                 .build();
     }

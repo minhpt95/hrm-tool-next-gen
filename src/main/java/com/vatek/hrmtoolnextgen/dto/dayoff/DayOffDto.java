@@ -1,7 +1,6 @@
 package com.vatek.hrmtoolnextgen.dto.dayoff;
 
 import com.vatek.hrmtoolnextgen.enumeration.EDayOffStatus;
-import com.vatek.hrmtoolnextgen.enumeration.EDayOffType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,9 +18,9 @@ public class DayOffDto {
     private String userEmail;
     private String requestTitle;
     private String requestReason;
-    private Integer numberOfHours;
-    private Instant dateOff;
-    private EDayOffType type;
+    private Instant startTime;
+    private Instant endTime;
+    private Instant dateOff; // Derived from startTime for backward compatibility
     private EDayOffStatus status;
 }
 

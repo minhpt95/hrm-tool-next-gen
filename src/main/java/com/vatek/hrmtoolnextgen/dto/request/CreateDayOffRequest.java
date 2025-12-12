@@ -1,6 +1,5 @@
 package com.vatek.hrmtoolnextgen.dto.request;
 
-import com.vatek.hrmtoolnextgen.enumeration.EDayOffType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -23,11 +22,10 @@ public class CreateDayOffRequest {
     
     @NotEmpty
     @NotNull
-    private String dateOff; // Format: dd/MM/yyyy
+    private String startTime; // Format: dd/MM/yyyy HH:mm
     
+    @NotEmpty
     @NotNull
-    private EDayOffType type; // FULL, PARTIAL
-    
-    private Integer numberOfHours; // Required for PARTIAL type, must be > 0 and < 8
+    private String endTime; // Format: dd/MM/yyyy HH:mm
 }
 

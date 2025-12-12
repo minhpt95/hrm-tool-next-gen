@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="update-day-off-add-id-column" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="day_off"/>
+            <not>
+                <columnExists tableName="day_off" columnName="id"/>
+            </not>
+        </preConditions>
+        <comment>Add id column to day_off table</comment>
+        <addColumn tableName="day_off">
+            <column name="id" type="BIGSERIAL">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="update-day-off-add-audit-columns" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="day_off"/>
+            <not>
+                <columnExists tableName="day_off" columnName="create_date"/>
+            </not>
+        </preConditions>
+        <comment>Add audit columns to day_off table</comment>
+        <addColumn tableName="day_off">
+            <column name="create_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_by" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="BIGINT"/>
+            <column name="is_delete" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="update-day-off-add-start-end-time" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="day_off"/>
+            <not>
+                <columnExists tableName="day_off" columnName="start_time"/>
+            </not>
+        </preConditions>
+        <comment>Add start_time and end_time columns to day_off table</comment>
+        <addColumn tableName="day_off">
+            <column name="start_time" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="day_off">
+            <column name="end_time" type="TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="update-day-off-drop-composite-pk" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="day_off"/>
+            <primaryKeyExists tableName="day_off" primaryKeyName="pk_day_off"/>
+        </preConditions>
+        <comment>Drop composite primary key and create new primary key on id</comment>
+        <dropPrimaryKey tableName="day_off" constraintName="pk_day_off"/>
+        <addPrimaryKey tableName="day_off" columnNames="id" constraintName="pk_day_off"/>
+    </changeSet>
+
+    <changeSet id="update-day-off-remove-type-column" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="day_off"/>
+            <columnExists tableName="day_off" columnName="type_day_off"/>
+        </preConditions>
+        <comment>Remove type_day_off column from day_off table</comment>
+        <dropColumn tableName="day_off" columnName="type_day_off"/>
+    </changeSet>
+
+    <changeSet id="update-day-off-remove-number-of-hours" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="day_off"/>
+            <columnExists tableName="day_off" columnName="number_of_hours"/>
+        </preConditions>
+        <comment>Remove number_of_hours column from day_off table</comment>
+        <dropColumn tableName="day_off" columnName="number_of_hours"/>
+    </changeSet>
+
+    <changeSet id="update-day-off-remove-date-off-column" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="day_off"/>
+            <columnExists tableName="day_off" columnName="date_off"/>
+        </preConditions>
+        <comment>Remove date_off column from day_off table (no longer needed with id-based primary key)</comment>
+        <dropColumn tableName="day_off" columnName="date_off"/>
+    </changeSet>
+
+</databaseChangeLog>
+

@@ -1,7 +1,6 @@
 package com.vatek.hrmtoolnextgen.dto.request;
 
 import com.vatek.hrmtoolnextgen.enumeration.EDayOffStatus;
-import com.vatek.hrmtoolnextgen.enumeration.EDayOffType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -22,10 +21,10 @@ public class ApprovalDayOffRequest {
     private Long userId;
     
     @NotNull
-    private Instant dateOff;
+    private Instant startTime;
     
     @NotNull
-    private EDayOffType type;
+    private Instant endTime;
     
     @NotEmpty
     @NotNull

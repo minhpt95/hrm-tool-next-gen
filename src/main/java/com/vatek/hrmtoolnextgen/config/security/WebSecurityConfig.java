@@ -60,13 +60,12 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public RoleHierarchy roleHierarchy() {
         String hierarchy =
-                RoleConstant.ADMIN +
-                        " > " +
-                        RoleConstant.IT_ADMIN +
-                        " > " +
-                        RoleConstant.PROJECT_MANAGER +
-                        " > " +
-                        RoleConstant.USER;
+                RoleConstant.ADMIN + " > " + RoleConstant.PROJECT_MANAGER + "\n" +
+                RoleConstant.ADMIN + " > " + RoleConstant.HR + "\n" +
+                RoleConstant.IT_ADMIN + " > " + RoleConstant.PROJECT_MANAGER + "\n" +
+                RoleConstant.IT_ADMIN + " > " + RoleConstant.HR + "\n" +
+                RoleConstant.PROJECT_MANAGER + " > " + RoleConstant.USER + "\n" +
+                RoleConstant.HR + " > " + RoleConstant.USER;
         return RoleHierarchyImpl.fromHierarchy(hierarchy);
     }
 

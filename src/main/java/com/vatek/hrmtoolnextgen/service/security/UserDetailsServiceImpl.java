@@ -62,7 +62,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private List<GrantedAuthority> getGrantedAuthorities(List<String> privileges) {
         List<GrantedAuthority> authorities = new ArrayList<>();
         for (String privilege : privileges) {
-            authorities.add(new SimpleGrantedAuthority(privilege));
+            // Remove "ROLE_" prefix if present, we'll use hasAuthority() instead
+            String authority = privilege.startsWith("ROLE_") ? privilege.substring(5) : privilege;
+            authorities.add(new SimpleGrantedAuthority(authority));
         }
         return authorities;
     }

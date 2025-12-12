@@ -111,17 +111,17 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(
                                 "/api/admin",
                                 "/api/admin/**"
-                        ).hasAnyRole(RoleConstant.ADMIN, RoleConstant.IT_ADMIN)
+                        ).hasAnyAuthority(RoleConstant.ADMIN, RoleConstant.IT_ADMIN)
 
                         .requestMatchers(
                                 "/api/manager",
                                 "/api/manager/**"
-                        ).hasRole(RoleConstant.PROJECT_MANAGER)
+                        ).hasAuthority(RoleConstant.PROJECT_MANAGER)
 
                         .requestMatchers(
                                 "/api/user",
                                 "/api/user/**"
-                        ).hasRole(RoleConstant.USER)
+                        ).hasAuthority(RoleConstant.USER)
 
                         .anyRequest().authenticated()
                 );

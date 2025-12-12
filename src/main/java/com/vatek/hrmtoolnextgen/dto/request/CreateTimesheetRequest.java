@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Getter
@@ -26,6 +27,6 @@ public class CreateTimesheetRequest {
     @NotNull
     private LocalTime workingHours;
     private ETimesheetType timesheetType;
-    //    @DateFormatConstraint
-    private String workingDay;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    private LocalDate workingDay;
 }

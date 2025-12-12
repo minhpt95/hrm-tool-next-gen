@@ -13,12 +13,29 @@
                 <columnExists tableName="day_off" columnName="id"/>
             </not>
         </preConditions>
-        <comment>Add id column to day_off table</comment>
+        <comment>Add id column to day_off table with auto-increment</comment>
+        <!-- For PostgreSQL, we need to create a sequence and set it as default -->
+        <sql>
+            CREATE SEQUENCE IF NOT EXISTS day_off_id_seq;
+        </sql>
+        <!-- Add column as nullable first to allow population of existing data -->
         <addColumn tableName="day_off">
-            <column name="id" type="BIGSERIAL">
-                <constraints nullable="false"/>
-            </column>
+            <column name="id" type="BIGINT"/>
         </addColumn>
+        <!-- Populate id for existing rows -->
+        <sql>
+            UPDATE day_off SET id = nextval('day_off_id_seq') WHERE id IS NULL;
+        </sql>
+        <!-- Set sequence start value based on max id -->
+        <sql>
+            SELECT setval('day_off_id_seq', COALESCE((SELECT MAX(id) FROM day_off), 1), true);
+        </sql>
+        <!-- Set default value, make NOT NULL, and link sequence to column -->
+        <sql>
+            ALTER TABLE day_off ALTER COLUMN id SET DEFAULT nextval('day_off_id_seq');
+            ALTER TABLE day_off ALTER COLUMN id SET NOT NULL;
+            ALTER SEQUENCE day_off_id_seq OWNED BY day_off.id;
+        </sql>
     </changeSet>
 
     <changeSet id="update-day-off-add-audit-columns" author="system">

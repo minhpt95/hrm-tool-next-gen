@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/auth")
+@RequestMapping("/${hrm.api.prefix}/auth")
 @Tag(name = "Authentication", description = "Authentication management APIs")
 public class AuthController {
 

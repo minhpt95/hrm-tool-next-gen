@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/admin")
+@RequestMapping("/${hrm.api.prefix}/admin")
 @Tag(name = "Admin", description = "CRUD APIs for Admin User")
 public class AdminController {
 

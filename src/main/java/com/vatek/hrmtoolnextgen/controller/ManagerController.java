@@ -3,12 +3,7 @@ package com.vatek.hrmtoolnextgen.controller;
 import com.vatek.hrmtoolnextgen.dto.dayoff.DayOffDto;
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
-import com.vatek.hrmtoolnextgen.dto.request.ApprovalDayOffRequest;
-import com.vatek.hrmtoolnextgen.dto.request.ApprovalTimesheetRequest;
-import com.vatek.hrmtoolnextgen.dto.request.CreateProjectRequest;
-import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
-import com.vatek.hrmtoolnextgen.dto.request.UpdateProjectRequest;
-import com.vatek.hrmtoolnextgen.dto.request.UpdateTimesheetRequest;
+import com.vatek.hrmtoolnextgen.dto.request.*;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.timesheet.TimesheetDto;
@@ -35,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/manager")
+@RequestMapping("/${hrm.api.prefix}/manager")
 @Tag(name = "Manager", description = "CRUD APIs for Manager")
 public class ManagerController {
 
@@ -133,7 +128,7 @@ public class ManagerController {
             @RequestParam(required = false) String projectName,
             @RequestParam(required = false) EProjectStatus projectStatus,
             HttpServletRequest request) {
-        
+
         PaginationRequest paginationRequest = PaginationRequest.builder()
                 .page(page)
                 .size(size)
@@ -164,7 +159,7 @@ public class ManagerController {
             @RequestParam(required = false) ETimesheetStatus status,
             @RequestParam(required = false) Long projectId,
             HttpServletRequest request) {
-        
+
         PaginationRequest paginationRequest = PaginationRequest.builder()
                 .page(page)
                 .size(size)

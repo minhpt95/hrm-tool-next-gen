@@ -24,15 +24,16 @@ public class SseController {
 
     /**
      * Establish SSE connection for authenticated user
+     *
      * @param userPrincipal Authenticated user principal
-     * @param request HTTP request
+     * @param request       HTTP request
      * @return SseEmitter for the connection
      */
     @GetMapping(value = "/connect", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter connect(
             @AuthenticationPrincipal UserPrincipalDto userPrincipal,
             HttpServletRequest request) {
-        
+
         if (userPrincipal == null) {
             log.warn("Unauthenticated SSE connection attempt from: {}", request.getRemoteAddr());
             throw new com.vatek.hrmtoolnextgen.exception.BadRequestException("Authentication required");
@@ -40,19 +41,20 @@ public class SseController {
 
         String userId = String.valueOf(userPrincipal.getId());
         log.info("SSE connection request from user: {} at {}", userId, request.getRemoteAddr());
-        
+
         return sseService.createConnection(userId);
     }
 
     /**
      * Get active connection count (admin endpoint)
+     *
      * @param userPrincipal Authenticated user principal
      * @return Number of active connections
      */
     @GetMapping("/connections/count")
     public ResponseEntity<Integer> getConnectionCount(
             @AuthenticationPrincipal UserPrincipalDto userPrincipal) {
-        
+
         if (userPrincipal == null) {
             throw new com.vatek.hrmtoolnextgen.exception.BadRequestException("Authentication required");
         }
@@ -63,15 +65,16 @@ public class SseController {
 
     /**
      * Test endpoint to send a test event to the authenticated user
+     *
      * @param userPrincipal Authenticated user principal
-     * @param message Optional message to send
+     * @param message       Optional message to send
      * @return Success response
      */
     @PostMapping("/test")
     public ResponseEntity<Map<String, String>> sendTestEvent(
             @AuthenticationPrincipal UserPrincipalDto userPrincipal,
             @RequestParam(required = false, defaultValue = "Test message") String message) {
-        
+
         if (userPrincipal == null) {
             throw new com.vatek.hrmtoolnextgen.exception.BadRequestException("Authentication required");
         }

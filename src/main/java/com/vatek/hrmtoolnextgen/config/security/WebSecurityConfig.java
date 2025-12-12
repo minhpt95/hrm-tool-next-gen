@@ -95,29 +95,34 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests(authz -> authz
                         // Permit access to public endpoints
                         .requestMatchers(
-                                "/api/swagger-ui.html",
-                                "/api/swagger-ui/**", // Permit Swagger UI
-                                "/api/v3/api-docs/**" // Permit OpenAPI v3 docs
+                                "/swagger-ui.html",
+                                "/swagger-ui/**", // Permit Swagger UI
+                                "/v3/api-docs/**" // Permit OpenAPI v3 docs (adjust path if necessary)
                         ).permitAll()
 
                         .requestMatchers(
                                 "/actuator/health" // Health Check
                         ).permitAll()
+
                         .requestMatchers(
-                                "/api/auth/login"
+                                "/api/auth/login" // Login API
                         ).permitAll()
+
                         .requestMatchers(
                                 "/api/admin",
                                 "/api/admin/**"
                         ).hasAnyRole(RoleConstant.ADMIN, RoleConstant.IT_ADMIN)
+
                         .requestMatchers(
-                                "api/manager",
-                                "api/manager/**"
+                                "/api/manager",
+                                "/api/manager/**"
                         ).hasRole(RoleConstant.PROJECT_MANAGER)
+
                         .requestMatchers(
                                 "/api/user",
                                 "/api/user/**"
                         ).hasRole(RoleConstant.USER)
+
                         .anyRequest().authenticated()
                 );
 

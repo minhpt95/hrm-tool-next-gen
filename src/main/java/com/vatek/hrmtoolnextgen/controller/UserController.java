@@ -14,10 +14,10 @@ import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
 import com.vatek.hrmtoolnextgen.service.DayOffService;
 import com.vatek.hrmtoolnextgen.service.ProjectService;
 import com.vatek.hrmtoolnextgen.service.TimesheetService;
-import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/user")
+@RequestMapping("/${hrm.api.prefix}/user")
 @Tag(name = "User", description = "CRUD APIs for User")
 public class UserController {
 
@@ -70,7 +70,7 @@ public class UserController {
             @RequestParam(required = false) String projectName,
             @RequestParam(required = false) EProjectStatus projectStatus,
             HttpServletRequest request) {
-        
+
         PaginationRequest paginationRequest = PaginationRequest.builder()
                 .page(page)
                 .size(size)

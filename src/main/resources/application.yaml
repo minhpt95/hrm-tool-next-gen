@@ -66,12 +66,14 @@ hrm:
     jwtSecret: 78Obiiz91cAbwzreim1DnLXbn2UGZuKZ
     jwtExpiration: '86400000'
     refreshTokenExpiration: '86400000'
+  api:
+    prefix: /api
 
 springdoc:
   swagger-ui:
-    path: /api/swagger-ui.html
+    path: /swagger-ui.html
   api-docs:
-    path: /api/v3/api-docs
+    path: /v3/api-docs
     version: OPENAPI_3_1
   packagesToScan: com.vatek.hrmtoolnextgen.controller
 
@@ -79,7 +81,3 @@ calendarific:
   api:
     key: rUDjT57F2lrBFKQPt1l7C51bKJ7GMfPN
     url: https://calendarific.com/api/v2/holidays
-
-server:
-  servlet:
-    context-path: /api

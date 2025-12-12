@@ -1,6 +1,5 @@
 package com.vatek.hrmtoolnextgen.service;
 
-import com.vatek.hrmtoolnextgen.constant.DateConstant;
 import com.vatek.hrmtoolnextgen.constant.ErrorConstant;
 import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.request.ApprovalTimesheetRequest;
@@ -19,13 +18,11 @@ import com.vatek.hrmtoolnextgen.enumeration.ETimesheetType;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.exception.CommonException;
 import com.vatek.hrmtoolnextgen.mapping.TimesheetMapping;
-import com.vatek.hrmtoolnextgen.projection.TimesheetWorkingHourProjection;
 import com.vatek.hrmtoolnextgen.repository.jpa.DayOffRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.ProjectRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.TimesheetRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
 import com.vatek.hrmtoolnextgen.util.CommonUtils;
-import com.vatek.hrmtoolnextgen.util.DateUtils;
 import com.vatek.hrmtoolnextgen.util.TimeUtils;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AllArgsConstructor;
@@ -39,7 +36,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,12 +71,11 @@ public class TimesheetService {
             );
         }
 
-        LocalDate workingDayDate = DateUtils.convertStringDateToLocalDate(form.getWorkingDay());
 
-        var workingDayInstantDayOfWeek = workingDayDate.getDayOfWeek();
+        var dayOfWeek = form.getWorkingDay().getDayOfWeek();
 
         if (
-                form.getTimesheetType() == ETimesheetType.NORMAL && (workingDayInstantDayOfWeek == DayOfWeek.SATURDAY || workingDayInstantDayOfWeek == DayOfWeek.SUNDAY)
+                form.getTimesheetType() == ETimesheetType.NORMAL && (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY)
         ) {
             throw new BadRequestException(
                     "Cannot log timesheet on weekend"
@@ -96,7 +91,7 @@ public class TimesheetService {
             var getTimesheetProjection = timesheetRepository
                     .findByUserEntityIdAndWorkingDayAndStatusNot(
                             currentUser.getId(),
-                            workingDayDate,
+                            form.getWorkingDay(),
                             ETimesheetStatus.REJECTED
                     );
 
@@ -112,7 +107,7 @@ public class TimesheetService {
                 // Check if the date matches (same day)
                 predicates.add(criteriaBuilder.equal(
                         criteriaBuilder.function("DATE", java.time.LocalDate.class, root.get("startTime")),
-                        workingDayDate
+                        form.getWorkingDay()
                 ));
                 predicates.add(criteriaBuilder.equal(
                         root.get("user").get("id"),
@@ -177,7 +172,7 @@ public class TimesheetService {
         timesheetEntity.setTitle(form.getTitle());
         timesheetEntity.setDescription(form.getDescription());
         timesheetEntity.setWorkingHours(form.getWorkingHours());
-        timesheetEntity.setWorkingDay(workingDayDate);
+        timesheetEntity.setWorkingDay(form.getWorkingDay());
         timesheetEntity.setProjectEntity(projectEntity);
         timesheetEntity.setStatus(ETimesheetStatus.PENDING);
         timesheetEntity.setUserEntity(userEntity);
@@ -226,7 +221,7 @@ public class TimesheetService {
         }
 
         if (form.getWorkingDay() != null)
-            timesheetEntity.setWorkingDay(DateUtils.convertStringDateToLocalDate(form.getWorkingDay(), DateConstant.DD_MM_YYYY));
+            timesheetEntity.setWorkingDay(form.getWorkingDay());
 
         timesheetEntity = timesheetRepository.save(timesheetEntity);
 

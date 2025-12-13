@@ -40,7 +40,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         @Override
         public UserInfoDto convert(String source) {
             try {
-                if (source == null || source.trim().isEmpty()) {
+                if (source.trim().isEmpty()) {
                     return null;
                 }
                 // Try to parse as JSON first
@@ -64,7 +64,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         @Override
         public Collection<EUserRole> convert(String source) {
-            if (source == null || source.trim().isEmpty()) {
+            if (source.trim().isEmpty()) {
                 return new ArrayList<>();
             }
 

@@ -1,27 +1,6 @@
 package com.vatek.hrmtoolnextgen.constant;
 
 public class ErrorConstant {
-    public static class Code {
-        public static final String SUCCESS = "00";
-        public static final String LOGIN_INVALID = "01";
-        public static final String USER_INACTIVE = "02";
-        public static final String NOT_FOUND = "03";
-        public static final String ALREADY_EXISTS = "04";
-        public static final String PERMISSION_DENIED = "05";
-        public static final String INTERNAL_SERVER_ERROR = "06";
-        public static final String TOKEN_REFRESH_EXCEPTION = "07";
-        public static final String MISSING_FIELD = "08";
-        public static final String AUTHENTICATION_ERROR = "09";
-        public static final String UNAUTHORIZED = "10";
-        public static final String OVERLAPPING_DATE = "11";
-        public static final String FROM_DATE_TO_DATE_VALIDATE = "12";
-        public static final String CANNOT_LOG_TIMESHEET = "13";
-        public static final String CANNOT_LOG_ON_WEEKEND = "14";
-        public static final String CANNOT_LOG_ON_FULL_DAY_OFF = "15";
-        public static final String NOT_NULL = "16";
-        public static final String NOT_EMPTY = "17";
-    }
-
     public static class Type {
         public static final String LOGIN_INVALID = "LOGIN_INVALID";
         public static final String USER_INACTIVE = "USER_INACTIVE";

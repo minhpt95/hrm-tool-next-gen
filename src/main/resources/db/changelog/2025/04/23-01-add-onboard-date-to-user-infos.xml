@@ -5,46 +5,17 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
-    <changeSet id="add-client-name-to-projects" author="system">
+    <changeSet id="add-onboard-date-to-user-infos" author="system">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="projects"/>
+            <tableExists tableName="user_infos"/>
             <not>
-                <columnExists tableName="projects" columnName="client_name"/>
+                <columnExists tableName="user_infos" columnName="onboard_date"/>
             </not>
         </preConditions>
-        <comment>Add client_name column to projects table</comment>
-        <addColumn tableName="projects">
-            <column name="client_name" type="VARCHAR(255)"/>
+        <comment>Add onboard_date column to user_infos table</comment>
+        <addColumn tableName="user_infos">
+            <column name="onboard_date" type="DATE"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

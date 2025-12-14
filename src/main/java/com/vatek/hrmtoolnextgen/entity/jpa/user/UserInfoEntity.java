@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @AllArgsConstructor
@@ -40,6 +41,12 @@ public class UserInfoEntity extends IdentityEntity {
 
     @Column(name = "permanent_address")
     private String permanentAddress;
+
+    @Column(name = "onboard_date")
+    private LocalDate onboardDate;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)
     private EUserLevel userLevel;

@@ -3,6 +3,8 @@ package com.vatek.hrmtoolnextgen.dto.user;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -29,4 +31,10 @@ public class UserInfoDto {
 
     @Schema(description = "Avatar image URL")
     private String avatarUrl;
+
+    @Schema(description = "Onboard date of the employee")
+    private LocalDate onboardDate;
+
+    @Schema(description = "Birth date of the employee")
+    private LocalDate birthDate;
 }

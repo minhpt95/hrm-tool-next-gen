@@ -10,10 +10,12 @@ import com.vatek.hrmtoolnextgen.dto.request.UpdateTimesheetRequest;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.timesheet.TimesheetDto;
+import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
 import com.vatek.hrmtoolnextgen.service.DayOffService;
 import com.vatek.hrmtoolnextgen.service.ProjectService;
 import com.vatek.hrmtoolnextgen.service.TimesheetService;
+import com.vatek.hrmtoolnextgen.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +37,7 @@ public class UserController {
     private final TimesheetService timesheetService;
     private final ProjectService projectService;
     private final DayOffService dayOffService;
+    private final UserService userService;
 
     @PostMapping("/timesheet")
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> createTimesheet(
@@ -98,6 +101,29 @@ public class UserController {
             HttpServletRequest request) {
         DayOffDto dayOff = dayOffService.createDayOffRequest(userPrincipalDto.getId(), createDayOffRequest);
         return ResponseEntity.ok(buildSuccessResponse(dayOff, request));
+    }
+
+    @GetMapping("/birthday/today")
+    @Operation(
+            summary = "Get users with birthday today",
+            description = "Returns a paginated list of all users who have birthday today. Default sort by id ascending."
+    )
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<UserDto>>> getUsersWithBirthdayToday(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
+            HttpServletRequest request) {
+
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<UserDto> users = userService.getUsersWithBirthdayToday(paginationRequest);
+        return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {

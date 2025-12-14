@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 8px;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .birthday-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .content p {
+            font-size: 16px;
+            margin: 15px 0;
+        }
+        .highlight {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .message-box {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #667eea;
+        }
+        .message-box p {
+            margin: 10px 0;
+            font-size: 15px;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 25px 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            font-size: 12px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+        .celebration {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="birthday-icon">🎉🎂🎈</div>
+            <h1>Happy Birthday!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Dear <span class="highlight" th:text="${userName}">Valued Employee</span>,</p>
+            
+            <div class="celebration">🎊 🎁 🎉 🎈 🎊</div>
+            
+            <p>We want to take a moment to celebrate <strong>YOU</strong> on your special day!</p>
+            
+            <div class="message-box">
+                <p>On behalf of the entire HRM Tool team, we wish you a wonderful birthday filled with joy, happiness, and success!</p>
+                <p>Thank you for being an important part of our organization. Your dedication and hard work are truly appreciated.</p>
+                <p>May this new year of your life bring you new opportunities, achievements, and countless reasons to smile!</p>
+            </div>
+            
+            <p>Have a fantastic day and enjoy your celebration! 🎉</p>
+            
+            <div style="text-align: center;">
+                <a th:href="${frontendUrl}" class="button">Visit HRM Tool</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Best wishes,<br><strong>HRM Tool Team</strong></p>
+            <p>This is an automated email, please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -12,13 +12,20 @@ import com.vatek.hrmtoolnextgen.mapping.UserMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
 import com.vatek.hrmtoolnextgen.util.CommonUtils;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -47,6 +54,65 @@ public class UserService {
         Page<UserEntity> entityPage = userRepository.findAll(CommonUtils.buildPageable(paginationRequest));
         Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
         return CommonUtils.buildPaginationResponse(dtoPage, paginationRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationResponse<UserDto> getAllUsersForAdmin(
+            PaginationRequest paginationRequest,
+            String name,
+            String email) {
+        
+        // Build specification for filtering
+        Specification<UserEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            // Filter by email if provided
+            if (StringUtils.hasText(email)) {
+                predicates.add(cb.like(
+                    cb.lower(root.get("email")),
+                    "%" + email.toLowerCase() + "%"
+                ));
+            }
+            
+            // Filter by name (firstName or lastName) if provided
+            if (StringUtils.hasText(name)) {
+                String namePattern = "%" + name.toLowerCase() + "%";
+                var userInfoPath = root.get("userInfo");
+                Predicate firstNamePredicate = cb.and(
+                    cb.isNotNull(userInfoPath),
+                    cb.like(
+                        cb.lower(userInfoPath.get("firstName")),
+                        namePattern
+                    )
+                );
+                Predicate lastNamePredicate = cb.and(
+                    cb.isNotNull(userInfoPath),
+                    cb.like(
+                        cb.lower(userInfoPath.get("lastName")),
+                        namePattern
+                    )
+                );
+                predicates.add(cb.or(firstNamePredicate, lastNamePredicate));
+            }
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        // Build pageable with default sort by id asc
+        Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "id", "ASC");
+        
+        Page<UserEntity> entityPage = userRepository.findAll(spec, pageable);
+        Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
+        
+        // Build pagination request for response
+        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank() 
+                ? paginationRequest.getSortBy() : "id";
+        String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
+                ? paginationRequest.getDirection() : "ASC";
+        PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
+                paginationRequest, actualSortBy, actualDirection);
+        
+        return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
     }
 
     @Transactional(readOnly = true)
@@ -89,6 +155,8 @@ public class UserService {
             userInfoEntity.setCurrentAddress(request.getUserInfo().getCurrentAddress());
             userInfoEntity.setPermanentAddress(request.getUserInfo().getPermanentAddress());
             userInfoEntity.setAvatarUrl(request.getUserInfo().getAvatarUrl());
+            userInfoEntity.setOnboardDate(request.getUserInfo().getOnboardDate());
+            userInfoEntity.setBirthDate(request.getUserInfo().getBirthDate());
             userEntity.setUserInfo(userInfoEntity);
         }
 
@@ -164,6 +232,12 @@ public class UserService {
             if (request.getUserInfo().getAvatarUrl() != null) {
                 userInfo.setAvatarUrl(request.getUserInfo().getAvatarUrl());
             }
+            if (request.getUserInfo().getOnboardDate() != null) {
+                userInfo.setOnboardDate(request.getUserInfo().getOnboardDate());
+            }
+            if (request.getUserInfo().getBirthDate() != null) {
+                userInfo.setBirthDate(request.getUserInfo().getBirthDate());
+            }
         }
 
         // Update roles
@@ -194,5 +268,59 @@ public class UserService {
         userEntity.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(userEntity);
         log.info("Password updated for user with id: {}", id);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationResponse<UserDto> getUsersWithBirthday(
+            PaginationRequest paginationRequest,
+            LocalDate date) {
+        
+        // Use today's date if not provided
+        LocalDate targetDate = date != null ? date : LocalDate.now();
+        String targetDateStr = String.format("%02d-%02d", targetDate.getMonthValue(), targetDate.getDayOfMonth());
+        
+        // Build specification for filtering by birthday (month and day, ignoring year)
+        Specification<UserEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            var userInfoPath = root.get("userInfo");
+            
+            // Filter by birth date (month and day, ignoring year)
+            Predicate birthDateNotNull = cb.isNotNull(userInfoPath.get("birthDate"));
+            
+            // Format birth date as MM-DD and compare with target date
+            // Using PostgreSQL TO_CHAR function: TO_CHAR(birth_date, 'MM-DD')
+            Predicate dateMatch = cb.equal(
+                cb.function("TO_CHAR", String.class,
+                    userInfoPath.get("birthDate"),
+                    cb.literal("MM-DD")),
+                targetDateStr
+            );
+            
+            predicates.add(cb.and(birthDateNotNull, dateMatch));
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        // Build pageable with default sort by id asc
+        Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "id", "ASC");
+        
+        Page<UserEntity> entityPage = userRepository.findAll(spec, pageable);
+        Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
+        
+        // Build pagination request for response
+        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank() 
+                ? paginationRequest.getSortBy() : "id";
+        String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
+                ? paginationRequest.getDirection() : "ASC";
+        PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
+                paginationRequest, actualSortBy, actualDirection);
+        
+        return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationResponse<UserDto> getUsersWithBirthdayToday(PaginationRequest paginationRequest) {
+        return getUsersWithBirthday(paginationRequest, LocalDate.now());
     }
 }

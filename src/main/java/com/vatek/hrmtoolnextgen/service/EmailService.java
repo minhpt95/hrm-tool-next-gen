@@ -109,5 +109,41 @@ public class EmailService {
             log.error("Unexpected error sending welcome email to: {}. Password: {}", toEmail, password, e);
         }
     }
+
+    @Async("emailTaskExecutor")
+    public void sendBirthdayEmail(String toEmail, String userName) {
+        try {
+            // Check if email is configured
+            if (fromEmail == null || fromEmail.isEmpty()) {
+                log.warn("Email not configured. Birthday email for {} ({})", toEmail, userName);
+                return; // Don't throw exception, just log for development
+            }
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Happy Birthday! 🎉");
+
+            // Prepare template variables
+            Context context = new Context();
+            context.setVariable("userName", userName != null && !userName.isEmpty() ? userName : "Valued Employee");
+            context.setVariable("frontendUrl", frontendUrl);
+
+            // Process the Thymeleaf template
+            String htmlContent = emailTemplateEngine.process("birthday", context);
+            helper.setText(htmlContent, true); // true = isHtml
+
+            mailSender.send(message);
+
+            log.info("Birthday email sent successfully to: {} ({})", toEmail, userName);
+        } catch (MessagingException e) {
+            log.error("Failed to send birthday email to: {} ({})", toEmail, userName, e);
+            // Don't throw exception to allow development without email server
+        } catch (Exception e) {
+            log.error("Unexpected error sending birthday email to: {} ({})", toEmail, userName, e);
+        }
+    }
 }
 

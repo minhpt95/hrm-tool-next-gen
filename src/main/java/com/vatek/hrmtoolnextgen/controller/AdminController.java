@@ -17,10 +17,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -94,6 +97,35 @@ public class AdminController {
             HttpServletRequest request) {
         userService.setUserPassword(id, setUserPasswordRequest.getNewPassword());
         return ResponseEntity.ok(buildSuccessResponse(null, request));
+    }
+
+    @GetMapping("/users")
+    @Operation(
+            summary = "Get all users (Admin)",
+            description = "Returns a paginated list of all users. Can filter by name and email. Default sort by id ascending."
+    )
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<UserDto>>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            HttpServletRequest request) {
+
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<UserDto> users = userService.getAllUsersForAdmin(
+                paginationRequest,
+                name,
+                email
+        );
+        return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 
     @GetMapping("/projects")

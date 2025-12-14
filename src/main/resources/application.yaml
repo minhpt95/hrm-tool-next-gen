@@ -1,4 +1,4 @@
-﻿spring:
+spring:
   application:
     name: hrm-tool-next-gen
   profiles:

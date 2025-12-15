@@ -40,8 +40,12 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/timesheet")
+    @Operation(
+            summary = "Create timesheet entry",
+            description = "Creates a new timesheet entry for the current user. Requires project ID, working hours, working day, and optional title, description, and timesheet type."
+    )
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> createTimesheet(
-            @RequestBody CreateTimesheetRequest createTimesheetReq,
+            @Valid @RequestBody CreateTimesheetRequest createTimesheetReq,
             HttpServletRequest request
     ) {
         TimesheetDto timesheetDto = timesheetService.createTimesheet(createTimesheetReq);
@@ -50,8 +54,12 @@ public class UserController {
     }
 
     @PutMapping("/timesheet")
+    @Operation(
+            summary = "Update timesheet entry",
+            description = "Updates an existing timesheet entry. Requires the timesheet ID along with the fields to update."
+    )
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> updateTimesheet(
-            @RequestBody UpdateTimesheetRequest updateTimesheetReq,
+            @Valid @RequestBody UpdateTimesheetRequest updateTimesheetReq,
             HttpServletRequest request
     ) {
         TimesheetDto timesheetDto = timesheetService.updateTimesheet(updateTimesheetReq);
@@ -129,7 +137,7 @@ public class UserController {
     @GetMapping("/birthday/upcoming")
     @Operation(
             summary = "Get users with upcoming birthdays",
-            description = "Returns a paginated list of all users who have birthdays in the next 4 days. Default sort by id ascending."
+            description = "Returns a paginated list of all users who have birthdays in the next 4 days (excluding today). The endpoint checks birthdays for tomorrow through 4 days from today. Default sort by id ascending."
     )
     public ResponseEntity<CommonSuccessResponse<PaginationResponse<UserDto>>> getUsersWithUpcomingBirthdays(
             @RequestParam(defaultValue = "0") int page,

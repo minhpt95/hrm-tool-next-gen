@@ -96,8 +96,12 @@ public class ManagerController {
 
 
     @PutMapping("/timesheet/approval")
+    @Operation(
+            summary = "Approve or reject timesheet",
+            description = "Manager can approve or reject a timesheet entry. Requires timesheet ID and the approval status (APPROVED or REJECTED)."
+    )
     public ResponseEntity<CommonSuccessResponse<TimesheetDto>> approvalTimesheet(
-            ApprovalTimesheetRequest approvalForm,
+            @Valid @RequestBody ApprovalTimesheetRequest approvalForm,
             HttpServletRequest request
     ) {
         TimesheetDto timesheetDto = timesheetService.approvalTimesheet(approvalForm);

@@ -17,18 +17,24 @@ import java.util.Collection;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Schema(description = "Payload for user registration")
 public class RegisterRequest {
 
     @NotEmpty
+    @Schema(description = "Unique email address used for login", example = "user@example.com", required = true)
     private String email;
+    
     @NotNull
+    @Schema(description = "Detailed profile information for the user", required = true)
     private UserInfoDto userInfo;
+    
     @NotEmpty
     @ArraySchema(
             schema = @Schema(implementation = EUserRole.class),
             arraySchema = @Schema(
-                    description = "Roles that define permissions for the employee",
-                    example = "[\"USER\",\"HR\"]"
+                    description = "Roles that define permissions for the user",
+                    example = "[\"USER\",\"HR\"]",
+                    required = true
             )
     )
     private Collection<EUserRole> roles;

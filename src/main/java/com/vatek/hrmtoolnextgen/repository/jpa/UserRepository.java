@@ -33,4 +33,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>, JpaSpec
     Optional<UserEntity> findById(Long id);
 
     boolean existsByWorkingProjectIdAndId(Long projectId, Long userId);
+
+    long countByActiveTrueAndDeleteFalse();
 }

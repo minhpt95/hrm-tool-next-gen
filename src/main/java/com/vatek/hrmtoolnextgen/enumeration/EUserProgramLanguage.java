@@ -20,4 +20,5 @@ public enum EUserProgramLanguage {
     HASKELL,
     LUA,
     OBJECTIVE_C,
+    OTHER,
 }

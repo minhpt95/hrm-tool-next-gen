@@ -9,6 +9,8 @@ import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserInfoEntity;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
 import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
+import com.vatek.hrmtoolnextgen.enumeration.EUserLevel;
+import com.vatek.hrmtoolnextgen.enumeration.EUserPosition;
 import com.vatek.hrmtoolnextgen.mapping.UserMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
@@ -389,5 +391,15 @@ public class UserService {
                 .stream()
                 .map(role -> role.getUserRole())
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<EUserPosition> getAllPositions() {
+        return List.of(EUserPosition.values());
+    }
+
+    @Transactional(readOnly = true)
+    public List<EUserLevel> getAllLevels() {
+        return List.of(EUserLevel.values());
     }
 }

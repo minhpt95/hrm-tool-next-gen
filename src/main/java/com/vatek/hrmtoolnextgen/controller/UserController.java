@@ -12,6 +12,8 @@ import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.timesheet.TimesheetDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
+import com.vatek.hrmtoolnextgen.enumeration.EUserLevel;
+import com.vatek.hrmtoolnextgen.enumeration.EUserPosition;
 import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.service.DayOffService;
 import com.vatek.hrmtoolnextgen.service.ProjectService;
@@ -168,6 +170,26 @@ public class UserController {
     public ResponseEntity<CommonSuccessResponse<List<EUserRole>>> getAllRoles(HttpServletRequest request) {
         List<EUserRole> roles = userService.getAllRoles();
         return ResponseEntity.ok(buildSuccessResponse(roles, request));
+    }
+
+    @GetMapping("/positions")
+    @Operation(
+            summary = "Get all user positions",
+            description = "Returns all available user positions"
+    )
+    public ResponseEntity<CommonSuccessResponse<List<EUserPosition>>> getAllPositions(HttpServletRequest request) {
+        List<EUserPosition> positions = userService.getAllPositions();
+        return ResponseEntity.ok(buildSuccessResponse(positions, request));
+    }
+
+    @GetMapping("/levels")
+    @Operation(
+            summary = "Get all user levels",
+            description = "Returns all available user levels"
+    )
+    public ResponseEntity<CommonSuccessResponse<List<EUserLevel>>> getAllLevels(HttpServletRequest request) {
+        List<EUserLevel> levels = userService.getAllLevels();
+        return ResponseEntity.ok(buildSuccessResponse(levels, request));
     }
 
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {

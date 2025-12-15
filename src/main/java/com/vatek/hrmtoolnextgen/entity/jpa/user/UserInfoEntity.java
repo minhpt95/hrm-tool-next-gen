@@ -53,7 +53,7 @@ public class UserInfoEntity extends IdentityEntity {
 
     @ElementCollection(targetClass = EUserProgramLanguage.class, fetch = FetchType.EAGER)
     private List<EUserProgramLanguage> programLanguage;
-
+    
     @Enumerated(EnumType.STRING)
     private EUserPosition userPosition;
 

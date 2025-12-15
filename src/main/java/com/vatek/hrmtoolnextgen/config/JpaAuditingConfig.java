@@ -39,8 +39,7 @@ public class JpaAuditingConfig {
 
                 Object principal = authentication.getPrincipal();
 
-                if (principal instanceof UserPrincipalDto) {
-                    UserPrincipalDto userPrincipal = (UserPrincipalDto) principal;
+                if (principal instanceof UserPrincipalDto userPrincipal) {
                     Long userId = userPrincipal.getId();
                     if (userId != null) {
                         log.debug("Current auditor: {}", userId);

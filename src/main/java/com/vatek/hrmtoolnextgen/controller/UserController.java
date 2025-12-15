@@ -12,6 +12,7 @@ import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.vatek.hrmtoolnextgen.dto.timesheet.TimesheetDto;
 import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.service.DayOffService;
 import com.vatek.hrmtoolnextgen.service.ProjectService;
 import com.vatek.hrmtoolnextgen.service.TimesheetService;
@@ -25,6 +26,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -155,6 +158,16 @@ public class UserController {
 
         PaginationResponse<UserDto> users = userService.getUsersWithUpcomingBirthdays(paginationRequest);
         return ResponseEntity.ok(buildSuccessResponse(users, request));
+    }
+
+    @GetMapping("/roles")
+    @Operation(
+            summary = "Get all roles",
+            description = "Returns all available user roles"
+    )
+    public ResponseEntity<CommonSuccessResponse<List<EUserRole>>> getAllRoles(HttpServletRequest request) {
+        List<EUserRole> roles = userService.getAllRoles();
+        return ResponseEntity.ok(buildSuccessResponse(roles, request));
     }
 
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {

@@ -8,6 +8,7 @@ import com.vatek.hrmtoolnextgen.dto.user.UserDto;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserInfoEntity;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
+import com.vatek.hrmtoolnextgen.enumeration.EUserRole;
 import com.vatek.hrmtoolnextgen.mapping.UserMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
@@ -380,5 +381,13 @@ public class UserService {
                 paginationRequest, actualSortBy, actualDirection);
         
         return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EUserRole> getAllRoles() {
+        return roleRepository.findAll()
+                .stream()
+                .map(role -> role.getUserRole())
+                .toList();
     }
 }

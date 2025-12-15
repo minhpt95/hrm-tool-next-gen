@@ -22,3 +22,4 @@ public class DashboardSummaryDto {
     private Long activeEmployeeCount;
 }
 
+

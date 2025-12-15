@@ -1,16 +1,14 @@
-package com.vatek.hrmtoolnextgen.enumeration;
+﻿package com.vatek.hrmtoolnextgen.enumeration;
 
 public enum EUserPosition {
-    FRONTEND_DEVELOPER,
     BACKEND_DEVELOPER,
+    FRONTEND_DEVELOPER,
     FULLSTACK_DEVELOPER,
     MANUAL_TESTER,
     AUTOMATIC_TESTER,
     FULLSTACK_TESTER,
     QUALITY_CONTROL,
     BUSINESS_ANALYSIS,
-    DIRECTOR,
-    CEO,
     SOLUTION_ARCHITECTURE,
     DEV_OPS,
     SALE_MANAGER,
@@ -18,4 +16,5 @@ public enum EUserPosition {
     PROJECT_MANAGER,
     TECHNICAL_MANAGER,
     HUMAN_RESOURCE,
+    OTHER,
 }

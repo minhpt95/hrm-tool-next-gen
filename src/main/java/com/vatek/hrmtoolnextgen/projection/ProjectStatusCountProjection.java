@@ -11,3 +11,4 @@ public interface ProjectStatusCountProjection {
     Long getTotal();
 }
 
+

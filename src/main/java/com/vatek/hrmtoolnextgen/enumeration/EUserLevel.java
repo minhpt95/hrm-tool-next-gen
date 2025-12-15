@@ -5,5 +5,10 @@ public enum EUserLevel {
     FRESHER,
     JUNIOR,
     MIDDLE,
-    SENIOR
+    SENIOR,
+    LEAD,
+    MANAGER,
+    DIRECTOR,
+    CEO,
+    OTHER,
 }

@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
+import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
+import com.vatek.hrmtoolnextgen.dto.response.PaginationResponse;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -35,13 +36,13 @@ public class BirthdaySchedule {
             int totalSent = 0;
 
             while (hasMore) {
-                com.vatek.hrmtoolnextgen.dto.request.PaginationRequest paginationRequest = 
-                    com.vatek.hrmtoolnextgen.dto.request.PaginationRequest.builder()
+                PaginationRequest paginationRequest = 
+                    PaginationRequest.builder()
                         .page(page)
                         .size(pageSize)
                         .build();
 
-                com.vatek.hrmtoolnextgen.dto.response.PaginationResponse<UserDto> response = 
+                PaginationResponse<UserDto> response = 
                     userService.getUsersWithBirthdayToday(paginationRequest);
 
                 List<UserDto> users = response.getItems();

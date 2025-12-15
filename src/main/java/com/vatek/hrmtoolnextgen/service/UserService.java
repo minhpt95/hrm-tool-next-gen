@@ -323,4 +323,62 @@ public class UserService {
     public PaginationResponse<UserDto> getUsersWithBirthdayToday(PaginationRequest paginationRequest) {
         return getUsersWithBirthday(paginationRequest, LocalDate.now());
     }
+
+    @Transactional(readOnly = true)
+    public PaginationResponse<UserDto> getUsersWithUpcomingBirthdays(PaginationRequest paginationRequest) {
+        LocalDate today = LocalDate.now();
+        
+        // Generate list of month-day strings for the next 4 days
+        List<String> upcomingDates = new ArrayList<>();
+        for (int i = 1; i <= 4; i++) {
+            LocalDate upcomingDate = today.plusDays(i);
+            String dateStr = String.format("%02d-%02d", upcomingDate.getMonthValue(), upcomingDate.getDayOfMonth());
+            upcomingDates.add(dateStr);
+        }
+        
+        // Build specification for filtering by upcoming birthdays (month and day, ignoring year)
+        Specification<UserEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            var userInfoPath = root.get("userInfo");
+            
+            // Filter by birth date (month and day, ignoring year)
+            Predicate birthDateNotNull = cb.isNotNull(userInfoPath.get("birthDate"));
+            
+            // Create predicates for each upcoming date
+            List<Predicate> datePredicates = new ArrayList<>();
+            for (String dateStr : upcomingDates) {
+                Predicate dateMatch = cb.equal(
+                    cb.function("TO_CHAR", String.class,
+                        userInfoPath.get("birthDate"),
+                        cb.literal("MM-DD")),
+                    dateStr
+                );
+                datePredicates.add(dateMatch);
+            }
+            
+            // Combine all date predicates with OR
+            Predicate anyUpcomingDate = cb.or(datePredicates.toArray(new Predicate[0]));
+            
+            predicates.add(cb.and(birthDateNotNull, anyUpcomingDate));
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        // Build pageable with default sort by id asc
+        Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "id", "ASC");
+        
+        Page<UserEntity> entityPage = userRepository.findAll(spec, pageable);
+        Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
+        
+        // Build pagination request for response
+        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank() 
+                ? paginationRequest.getSortBy() : "id";
+        String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
+                ? paginationRequest.getDirection() : "ASC";
+        PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
+                paginationRequest, actualSortBy, actualDirection);
+        
+        return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
+    }
 }

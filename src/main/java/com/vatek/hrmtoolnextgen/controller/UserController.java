@@ -126,6 +126,29 @@ public class UserController {
         return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 
+    @GetMapping("/birthday/upcoming")
+    @Operation(
+            summary = "Get users with upcoming birthdays",
+            description = "Returns a paginated list of all users who have birthdays in the next 4 days. Default sort by id ascending."
+    )
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<UserDto>>> getUsersWithUpcomingBirthdays(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
+            HttpServletRequest request) {
+
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<UserDto> users = userService.getUsersWithUpcomingBirthdays(paginationRequest);
+        return ResponseEntity.ok(buildSuccessResponse(users, request));
+    }
+
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())

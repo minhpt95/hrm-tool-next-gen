@@ -1,11 +1,11 @@
 package com.vatek.hrmtoolnextgen.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vatek.hrmtoolnextgen.dto.holiday.CalendarificResponse;
 import com.vatek.hrmtoolnextgen.dto.holiday.HolidayDto;
 import com.vatek.hrmtoolnextgen.exception.InternalServerException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class HolidayService {
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     @Value("${calendarific.api.key:}")
     private String apiKey;
@@ -43,13 +45,18 @@ public class HolidayService {
      */
     @Cacheable(value = "holidays", key = "#year")
     public List<HolidayDto> getHolidays(int year) {
+        return normalize(fetchHolidays(year));
+    }
+
+    @SuppressWarnings("null")
+    public List<HolidayDto> fetchHolidays(int year) {
         if (apiKey == null || apiKey.isBlank()) {
             log.warn("Calendarific API key is not configured. Returning empty list.");
             return new ArrayList<>();
         }
 
         try {
-            String url = UriComponentsBuilder.fromUriString(apiUrl)
+            String url = UriComponentsBuilder.fromUriString(Objects.requireNonNullElse(apiUrl, ""))
                     .queryParam("api_key", apiKey)
                     .queryParam("country", COUNTRY_CODE)
                     .queryParam("year", year)
@@ -96,9 +103,8 @@ public class HolidayService {
         int startYear = startDate.getYear();
         int endYear = endDate.getYear();
 
-        HolidayService self = getSelf();
         for (int year = startYear; year <= endYear; year++) {
-            List<HolidayDto> yearHolidays = self.getHolidays(year);
+            List<HolidayDto> yearHolidays = getHolidays(year);
             allHolidays.addAll(yearHolidays.stream()
                     .filter(holiday -> {
                         LocalDate holidayDate = holiday.getDate();
@@ -117,10 +123,8 @@ public class HolidayService {
      * @return true if the date is a holiday
      */
     public boolean isHoliday(LocalDate date) {
-        HolidayService self = getSelf();
-        List<HolidayDto> holidays = self.getHolidays(date.getYear());
-        return holidays.stream()
-                .anyMatch(holiday -> holiday.getDate().equals(date));
+        List<HolidayDto> holidays = getHolidays(date.getYear());
+        return holidays.stream().anyMatch(holiday -> holiday.getDate().equals(date));
     }
 
     /**
@@ -129,8 +133,7 @@ public class HolidayService {
      * @return List of holidays for current year
      */
     public List<HolidayDto> getCurrentYearHolidays() {
-        HolidayService self = getSelf();
-        return self.getHolidays(LocalDate.now().getYear());
+        return getHolidays(LocalDate.now().getYear());
     }
 
     /**
@@ -138,16 +141,6 @@ public class HolidayService {
      *
      * @return The proxied service instance
      */
-    private HolidayService getSelf() {
-        try {
-            return (HolidayService) AopContext.currentProxy();
-        } catch (IllegalStateException e) {
-            // If proxy is not available, return this instance (fallback)
-            log.warn("AopContext proxy not available, cache may not work for self-invocation");
-            return this;
-        }
-    }
-
     private HolidayDto mapToHolidayDto(CalendarificResponse.CalendarificHoliday holiday) {
         HolidayDto dto = new HolidayDto();
         dto.setName(holiday.getName());
@@ -177,6 +170,21 @@ public class HolidayService {
         }
 
         return dto;
+    }
+
+    private List<HolidayDto> normalize(List<?> raw) {
+        if (raw == null || raw.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<HolidayDto> normalized = new ArrayList<>(raw.size());
+        for (Object item : raw) {
+            if (item instanceof HolidayDto dto) {
+                normalized.add(dto);
+            } else {
+                normalized.add(objectMapper.convertValue(item, HolidayDto.class));
+            }
+        }
+        return normalized;
     }
 }
 

@@ -13,20 +13,17 @@
         </preConditions>
         <comment>Change working_hours column from INT to TIME to store LocalTime</comment>
         
-        <!-- Convert existing integer hours to TIME format -->
+        <!-- Convert existing integer hours to TIME and change column type in one step -->
         <sql>
-            UPDATE timesheets 
-            SET working_hours = 
-                CASE 
+            ALTER TABLE timesheets
+            ALTER COLUMN working_hours TYPE TIME USING (
+                CASE
                     WHEN working_hours IS NULL THEN NULL
                     WHEN working_hours = 0 THEN TIME '00:00:00'
                     ELSE (LPAD(working_hours::text, 2, '0') || ':00:00')::TIME
                 END
-            WHERE working_hours IS NOT NULL;
+            );
         </sql>
-        
-        <!-- Change column type to TIME -->
-        <modifyDataType tableName="timesheets" columnName="working_hours" newDataType="TIME"/>
     </changeSet>
 
 </databaseChangeLog>

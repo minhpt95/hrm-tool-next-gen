@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -18,9 +18,8 @@ public class DayOffDto {
     private String userEmail;
     private String requestTitle;
     private String requestReason;
-    private Instant startTime;
-    private Instant endTime;
-    private Instant dateOff; // Derived from startTime for backward compatibility
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private EDayOffStatus status;
 }
 

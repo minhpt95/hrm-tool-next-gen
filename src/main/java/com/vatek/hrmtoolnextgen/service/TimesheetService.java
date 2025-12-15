@@ -36,8 +36,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -48,6 +51,7 @@ public class TimesheetService {
     private ProjectRepository projectRepository;
     private DayOffRepository dayOffRepository;
     private TimesheetMapping timesheetMapping;
+    private WorkHoursCalculatorService workHoursCalculatorService;
 
     @Transactional
     public TimesheetDto createTimesheet(CreateTimesheetRequest form) {
@@ -102,13 +106,15 @@ public class TimesheetService {
                     .sum();
 
             // Check for approved day off requests on the same day
+            LocalDate workingDay = form.getWorkingDay();
+            LocalDateTime dayStart = workingDay.atStartOfDay();
+            LocalDateTime dayEnd = workingDay.plusDays(1).atStartOfDay();
+
             Specification<DayOffEntity> dayOffEntitySpecification = (root, query, criteriaBuilder) -> {
                 var predicates = new ArrayList<Predicate>();
-                // Check if the date matches (same day)
-                predicates.add(criteriaBuilder.equal(
-                        criteriaBuilder.function("DATE", java.time.LocalDate.class, root.get("startTime")),
-                        form.getWorkingDay()
-                ));
+                // Overlap check: existing.start < dayEnd AND existing.end > dayStart
+                predicates.add(criteriaBuilder.lessThan(root.get("startTime"), dayEnd));
+                predicates.add(criteriaBuilder.greaterThan(root.get("endTime"), dayStart));
                 predicates.add(criteriaBuilder.equal(
                         root.get("user").get("id"),
                         currentUser.getId()
@@ -123,42 +129,34 @@ public class TimesheetService {
 
             var approvedDayOffs = dayOffRepository.findAll(dayOffEntitySpecification);
 
-            // Calculate total day off hours and check for full day off
-            int totalDayOffHours = 0;
-            boolean hasFullDayOff = false;
-
+            double dailyWorkHours = workHoursCalculatorService.getDailyWorkHours();
+            double overlapHours = 0.0;
             for (DayOffEntity dayOff : approvedDayOffs) {
                 if (dayOff.getStartTime() == null || dayOff.getEndTime() == null) {
-                    continue; // Skip invalid day off entries
+                    continue;
                 }
-
-                // Calculate hours between startTime and endTime (LocalDateTime)
-                long secondsDiff = java.time.Duration.between(dayOff.getStartTime(), dayOff.getEndTime()).getSeconds();
-                int dayOffHours = (int) (secondsDiff / 3600); // Convert seconds to hours
-
-                // Check if it's a full day off (8 hours or more)
-                if (dayOffHours >= 8) {
-                    hasFullDayOff = true;
+                Map<LocalDate, Double> remainingByDate = workHoursCalculatorService.calculateRemainingHours(
+                        dayOff.getStartTime(), dayOff.getEndTime());
+                Double remainingForDay = remainingByDate.get(workingDay);
+                if (remainingForDay == null) {
+                    continue;
                 }
-
-                totalDayOffHours += dayOffHours;
+                double used = dailyWorkHours - remainingForDay;
+                if (used > 0) {
+                    overlapHours += used;
+                }
+                if (overlapHours >= dailyWorkHours) {
+                    overlapHours = dailyWorkHours;
+                    break;
+                }
             }
 
-            // Rule 3: Cannot log when request dayoff FULL is approved same day (8+ hours)
-            if (hasFullDayOff) {
-                throw new CommonException(
-                        ErrorConstant.Message.CANNOT_LOG_ON_FULL_DAY_OFF,
-                        HttpStatus.BAD_REQUEST
-                );
-            }
-
-            // Rule 4: Cannot log more than (8 - totalDayOffHours) when request dayoff exists
-            int maxAllowedHours = 8 - totalDayOffHours;
+            double maxAllowedHours = dailyWorkHours - overlapHours;
             if (maxAllowedHours < 0) {
-                maxAllowedHours = 0; // Cannot log any hours if day off exceeds 8 hours
+                maxAllowedHours = 0;
             }
 
-            // Rule 1: Cannot log total more than maxAllowedHours (8 hours normally, or 8 - totalDayOffHours if day off exists)
+            // Rule: Cannot log total more than maxAllowedHours for that day
             double newWorkingHours = TimeUtils.convertTimeToHours(form.getWorkingHours());
             if (totalWorkingHours + newWorkingHours > maxAllowedHours) {
                 throw new BadRequestException(
@@ -168,6 +166,13 @@ public class TimesheetService {
         }
 
 
+        TimesheetEntity timesheetEntity = getTimesheetEntity(form, projectEntity, userEntity);
+        timesheetEntity = timesheetRepository.save(timesheetEntity);
+
+        return timesheetMapping.toDto(timesheetEntity);
+    }
+
+    private static TimesheetEntity getTimesheetEntity(CreateTimesheetRequest form, ProjectEntity projectEntity, UserEntity userEntity) {
         TimesheetEntity timesheetEntity = new TimesheetEntity();
         timesheetEntity.setTitle(form.getTitle());
         timesheetEntity.setDescription(form.getDescription());
@@ -177,9 +182,7 @@ public class TimesheetService {
         timesheetEntity.setStatus(ETimesheetStatus.PENDING);
         timesheetEntity.setUserEntity(userEntity);
         timesheetEntity.setType(form.getTimesheetType());
-        timesheetEntity = timesheetRepository.save(timesheetEntity);
-
-        return timesheetMapping.toDto(timesheetEntity);
+        return timesheetEntity;
     }
 
     public TimesheetDto updateTimesheet(UpdateTimesheetRequest form) {
@@ -244,9 +247,8 @@ public class TimesheetService {
                 }
                 timesheetEntity.setStatus(form.getTimesheetStatus());
             }
-            case APPROVED, REJECTED -> {
-                throw new BadRequestException(ErrorConstant.Message.CANNOT_CHANGE_TIMESHEET_STATUS);
-            }
+            case APPROVED, REJECTED ->
+                    throw new BadRequestException(ErrorConstant.Message.CANNOT_CHANGE_TIMESHEET_STATUS);
         }
 
         timesheetEntity = timesheetRepository.save(timesheetEntity);

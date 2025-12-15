@@ -27,6 +27,7 @@ public class CreateTimesheetRequest {
     @NotNull
     private LocalTime workingHours;
     private ETimesheetType timesheetType;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @NotNull
     private LocalDate workingDay;
 }

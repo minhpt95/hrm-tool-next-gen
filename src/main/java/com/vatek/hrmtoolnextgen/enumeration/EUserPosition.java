@@ -1,4 +1,4 @@
-﻿package com.vatek.hrmtoolnextgen.enumeration;
+package com.vatek.hrmtoolnextgen.enumeration;
 
 public enum EUserPosition {
     BACKEND_DEVELOPER,

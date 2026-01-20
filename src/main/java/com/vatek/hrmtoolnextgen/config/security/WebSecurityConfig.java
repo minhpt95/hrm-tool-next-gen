@@ -2,7 +2,6 @@ package com.vatek.hrmtoolnextgen.config.security;
 
 import com.vatek.hrmtoolnextgen.component.jwt.JwtAuthTokenFilter;
 import com.vatek.hrmtoolnextgen.component.jwt.JwtProvider;
-import com.vatek.hrmtoolnextgen.component.jwt.UnauthorizedHandler;
 import com.vatek.hrmtoolnextgen.constant.RoleConstant;
 import com.vatek.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
 import com.vatek.hrmtoolnextgen.service.security.UserDetailsServiceImpl;
@@ -22,6 +21,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -35,7 +35,8 @@ import java.util.List;
 @AllArgsConstructor
 public class WebSecurityConfig implements WebMvcConfigurer {
     private final UserDetailsServiceImpl userDetailsService;
-    private final UnauthorizedHandler unauthorizedHandler;
+    // Inject via the interface type to work with JDK dynamic proxies
+    private final AuthenticationEntryPoint unauthorizedHandler;
     private final JwtProvider jwtProvider;
     private final UserTokenRedisRepository userTokenRedisRepository;
 

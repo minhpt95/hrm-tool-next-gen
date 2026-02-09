@@ -27,14 +27,18 @@
             UPDATE day_off SET id = nextval('day_off_id_seq') WHERE id IS NULL;
         </sql>
         <!-- Set sequence start value based on max id -->
-        <sql>
+        <sql dbms="postgresql">
             SELECT setval('day_off_id_seq', COALESCE((SELECT MAX(id) FROM day_off), 1), true);
         </sql>
         <!-- Set default value, make NOT NULL, and link sequence to column -->
-        <sql>
+        <sql dbms="postgresql">
             ALTER TABLE day_off ALTER COLUMN id SET DEFAULT nextval('day_off_id_seq');
             ALTER TABLE day_off ALTER COLUMN id SET NOT NULL;
             ALTER SEQUENCE day_off_id_seq OWNED BY day_off.id;
+        </sql>
+        <sql dbms="h2">
+            ALTER TABLE day_off ALTER COLUMN id SET DEFAULT NEXT VALUE FOR day_off_id_seq;
+            ALTER TABLE day_off ALTER COLUMN id SET NOT NULL;
         </sql>
     </changeSet>
 

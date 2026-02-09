@@ -25,7 +25,7 @@ import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
 import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import com.vatek.hrmtoolnextgen.util.TimeUtils;
 import jakarta.persistence.criteria.Predicate;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,136 +43,33 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Log4j2
 public class TimesheetService {
-    private TimesheetRepository timesheetRepository;
-    private UserRepository userRepository;
-    private ProjectRepository projectRepository;
-    private DayOffRepository dayOffRepository;
-    private TimesheetMapping timesheetMapping;
-    private WorkHoursCalculatorService workHoursCalculatorService;
+    private final TimesheetRepository timesheetRepository;
+    private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
+    private final DayOffRepository dayOffRepository;
+    private final TimesheetMapping timesheetMapping;
+    private final WorkHoursCalculatorService workHoursCalculatorService;
 
     @Transactional
     public TimesheetDto createTimesheet(CreateTimesheetRequest form) {
-        var currentUser = (UserPrincipalDto) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserPrincipalDto currentUser = getCurrentUser();
+        UserEntity userEntity = requireUser(currentUser.getId());
+        ProjectEntity projectEntity = requireProject(form.getProjectId());
+        assertUserInProject(projectEntity.getId(), currentUser.getId());
 
-        UserEntity userEntity = userRepository.findById(currentUser.getId()).orElse(null);
-
-        ProjectEntity projectEntity = projectRepository.findById(form.getProjectId()).orElse(null);
-
-        if (projectEntity == null) {
-            throw new CommonException(
-                    String.format(ErrorConstant.Message.NOT_FOUND, "Project id : " + form.getProjectId()),
-                    HttpStatus.BAD_REQUEST
-            );
-        }
-
-        // Check if user is in the project using a query instead of loading all projects
-        if (!userRepository.existsByWorkingProjectIdAndId(form.getProjectId(), currentUser.getId())) {
-            throw new BadRequestException(
-                    "You are not in project"
-            );
-        }
-
-
-        var dayOfWeek = form.getWorkingDay().getDayOfWeek();
-
-        if (
-                form.getTimesheetType() == ETimesheetType.NORMAL && (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY)
-        ) {
-            throw new BadRequestException(
-                    "Cannot log timesheet on weekend"
-            );
-        }
-
-        // Only validate for NORMAL timesheet type
         if (form.getTimesheetType() == ETimesheetType.NORMAL) {
-            // Rule 2: Cannot log on weekend with normal timesheet (already checked above)
-            // This is already implemented in lines 85-91
-
-            // Get existing timesheets for the day (excluding rejected)
-            var getTimesheetProjection = timesheetRepository
-                    .findByUserEntityIdAndWorkingDayAndStatusNot(
-                            currentUser.getId(),
-                            form.getWorkingDay(),
-                            ETimesheetStatus.REJECTED
-                    );
-
-            // Convert LocalTime to hours for calculation
-            double totalWorkingHours = getTimesheetProjection
-                    .stream()
-                    .mapToDouble(proj -> TimeUtils.convertTimeToHours(proj.getWorkingHours()))
-                    .sum();
-
-            // Check for approved day off requests on the same day
-            LocalDate workingDay = form.getWorkingDay();
-            LocalDateTime dayStart = workingDay.atStartOfDay();
-            LocalDateTime dayEnd = workingDay.plusDays(1).atStartOfDay();
-
-            Specification<DayOffEntity> dayOffEntitySpecification = (root, query, criteriaBuilder) -> {
-                var predicates = new ArrayList<Predicate>();
-                // Overlap check: existing.start < dayEnd AND existing.end > dayStart
-                predicates.add(criteriaBuilder.lessThan(root.get("startTime"), dayEnd));
-                predicates.add(criteriaBuilder.greaterThan(root.get("endTime"), dayStart));
-                predicates.add(criteriaBuilder.equal(
-                        root.get("user").get("id"),
-                        currentUser.getId()
-                ));
-                // Only check APPROVED day off requests
-                predicates.add(criteriaBuilder.equal(root.get("status"), EDayOffStatus.APPROVED));
-                // Exclude deleted records
-                predicates.add(criteriaBuilder.equal(root.get("delete"), false));
-                Predicate[] p = new Predicate[predicates.size()];
-                return criteriaBuilder.and(predicates.toArray(p));
-            };
-
-            var approvedDayOffs = dayOffRepository.findAll(dayOffEntitySpecification);
-
-            double dailyWorkHours = workHoursCalculatorService.getDailyWorkHours();
-            double overlapHours = 0.0;
-            for (DayOffEntity dayOff : approvedDayOffs) {
-                if (dayOff.getStartTime() == null || dayOff.getEndTime() == null) {
-                    continue;
-                }
-                Map<LocalDate, Double> remainingByDate = workHoursCalculatorService.calculateRemainingHours(
-                        dayOff.getStartTime(), dayOff.getEndTime());
-                Double remainingForDay = remainingByDate.get(workingDay);
-                if (remainingForDay == null) {
-                    continue;
-                }
-                double used = dailyWorkHours - remainingForDay;
-                if (used > 0) {
-                    overlapHours += used;
-                }
-                if (overlapHours >= dailyWorkHours) {
-                    overlapHours = dailyWorkHours;
-                    break;
-                }
-            }
-
-            double maxAllowedHours = dailyWorkHours - overlapHours;
-            if (maxAllowedHours < 0) {
-                maxAllowedHours = 0;
-            }
-
-            // Rule: Cannot log total more than maxAllowedHours for that day
-            double newWorkingHours = TimeUtils.convertTimeToHours(form.getWorkingHours());
-            if (totalWorkingHours + newWorkingHours > maxAllowedHours) {
-                throw new BadRequestException(
-                        String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, maxAllowedHours)
-                );
-            }
+            assertNotWeekend(form.getWorkingDay());
+            assertCanLogNormalTimesheet(currentUser.getId(), form.getWorkingDay(), form.getWorkingHours());
         }
 
-
-        TimesheetEntity timesheetEntity = getTimesheetEntity(form, projectEntity, userEntity);
-        timesheetEntity = timesheetRepository.save(timesheetEntity);
-
-        return timesheetMapping.toDto(timesheetEntity);
+        TimesheetEntity timesheetEntity = buildTimesheetEntity(form, projectEntity, userEntity);
+        return timesheetMapping.toDto(timesheetRepository.save(timesheetEntity));
     }
 
-    private static TimesheetEntity getTimesheetEntity(CreateTimesheetRequest form, ProjectEntity projectEntity, UserEntity userEntity) {
+    private static TimesheetEntity buildTimesheetEntity(CreateTimesheetRequest form, ProjectEntity projectEntity, UserEntity userEntity) {
         TimesheetEntity timesheetEntity = new TimesheetEntity();
         timesheetEntity.setTitle(form.getTitle());
         timesheetEntity.setDescription(form.getDescription());
@@ -183,6 +80,104 @@ public class TimesheetService {
         timesheetEntity.setUserEntity(userEntity);
         timesheetEntity.setType(form.getTimesheetType());
         return timesheetEntity;
+    }
+
+    private UserPrincipalDto getCurrentUser() {
+        return (UserPrincipalDto) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    private UserEntity requireUser(Long userId) {
+        UserEntity userEntity = userRepository.findById(userId).orElse(null);
+        if (userEntity == null) {
+            throw new CommonException(
+                    String.format(ErrorConstant.Message.NOT_FOUND, "User id : " + userId),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        return userEntity;
+    }
+
+    private ProjectEntity requireProject(Long projectId) {
+        ProjectEntity projectEntity = projectRepository.findById(projectId).orElse(null);
+        if (projectEntity == null) {
+            throw new CommonException(
+                    String.format(ErrorConstant.Message.NOT_FOUND, "Project id : " + projectId),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        return projectEntity;
+    }
+
+    private void assertUserInProject(Long projectId, Long userId) {
+        if (!userRepository.existsByWorkingProjectIdAndId(projectId, userId)) {
+            throw new BadRequestException("You are not in project");
+        }
+    }
+
+    private void assertNotWeekend(LocalDate workingDay) {
+        DayOfWeek dayOfWeek = workingDay.getDayOfWeek();
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+            throw new BadRequestException("Cannot log timesheet on weekend");
+        }
+    }
+
+    private void assertCanLogNormalTimesheet(Long userId, LocalDate workingDay, java.time.LocalTime newWorkingHours) {
+        double totalWorkingHours = timesheetRepository
+                .findByUserEntityIdAndWorkingDayAndStatusNot(userId, workingDay, ETimesheetStatus.REJECTED)
+                .stream()
+                .mapToDouble(p -> TimeUtils.convertTimeToHours(p.getWorkingHours()))
+                .sum();
+
+        double maxAllowedHours = calculateMaxAllowedHoursForDay(userId, workingDay);
+        double newHours = TimeUtils.convertTimeToHours(newWorkingHours);
+        if (totalWorkingHours + newHours > maxAllowedHours) {
+            throw new BadRequestException(String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, maxAllowedHours));
+        }
+    }
+
+    private double calculateMaxAllowedHoursForDay(Long userId, LocalDate workingDay) {
+        double dailyWorkHours = workHoursCalculatorService.getDailyWorkHours();
+
+        LocalDateTime dayStart = workingDay.atStartOfDay();
+        LocalDateTime dayEnd = workingDay.plusDays(1).atStartOfDay();
+        Specification<DayOffEntity> spec = buildApprovedDayOffOverlapSpec(userId, dayStart, dayEnd);
+
+        double usedByDayOffHours = 0.0;
+        for (DayOffEntity dayOff : dayOffRepository.findAll(spec)) {
+            if (dayOff.getStartTime() == null || dayOff.getEndTime() == null) {
+                continue;
+            }
+            Map<LocalDate, Double> remainingByDate =
+                    workHoursCalculatorService.calculateRemainingHours(dayOff.getStartTime(), dayOff.getEndTime());
+            Double remaining = remainingByDate.get(workingDay);
+            if (remaining == null) {
+                continue;
+            }
+            double used = dailyWorkHours - remaining;
+            if (used > 0) {
+                usedByDayOffHours += used;
+                if (usedByDayOffHours >= dailyWorkHours) {
+                    usedByDayOffHours = dailyWorkHours;
+                    break;
+                }
+            }
+        }
+
+        double maxAllowed = dailyWorkHours - usedByDayOffHours;
+        return Math.max(0.0, maxAllowed);
+    }
+
+    private Specification<DayOffEntity> buildApprovedDayOffOverlapSpec(Long userId, LocalDateTime dayStart, LocalDateTime dayEnd) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            // Overlap check: existing.start < dayEnd AND existing.end > dayStart
+            predicates.add(cb.lessThan(root.get("startTime"), dayEnd));
+            predicates.add(cb.greaterThan(root.get("endTime"), dayStart));
+            predicates.add(cb.equal(root.get("user").get("id"), userId));
+            predicates.add(cb.equal(root.get("status"), EDayOffStatus.APPROVED));
+            predicates.add(cb.equal(root.get("delete"), false));
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     public TimesheetDto updateTimesheet(UpdateTimesheetRequest form) {
@@ -213,7 +208,7 @@ public class TimesheetService {
         if (form.getProjectId() != null) {
             ProjectEntity projectEntity = projectRepository.findById(form.getProjectId()).orElseThrow(
                     () -> new BadRequestException(
-                            String.format(ErrorConstant.Message.NOT_FOUND, "Project with id : " + form.getId())
+                        String.format(ErrorConstant.Message.NOT_FOUND, "Project with id : " + form.getProjectId())
                     )
             );
             timesheetEntity.setProjectEntity(projectEntity);
@@ -239,7 +234,7 @@ public class TimesheetService {
         );
 
         switch (timesheetEntity.getStatus()) {
-            case ETimesheetStatus.PENDING -> {
+            case PENDING -> {
                 if (form.getTimesheetStatus() == null) {
                     throw new BadRequestException(
                             String.format(ErrorConstant.Message.NOT_FOUND, "Status")
@@ -251,9 +246,7 @@ public class TimesheetService {
                     throw new BadRequestException(ErrorConstant.Message.CANNOT_CHANGE_TIMESHEET_STATUS);
         }
 
-        timesheetEntity = timesheetRepository.save(timesheetEntity);
-
-        return timesheetMapping.toDto(timesheetEntity);
+        return timesheetMapping.toDto(timesheetRepository.save(timesheetEntity));
     }
 
     @Transactional(readOnly = true)

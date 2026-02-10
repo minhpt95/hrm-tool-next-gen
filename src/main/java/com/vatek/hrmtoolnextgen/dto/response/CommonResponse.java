@@ -1,6 +1,9 @@
 package com.vatek.hrmtoolnextgen.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.springframework.http.HttpStatusCode;
 
@@ -9,6 +12,7 @@ import org.springframework.http.HttpStatusCode;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@SuperBuilder(builderMethodName = "commonResponseBuilder")
 public class CommonResponse {
     private String message;
     private HttpStatusCode httpStatusCode;

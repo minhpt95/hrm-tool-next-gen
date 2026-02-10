@@ -1,7 +1,7 @@
 package com.vatek.hrmtoolnextgen.service.security;
 
 
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
@@ -39,7 +39,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         var rolesAuthority = getPrivileges(roleEntities);
 
         return UserPrincipalDto
-                .userPrincipleDtoBuilder(userEntity)
+                .userPrincipalDtoBuilder(userEntity)
                 .authorities(getAuthorities(roleEntities))
                 .roles(rolesAuthority)
                 .build();

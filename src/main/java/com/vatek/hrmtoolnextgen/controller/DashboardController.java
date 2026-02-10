@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +38,8 @@ public class DashboardController {
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
+                .httpStatusCode(HttpStatus.OK)
+                .message("Successfully")
                 .data(data)
                 .build();
     }

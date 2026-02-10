@@ -1,6 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller;
 
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.request.ForgotPasswordRequest;
 import com.vatek.hrmtoolnextgen.dto.request.LoginRequest;
 import com.vatek.hrmtoolnextgen.dto.request.RefreshTokenRequest;
@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -87,6 +88,8 @@ public class AuthController {
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
+                .httpStatusCode(HttpStatus.OK)
+                .message("Successfully")
                 .data(data)
                 .build();
     }

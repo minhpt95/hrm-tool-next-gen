@@ -1,7 +1,7 @@
 package com.vatek.hrmtoolnextgen.controller;
 
 import com.vatek.hrmtoolnextgen.dto.dayoff.DayOffDto;
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.*;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
@@ -186,6 +186,8 @@ public class ManagerController {
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
+                .httpStatusCode(HttpStatus.OK)
+                .message("Successfully")
                 .data(data)
                 .build();
     }

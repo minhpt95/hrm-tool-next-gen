@@ -1,7 +1,6 @@
 package com.vatek.hrmtoolnextgen.component.jwt;
 
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
-import com.vatek.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.util.DateUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -12,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+
 import javax.crypto.SecretKey;
 import java.time.Instant;
 
@@ -35,7 +35,7 @@ public class JwtProvider {
     }
 
     public String generateJwtToken(UserPrincipalDto userPrincipal) {
-        return generateTokenFromEmail(userPrincipal.getEmail(),userPrincipal.getId());
+        return generateTokenFromEmail(userPrincipal.getEmail(), userPrincipal.getId());
     }
 
     public String generateTokenFromEmail(String email, Long id) {
@@ -108,7 +108,7 @@ public class JwtProvider {
         try {
             return getRemainTimeFromJwtToken(authToken) > 0;
         } catch (Exception e) {
-            log.error("Error validateJwtToken -> Message : ",e);
+            log.error("Error validateJwtToken -> Message : ", e);
         }
         return false;
     }

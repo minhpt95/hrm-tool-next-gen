@@ -1,6 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller;
 
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.service.SseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -1,7 +1,7 @@
 package com.vatek.hrmtoolnextgen.service;
 
 import com.vatek.hrmtoolnextgen.constant.ErrorConstant;
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.request.ApprovalTimesheetRequest;
 import com.vatek.hrmtoolnextgen.dto.request.CreateTimesheetRequest;
 import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;

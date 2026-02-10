@@ -1,6 +1,6 @@
 package com.vatek.hrmtoolnextgen.component.jwt;
 
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.entity.redis.UserTokenRedisEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EUserTokenType;
 import com.vatek.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
@@ -36,13 +36,13 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwt(request);
 
-            if(jwt == null){
+            if (jwt == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            if(!tokenProvider.validateJwtToken(jwt)){
-                filterChain.doFilter(request,response);
+            if (!tokenProvider.validateJwtToken(jwt)) {
+                filterChain.doFilter(request, response);
                 return;
             }
 
@@ -59,7 +59,7 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
             if (userId != null) {
                 UserTokenRedisEntity storedToken = userTokenRedisRepository
                         .findUserByUserIdAndTokenType(userId, EUserTokenType.ACCESS_TOKEN);
-                
+
                 if (storedToken == null || !storedToken.getToken().equals(jwt)) {
                     // Token was invalidated (logout) or doesn't match
                     filterChain.doFilter(request, response);
@@ -94,14 +94,14 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
     private String getJwt(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
 
-        if(StringUtils.isBlank(authHeader)){
+        if (StringUtils.isBlank(authHeader)) {
             return null;
         }
 
-        if (!StringUtils.containsIgnoreCase(authHeader,"Bearer ")) {
+        if (!StringUtils.containsIgnoreCase(authHeader, "Bearer ")) {
             return authHeader.trim();
         }
 
-        return StringUtils.replaceIgnoreCase(authHeader,"bearer","",1).trim();
+        return StringUtils.replaceIgnoreCase(authHeader, "bearer", "", 1).trim();
     }
 }

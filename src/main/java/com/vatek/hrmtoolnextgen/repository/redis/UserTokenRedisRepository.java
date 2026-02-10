@@ -6,8 +6,8 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 
-public interface UserTokenRedisRepository extends CrudRepository<UserTokenRedisEntity,String> {
+public interface UserTokenRedisRepository extends CrudRepository<UserTokenRedisEntity, String> {
     UserTokenRedisEntity findUserByUserIdAndTokenType(Long userId, EUserTokenType tokenType);
-    
+
     List<UserTokenRedisEntity> findByTokenType(EUserTokenType tokenType);
 }

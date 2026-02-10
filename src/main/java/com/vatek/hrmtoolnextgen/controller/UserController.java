@@ -1,7 +1,7 @@
 package com.vatek.hrmtoolnextgen.controller;
 
 import com.vatek.hrmtoolnextgen.dto.dayoff.DayOffDto;
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.CreateDayOffRequest;
 import com.vatek.hrmtoolnextgen.dto.request.CreateTimesheetRequest;
@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -195,6 +196,8 @@ public class UserController {
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
+                .httpStatusCode(HttpStatus.OK)
+                .message("Successfully")
                 .data(data)
                 .build();
     }

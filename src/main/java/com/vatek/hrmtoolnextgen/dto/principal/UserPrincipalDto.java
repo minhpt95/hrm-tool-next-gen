@@ -1,4 +1,4 @@
-package com.vatek.hrmtoolnextgen.dto.principle;
+package com.vatek.hrmtoolnextgen.dto.principal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
@@ -9,9 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serial;
-import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -45,7 +43,7 @@ public class UserPrincipalDto implements UserDetails {
     @Getter
     private List<String> roles;
 
-    public static UserPrincipalDtoBuilder userPrincipleDtoBuilder(UserEntity userEntity) {
+    public static UserPrincipalDtoBuilder userPrincipalDtoBuilder(UserEntity userEntity) {
 
         return internalBuilder()
                 .id(userEntity.getId())
@@ -56,7 +54,6 @@ public class UserPrincipalDto implements UserDetails {
                 .isEnabled(userEntity.isActive())
                 .roles(userEntity.getRoles().stream().map(x -> x.getUserRole().name()).toList());
     }
-
 
 
     @Override

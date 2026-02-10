@@ -1,12 +1,8 @@
 package com.vatek.hrmtoolnextgen.service;
 
 import com.vatek.hrmtoolnextgen.component.jwt.JwtProvider;
-import com.vatek.hrmtoolnextgen.dto.principle.UserPrincipalDto;
-import com.vatek.hrmtoolnextgen.dto.request.ForgotPasswordRequest;
-import com.vatek.hrmtoolnextgen.dto.request.LoginRequest;
-import com.vatek.hrmtoolnextgen.dto.request.RefreshTokenRequest;
-import com.vatek.hrmtoolnextgen.dto.request.RegisterRequest;
-import com.vatek.hrmtoolnextgen.dto.request.ResetPasswordRequest;
+import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
+import com.vatek.hrmtoolnextgen.dto.request.*;
 import com.vatek.hrmtoolnextgen.dto.response.LoginResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RefreshTokenResponse;
 import com.vatek.hrmtoolnextgen.dto.response.RegisterResponse;
@@ -234,7 +230,7 @@ public class AuthService {
         saveTokenToRedis(userEntity.getId(), resetToken, EUserTokenType.RESET_PASSWORD_TOKEN, resetPasswordTokenExpiration);
 
         log.info("Password reset token generated for user: {} (email: {})", userEntity.getId(), request.getEmail());
-        
+
         // Send email with reset token/link
         emailService.sendPasswordResetEmail(request.getEmail(), resetToken);
     }
@@ -244,7 +240,7 @@ public class AuthService {
         // Find the reset token in Redis
         List<UserTokenRedisEntity> resetTokens = userTokenRedisRepository
                 .findByTokenType(EUserTokenType.RESET_PASSWORD_TOKEN);
-        
+
         UserTokenRedisEntity resetTokenEntity = resetTokens.stream()
                 .filter(token -> token.getToken().equals(request.getToken()))
                 .findFirst()

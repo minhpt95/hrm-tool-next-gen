@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class CommonControllerAdvice {
-    
+
     @ExceptionHandler(InternalServerException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<CommonResponse> handleInternalServerException(
-            HttpServletRequest request, 
+            HttpServletRequest request,
             InternalServerException ex) {
         return buildErrorResponse(ex, request);
     }
@@ -30,7 +30,7 @@ public class CommonControllerAdvice {
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<CommonResponse> handleBadRequestException(
-            HttpServletRequest request, 
+            HttpServletRequest request,
             BadRequestException ex) {
         return buildErrorResponse(ex, request);
     }
@@ -69,7 +69,7 @@ public class CommonControllerAdvice {
     }
 
     private ResponseEntity<CommonResponse> buildErrorResponse(
-            CommonException ex, 
+            CommonException ex,
             HttpServletRequest request) {
         CommonResponse errorResponse = CommonErrorResponse
                 .commonErrorResponseBuilder()

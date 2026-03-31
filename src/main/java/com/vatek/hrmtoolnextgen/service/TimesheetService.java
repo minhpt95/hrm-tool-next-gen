@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.service;
 
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.constant.ErrorConstant;
 import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.request.ApprovalTimesheetRequest;
@@ -52,10 +53,12 @@ public class TimesheetService {
     private final DayOffRepository dayOffRepository;
     private final TimesheetMapping timesheetMapping;
     private final WorkHoursCalculatorService workHoursCalculatorService;
+    private final MessageService messageService;
 
     @Transactional
     public TimesheetDto createTimesheet(CreateTimesheetRequest form) {
         UserPrincipalDto currentUser = getCurrentUser();
+        log.info("Creating timesheet for user: {} on project: {} for date: {}", currentUser.getId(), form.getProjectId(), form.getWorkingDay());
         UserEntity userEntity = requireUser(currentUser.getId());
         ProjectEntity projectEntity = requireProject(form.getProjectId());
         assertUserInProject(projectEntity.getId(), currentUser.getId());
@@ -66,7 +69,9 @@ public class TimesheetService {
         }
 
         TimesheetEntity timesheetEntity = buildTimesheetEntity(form, projectEntity, userEntity);
-        return timesheetMapping.toDto(timesheetRepository.save(timesheetEntity));
+        TimesheetDto result = timesheetMapping.toDto(timesheetRepository.save(timesheetEntity));
+        log.info("Timesheet created successfully for user: {} on date: {}", currentUser.getId(), form.getWorkingDay());
+        return result;
     }
 
     private static TimesheetEntity buildTimesheetEntity(CreateTimesheetRequest form, ProjectEntity projectEntity, UserEntity userEntity) {
@@ -89,10 +94,7 @@ public class TimesheetService {
     private UserEntity requireUser(Long userId) {
         UserEntity userEntity = userRepository.findById(userId).orElse(null);
         if (userEntity == null) {
-            throw new CommonException(
-                    String.format(ErrorConstant.Message.NOT_FOUND, "User id : " + userId),
-                    HttpStatus.BAD_REQUEST
-            );
+            throw new BadRequestException(messageService.getMessage("user.not.found", userId));
         }
         return userEntity;
     }
@@ -100,24 +102,21 @@ public class TimesheetService {
     private ProjectEntity requireProject(Long projectId) {
         ProjectEntity projectEntity = projectRepository.findById(projectId).orElse(null);
         if (projectEntity == null) {
-            throw new CommonException(
-                    String.format(ErrorConstant.Message.NOT_FOUND, "Project id : " + projectId),
-                    HttpStatus.BAD_REQUEST
-            );
+            throw new BadRequestException(messageService.getMessage("project.not.found", projectId));
         }
         return projectEntity;
     }
 
     private void assertUserInProject(Long projectId, Long userId) {
         if (!userRepository.existsByWorkingProjectIdAndId(projectId, userId)) {
-            throw new BadRequestException("You are not in project");
+            throw new BadRequestException(messageService.getMessage("error.user.not.in.project"));
         }
     }
 
     private void assertNotWeekend(LocalDate workingDay) {
         DayOfWeek dayOfWeek = workingDay.getDayOfWeek();
         if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
-            throw new BadRequestException("Cannot log timesheet on weekend");
+            throw new BadRequestException(messageService.getMessage("timesheet.cannot.log.weekend"));
         }
     }
 
@@ -131,7 +130,7 @@ public class TimesheetService {
         double maxAllowedHours = calculateMaxAllowedHoursForDay(userId, workingDay);
         double newHours = TimeUtils.convertTimeToHours(newWorkingHours);
         if (totalWorkingHours + newHours > maxAllowedHours) {
-            throw new BadRequestException(String.format(ErrorConstant.Message.CANNOT_LOG_TIMESHEET, maxAllowedHours));
+            throw new BadRequestException(messageService.getMessage("timesheet.cannot.log", maxAllowedHours));
         }
     }
 
@@ -181,16 +180,13 @@ public class TimesheetService {
     }
 
     public TimesheetDto updateTimesheet(UpdateTimesheetRequest form) {
+        log.info("Updating timesheet with id: {}", form.getId());
         TimesheetEntity timesheetEntity = timesheetRepository.findById(form.getId()).orElseThrow(
-                () -> new BadRequestException(
-                        String.format(ErrorConstant.Message.NOT_FOUND, "Timesheet with id : " + form.getId())
-                )
+                () -> new BadRequestException(messageService.getMessage("timesheet.not.found", form.getId()))
         );
 
         if (timesheetEntity.getStatus() != ETimesheetStatus.PENDING) {
-            throw new BadRequestException(
-                    ErrorConstant.Message.CANNOT_UPDATE_TIMESHEET
-            );
+            throw new BadRequestException(messageService.getMessage("timesheet.cannot.update"));
         }
 
         if (form.getTitle() != null) {
@@ -207,9 +203,7 @@ public class TimesheetService {
 
         if (form.getProjectId() != null) {
             ProjectEntity projectEntity = projectRepository.findById(form.getProjectId()).orElseThrow(
-                    () -> new BadRequestException(
-                        String.format(ErrorConstant.Message.NOT_FOUND, "Project with id : " + form.getProjectId())
-                    )
+                    () -> new BadRequestException(messageService.getMessage("project.not.found", form.getProjectId()))
             );
             timesheetEntity.setProjectEntity(projectEntity);
         }
@@ -222,31 +216,31 @@ public class TimesheetService {
             timesheetEntity.setWorkingDay(form.getWorkingDay());
 
         timesheetEntity = timesheetRepository.save(timesheetEntity);
+        log.info("Timesheet updated successfully with id: {}", timesheetEntity.getId());
 
         return timesheetMapping.toDto(timesheetEntity);
     }
 
     public TimesheetDto approvalTimesheet(ApprovalTimesheetRequest form) {
+        log.info("Processing timesheet approval for id: {} with status: {}", form.getId(), form.getTimesheetStatus());
         TimesheetEntity timesheetEntity = timesheetRepository.findById(form.getId()).orElseThrow(
-                () -> new BadRequestException(
-                        String.format(ErrorConstant.Message.NOT_FOUND, "Timesheet with id : " + form.getId())
-                )
+                () -> new BadRequestException(messageService.getMessage("timesheet.not.found", form.getId()))
         );
 
         switch (timesheetEntity.getStatus()) {
             case PENDING -> {
                 if (form.getTimesheetStatus() == null) {
-                    throw new BadRequestException(
-                            String.format(ErrorConstant.Message.NOT_FOUND, "Status")
-                    );
+                    throw new BadRequestException(messageService.getMessage("timesheet.status.not.found"));
                 }
                 timesheetEntity.setStatus(form.getTimesheetStatus());
             }
             case APPROVED, REJECTED ->
-                    throw new BadRequestException(ErrorConstant.Message.CANNOT_CHANGE_TIMESHEET_STATUS);
+                    throw new BadRequestException(messageService.getMessage("timesheet.cannot.change.status"));
         }
 
-        return timesheetMapping.toDto(timesheetRepository.save(timesheetEntity));
+        TimesheetDto result = timesheetMapping.toDto(timesheetRepository.save(timesheetEntity));
+        log.info("Timesheet approval processed for id: {} with status: {}", form.getId(), timesheetEntity.getStatus());
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -255,6 +249,7 @@ public class TimesheetService {
             PaginationRequest paginationRequest,
             ETimesheetStatus status,
             Long projectId) {
+        log.debug("Getting timesheets for manager id: {} - status: {}, projectId: {}", managerId, status, projectId);
 
         // Build specification for filtering
         Specification<TimesheetEntity> spec = (root, query, cb) -> {

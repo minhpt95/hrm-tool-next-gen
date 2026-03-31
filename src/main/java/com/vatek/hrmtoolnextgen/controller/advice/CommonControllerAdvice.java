@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller.advice;
 
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.dto.response.CommonErrorResponse;
 import com.vatek.hrmtoolnextgen.dto.response.CommonResponse;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class CommonControllerAdvice {
+
+    private final MessageService messageService;
 
     @ExceptionHandler(InternalServerException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -71,9 +74,18 @@ public class CommonControllerAdvice {
     private ResponseEntity<CommonResponse> buildErrorResponse(
             CommonException ex,
             HttpServletRequest request) {
+
+        String resolvedMessage;
+        if (ex.getMessageCode() != null) {
+            resolvedMessage = messageService.getMessage(ex.getMessageCode(),
+                    ex.getMessageArgs() != null ? ex.getMessageArgs() : new Object[]{});
+        } else {
+            resolvedMessage = ex.getMessage();
+        }
+
         CommonResponse errorResponse = CommonErrorResponse
                 .commonErrorResponseBuilder()
-                .message(ex.getMessage())
+                .message(resolvedMessage)
                 .httpStatusCode(ex.getStatusCode())
                 .path(request.getServletPath())
                 .build();

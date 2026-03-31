@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller;
 
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.dto.dashboard.DashboardSummaryDto;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.vatek.hrmtoolnextgen.service.DashboardService;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final MessageService messageService;
 
     @GetMapping("/summary")
     @Operation(
@@ -39,7 +41,7 @@ public class DashboardController {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
                 .httpStatusCode(HttpStatus.OK)
-                .message("Successfully")
+                .message(messageService.getMessage("success"))
                 .data(data)
                 .build();
     }

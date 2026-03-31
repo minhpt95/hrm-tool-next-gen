@@ -1,6 +1,7 @@
 package com.vatek.hrmtoolnextgen.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -14,6 +15,7 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class WorkHoursCalculatorService {
 
     private final HolidayService holidayService;
@@ -45,6 +47,7 @@ public class WorkHoursCalculatorService {
      * @return ordered map of date -> remaining hours for that date
      */
     public Map<LocalDate, Double> calculateRemainingHours(LocalDateTime dayOffStart, LocalDateTime dayOffEnd) {
+        log.debug("Calculating remaining hours for day-off from {} to {}", dayOffStart, dayOffEnd);
         if (dayOffEnd.isBefore(dayOffStart) || dayOffEnd.isEqual(dayOffStart)) {
             throw new IllegalArgumentException("dayOffEnd must be after dayOffStart");
         }

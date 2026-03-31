@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller;
 
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.dto.dayoff.DayOffDto;
 import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
@@ -44,6 +45,7 @@ public class UserController {
     private final ProjectService projectService;
     private final DayOffService dayOffService;
     private final UserService userService;
+    private final MessageService messageService;
 
     @PostMapping("/timesheet")
     @Operation(
@@ -197,7 +199,7 @@ public class UserController {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
                 .httpStatusCode(HttpStatus.OK)
-                .message("Successfully")
+                .message(messageService.getMessage("success"))
                 .data(data)
                 .build();
     }

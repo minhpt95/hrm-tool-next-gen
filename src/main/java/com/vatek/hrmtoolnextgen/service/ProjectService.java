@@ -9,6 +9,7 @@ import com.vatek.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.enumeration.EProjectStatus;
 import com.vatek.hrmtoolnextgen.exception.BadRequestException;
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.mapping.ProjectMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.ProjectRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
@@ -36,9 +37,11 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final ProjectMapping projectMapping;
+    private final MessageService messageService;
 
     @Transactional(readOnly = true)
     public PaginationResponse<ProjectDto> getAllProjects(PaginationRequest paginationRequest) {
+        log.debug("Getting all projects - page: {}, size: {}", paginationRequest.getPage(), paginationRequest.getSize());
         Page<ProjectEntity> entityPage = projectRepository.findAll(CommonUtils.buildPageable(paginationRequest));
         Page<ProjectDto> dtoPage = projectMapping.toDtoPageable(entityPage);
         return CommonUtils.buildPaginationResponse(dtoPage, paginationRequest);
@@ -49,6 +52,7 @@ public class ProjectService {
             PaginationRequest paginationRequest,
             String projectName,
             EProjectStatus projectStatus) {
+        log.debug("Getting all projects for admin - name: {}, status: {}", projectName, projectStatus);
         
         // Build specification for filtering
         Specification<ProjectEntity> spec = (root, query, cb) -> {
@@ -145,6 +149,7 @@ public class ProjectService {
             PaginationRequest paginationRequest,
             String projectName,
             EProjectStatus projectStatus) {
+        log.debug("Getting projects for member id: {} - name: {}, status: {}", memberId, projectName, projectStatus);
         
         ensureUserExists(memberId);
         
@@ -166,6 +171,7 @@ public class ProjectService {
             PaginationRequest paginationRequest,
             String projectName,
             EProjectStatus projectStatus) {
+        log.debug("Getting projects for manager id: {} - name: {}, status: {}", managerId, projectName, projectStatus);
         
         ensureUserExists(managerId);
         
@@ -180,16 +186,18 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public ProjectDto getProjectById(Long id) {
+        log.debug("Getting project by id: {}", id);
         ProjectEntity projectEntity = projectRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Project not found with id: " + id));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("project.not.found", id)));
         return projectMapping.toDto(projectEntity);
     }
 
     @Transactional
     public ProjectDto createProject(CreateProjectRequest request) {
+        log.info("Creating project with name: {}", request.getProjectName());
         // Check if project name already exists using a query instead of loading all projects
         if (projectRepository.existsByNameIgnoreCaseAndDeleteFalse(request.getProjectName())) {
-            throw new BadRequestException("Project with name '" + request.getProjectName() + "' already exists");
+            throw new BadRequestException(messageService.getMessage("project.name.exists", request.getProjectName()));
         }
 
         ProjectEntity projectEntity = projectMapping.fromCreateRequest(request);
@@ -197,7 +205,7 @@ public class ProjectService {
         // Set project manager
         if (request.getProjectManager() != null) {
             UserEntity manager = userRepository.findById(request.getProjectManager())
-                    .orElseThrow(() -> new BadRequestException("Project manager not found with id: " + request.getProjectManager()));
+                    .orElseThrow(() -> new BadRequestException(messageService.getMessage("project.manager.not.found", request.getProjectManager())));
             projectEntity.setProjectManager(manager);
         }
 
@@ -212,7 +220,7 @@ public class ProjectService {
         if (request.getMemberId() != null && !request.getMemberId().isEmpty()) {
             List<UserEntity> members = userRepository.findAllById(request.getMemberId());
             if (members.size() != request.getMemberId().size()) {
-                throw new BadRequestException("Some member IDs are invalid");
+                throw new BadRequestException(messageService.getMessage("project.member.ids.invalid"));
             }
             members.forEach(projectEntity::addMemberToProject);
         }
@@ -225,11 +233,12 @@ public class ProjectService {
 
     @Transactional
     public ProjectDto updateProject(Long id, UpdateProjectRequest request) {
+        log.info("Updating project with id: {}", id);
         ProjectEntity projectEntity = projectRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Project not found with id: " + id));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("project.not.found", id)));
 
         if (projectEntity.isDelete()) {
-            throw new BadRequestException("Cannot update deleted project");
+            throw new BadRequestException(messageService.getMessage("project.cannot.update.deleted"));
         }
 
         // Check if project name already exists (excluding current project)
@@ -243,7 +252,7 @@ public class ProjectService {
                 return cb.and(predicates.toArray(new Predicate[0]));
             };
             if (projectRepository.count(nameSpec) > 0) {
-                throw new BadRequestException("Project with name '" + request.getProjectName() + "' already exists");
+                throw new BadRequestException(messageService.getMessage("project.name.exists", request.getProjectName()));
             }
         }
 
@@ -253,7 +262,7 @@ public class ProjectService {
         // Update project manager
         if (request.getProjectManager() != null) {
             UserEntity manager = userRepository.findById(request.getProjectManager())
-                    .orElseThrow(() -> new BadRequestException("Project manager not found with id: " + request.getProjectManager()));
+                    .orElseThrow(() -> new BadRequestException(messageService.getMessage("project.manager.not.found", request.getProjectManager())));
             projectEntity.setProjectManager(manager);
         }
 
@@ -274,7 +283,7 @@ public class ProjectService {
             if (!request.getMemberId().isEmpty()) {
                 List<UserEntity> members = userRepository.findAllById(request.getMemberId());
                 if (members.size() != request.getMemberId().size()) {
-                    throw new BadRequestException("Some member IDs are invalid");
+                    throw new BadRequestException(messageService.getMessage("project.member.ids.invalid"));
                 }
                 members.forEach(projectEntity::addMemberToProject);
             }
@@ -287,11 +296,12 @@ public class ProjectService {
 
     @Transactional
     public void deleteProject(Long id) {
+        log.info("Deleting project with id: {}", id);
         ProjectEntity projectEntity = projectRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Project not found with id: " + id));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("project.not.found", id)));
 
         if (projectEntity.isDelete()) {
-            throw new BadRequestException("Project already deleted");
+            throw new BadRequestException(messageService.getMessage("project.already.deleted"));
         }
 
         projectEntity.setDelete(true);
@@ -301,22 +311,7 @@ public class ProjectService {
 
     private void ensureUserExists(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new BadRequestException("User not found with id: " + userId));
-    }
-
-    private LocalDate parseDate(String dateString) {
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            return LocalDate.parse(dateString, formatter);
-        } catch (Exception e) {
-            try {
-                // Try parsing as LocalDate to provide a helpful error
-                return java.time.LocalDate.parse(dateString, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-            } catch (Exception e2) {
-                log.error("Error parsing date: {}", dateString, e2);
-                throw new BadRequestException("Invalid date format. Expected format: dd/MM/yyyy");
-            }
-        }
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", userId)));
     }
 }
 

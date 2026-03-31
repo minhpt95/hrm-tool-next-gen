@@ -29,7 +29,7 @@ public class UpdateProjectRequest {
     private Long projectManager;
 
     @Schema(description = "Replacement list of member IDs")
-    private List<Long> memberId;
+    private List<Long> memberIds;
 
     @Schema(description = "Updated lifecycle status")
     private EProjectStatus projectStatus;

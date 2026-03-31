@@ -16,6 +16,7 @@ import com.vatek.hrmtoolnextgen.mapping.UserMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
 import com.vatek.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -43,6 +44,7 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final UserTokenRedisRepository userTokenRedisRepository;
     private final EmailService emailService;
+    private final MessageService messageService;
 
     @Value("${hrm.app.jwtExpiration}")
     private long jwtExpiration;
@@ -54,6 +56,7 @@ public class AuthService {
     private long resetPasswordTokenExpiration; // Default 1 hour in milliseconds
 
     public LoginResponse login(LoginRequest loginRequest) {
+        log.info("Login attempt for user: {}", loginRequest.getUsername());
         // Authentication manager will handle password validation
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -74,6 +77,7 @@ public class AuthService {
         saveTokenToRedis(principal.getId(), accessToken, EUserTokenType.ACCESS_TOKEN, jwtExpiration);
         saveTokenToRedis(principal.getId(), refreshToken, EUserTokenType.REFRESH_TOKEN, refreshTokenExpiration);
 
+        log.info("User {} logged in successfully", principal.getEmail());
         return LoginResponse
                 .builder()
                 .id(principal.getId())
@@ -87,22 +91,23 @@ public class AuthService {
     }
 
     public RefreshTokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        log.info("Refresh token request received");
         String refreshToken = refreshTokenRequest.getRefreshToken();
 
         // Validate refresh token
         if (!jwtProvider.validateJwtToken(refreshToken)) {
-            throw new UnauthorizedException("Invalid or expired refresh token");
+            throw new UnauthorizedException(messageService.getMessage("auth.refresh.token.invalid"));
         }
 
         // Ensure it's actually a refresh token, not an access token
         if (!jwtProvider.isRefreshToken(refreshToken)) {
-            throw new UnauthorizedException("Token provided is not a refresh token");
+            throw new UnauthorizedException(messageService.getMessage("auth.refresh.token.not.refresh"));
         }
 
         // Get user ID from token
         Long userId = jwtProvider.getIdFromJwtToken(refreshToken);
         if (userId == null) {
-            throw new UnauthorizedException("Invalid refresh token");
+            throw new UnauthorizedException(messageService.getMessage("auth.refresh.token.invalid.id"));
         }
 
         // Verify refresh token exists in Redis
@@ -110,7 +115,7 @@ public class AuthService {
                 .findUserByUserIdAndTokenType(userId, EUserTokenType.REFRESH_TOKEN);
 
         if (storedRefreshToken == null || !storedRefreshToken.getToken().equals(refreshToken)) {
-            throw new UnauthorizedException("Refresh token not found or invalid");
+            throw new UnauthorizedException(messageService.getMessage("auth.refresh.token.not.found"));
         }
 
         // Get user email from token
@@ -118,7 +123,7 @@ public class AuthService {
 
         // Verify user exists
         if (userRepository.findByEmail(email).isEmpty()) {
-            throw new UnauthorizedException("User not found");
+            throw new UnauthorizedException(messageService.getMessage("auth.user.not.found"));
         }
 
         // Generate new tokens
@@ -130,6 +135,7 @@ public class AuthService {
         saveTokenToRedis(userId, newAccessToken, EUserTokenType.ACCESS_TOKEN, jwtExpiration);
         saveTokenToRedis(userId, newRefreshToken, EUserTokenType.REFRESH_TOKEN, refreshTokenExpiration);
 
+        log.info("Tokens refreshed successfully for user id: {}", userId);
         return RefreshTokenResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
@@ -175,10 +181,11 @@ public class AuthService {
 
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest, UserPrincipalDto userPrincipal) {
+        log.info("Register request for email: {}", registerRequest.getEmail());
         UserEntity userEntity = userRepository.findByEmail(registerRequest.getEmail()).orElse(null);
 
         if (userEntity != null) {
-            throw new BadRequestException("Email already in use");
+            throw new BadRequestException(messageService.getMessage("auth.email.already.in.use"));
         }
 
         userEntity = userMapping.createUser(registerRequest);
@@ -203,6 +210,7 @@ public class AuthService {
         userEntity.setCreatedDate(LocalDateTime.now());
 
         userEntity = userRepository.save(userEntity);
+        log.info("User registered successfully with id: {} and email: {}", userEntity.getId(), userEntity.getEmail());
 
         return RegisterResponse
                 .builder()
@@ -214,13 +222,14 @@ public class AuthService {
 
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
+        log.info("Forgot password request for email: {}", request.getEmail());
         // Find user by email
         UserEntity userEntity = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadRequestException("User with email '" + request.getEmail() + "' not found"));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found.email", request.getEmail())));
 
         // Check if user is active
         if (!userEntity.isActive()) {
-            throw new BadRequestException("User account is not active");
+            throw new BadRequestException(messageService.getMessage("auth.account.not.active"));
         }
 
         // Generate reset password token
@@ -244,17 +253,17 @@ public class AuthService {
         UserTokenRedisEntity resetTokenEntity = resetTokens.stream()
                 .filter(token -> token.getToken().equals(request.getToken()))
                 .findFirst()
-                .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("auth.reset.token.invalid")));
 
         Long userId = resetTokenEntity.getUserId();
 
         // Verify user exists
         UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new BadRequestException("User not found"));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("auth.user.not.found")));
 
         // Check if user is active
         if (!userEntity.isActive()) {
-            throw new BadRequestException("User account is not active");
+            throw new BadRequestException(messageService.getMessage("auth.account.not.active"));
         }
 
         // Update password

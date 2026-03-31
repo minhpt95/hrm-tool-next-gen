@@ -26,6 +26,7 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public DashboardSummaryDto getDashboardSummary() {
+        log.info("Fetching dashboard summary");
         List<ProjectStatusCountDto> projectStatusCounts = buildProjectStatusCounts();
         long activeEmployees = userRepository.countByActiveTrueAndDeleteFalse();
 

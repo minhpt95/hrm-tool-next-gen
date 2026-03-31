@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller;
 
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.vatek.hrmtoolnextgen.dto.request.ForgotPasswordRequest;
 import com.vatek.hrmtoolnextgen.dto.request.LoginRequest;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final MessageService messageService;
 
     @PostMapping(value = "/login")
     @Operation(summary = "User login", description = "Authenticate user and return access token and refresh token")
@@ -54,7 +56,7 @@ public class AuthController {
             @AuthenticationPrincipal UserPrincipalDto userPrincipal,
             HttpServletRequest request) {
         authService.logout(userPrincipal);
-        return ResponseEntity.ok(buildSuccessResponse("Logged out successfully", request));
+        return ResponseEntity.ok(buildSuccessResponse(messageService.getMessage("auth.logout.success"), request));
     }
 
     @PostMapping(value = "/forgot-password")
@@ -67,7 +69,7 @@ public class AuthController {
             HttpServletRequest request) {
         authService.forgotPassword(forgotPasswordRequest);
         return ResponseEntity.ok(buildSuccessResponse(
-                "If the email exists, a password reset link has been sent to your email address.",
+                messageService.getMessage("auth.forgot.password.success"),
                 request));
     }
 
@@ -81,7 +83,7 @@ public class AuthController {
             HttpServletRequest request) {
         authService.resetPassword(resetPasswordRequest);
         return ResponseEntity.ok(buildSuccessResponse(
-                "Password has been reset successfully. You can now login with your new password.",
+                messageService.getMessage("auth.reset.password.success"),
                 request));
     }
 
@@ -89,7 +91,7 @@ public class AuthController {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
                 .httpStatusCode(HttpStatus.OK)
-                .message("Successfully")
+                .message(messageService.getMessage("success"))
                 .data(data)
                 .build();
     }

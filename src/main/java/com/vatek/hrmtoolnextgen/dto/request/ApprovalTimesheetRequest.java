@@ -2,6 +2,7 @@ package com.vatek.hrmtoolnextgen.dto.request;
 
 import com.vatek.hrmtoolnextgen.enumeration.ETimesheetStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -18,11 +19,11 @@ import lombok.Setter;
 public class ApprovalTimesheetRequest {
     @NotNull
     @Min(1)
-    @Schema(description = "ID of the timesheet entry to approve or reject", required = true)
+    @Schema(description = "ID of the timesheet entry to approve or reject", requiredMode = RequiredMode.REQUIRED)
     private Long id;
 
     @NotEmpty
     @NotNull
-    @Schema(description = "Approval status (e.g., APPROVED, REJECTED)", required = true)
+    @Schema(description = "Approval status (e.g., APPROVED, REJECTED)", requiredMode = RequiredMode.REQUIRED)
     private ETimesheetStatus timesheetStatus;
 }

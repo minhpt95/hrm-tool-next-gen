@@ -6,6 +6,7 @@ import com.vatek.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.vatek.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class UserDetailsServiceImpl implements UserDetailsService {
 
 
@@ -28,6 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public UserPrincipalDto loadUserByUsername(String username)
             throws UsernameNotFoundException {
+        log.debug("Loading user by username: {}", username);
 
         UserEntity userEntity = userRepository.findByEmail(username)
                 .orElseThrow(() ->

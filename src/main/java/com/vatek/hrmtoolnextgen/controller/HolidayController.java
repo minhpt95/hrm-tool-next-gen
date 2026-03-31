@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller;
 
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.dto.holiday.HolidayDto;
 import com.vatek.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.vatek.hrmtoolnextgen.service.HolidayService;
@@ -26,6 +27,7 @@ import java.util.List;
 public class HolidayController {
 
     private final HolidayService holidayService;
+    private final MessageService messageService;
 
     @GetMapping("/year/{year}")
     @Operation(
@@ -83,7 +85,7 @@ public class HolidayController {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
                 .httpStatusCode(HttpStatus.OK)
-                .message("Successfully")
+                .message(messageService.getMessage("success"))
                 .data(data)
                 .build();
     }

@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.controller;
 
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.dto.project.ProjectDto;
 import com.vatek.hrmtoolnextgen.dto.request.CreateUserRequest;
 import com.vatek.hrmtoolnextgen.dto.request.PaginationRequest;
@@ -32,6 +33,7 @@ public class AdminController {
 
     private final UserService userService;
     private final ProjectService projectService;
+    private final MessageService messageService;
 
     @GetMapping("/user/{id}")
     @Operation(
@@ -158,7 +160,7 @@ public class AdminController {
         return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
                 .path(request.getServletPath())
                 .httpStatusCode(HttpStatus.OK)
-                .message("Successfully")
+                .message(messageService.getMessage("success"))
                 .data(data)
                 .build();
     }

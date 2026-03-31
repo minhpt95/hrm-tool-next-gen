@@ -14,6 +14,7 @@ import com.vatek.hrmtoolnextgen.enumeration.EUserPosition;
 import com.vatek.hrmtoolnextgen.mapping.UserMapping;
 import com.vatek.hrmtoolnextgen.repository.jpa.RoleRepository;
 import com.vatek.hrmtoolnextgen.repository.jpa.UserRepository;
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.util.CommonUtils;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -41,19 +42,23 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final MessageService messageService;
 
     public UserEntity findUserByEmail(String email) {
+        log.debug("Finding user by email: {}", email);
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("User not found with email: " + email));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found.email", email)));
     }
 
     public UserEntity findUserById(Long id) {
+        log.debug("Finding user by id: {}", id);
         return userRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("User not found with id: " + id));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", id)));
     }
 
     @Transactional(readOnly = true)
     public PaginationResponse<UserDto> getPageUsers(PaginationRequest paginationRequest) {
+        log.debug("Getting page users - page: {}, size: {}", paginationRequest.getPage(), paginationRequest.getSize());
         Page<UserEntity> entityPage = userRepository.findAll(CommonUtils.buildPageable(paginationRequest));
         Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
         return CommonUtils.buildPaginationResponse(dtoPage, paginationRequest);
@@ -64,6 +69,7 @@ public class UserService {
             PaginationRequest paginationRequest,
             String name,
             String email) {
+        log.debug("Getting all users for admin - name: {}, email: {}", name, email);
         
         // Build specification for filtering
         Specification<UserEntity> spec = (root, query, cb) -> {
@@ -120,22 +126,24 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDto getUserById(Long id) {
+        log.debug("Getting user DTO by id: {}", id);
         UserEntity userEntity = findUserById(id);
         return userMapping.toDto(userEntity);
     }
 
     @Transactional
     public UserDto createUser(CreateUserRequest request) {
+        log.info("Creating user with email: {}", request.getEmail());
         // Check if email already exists
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new BadRequestException("User with email '" + request.getEmail() + "' already exists");
+            throw new BadRequestException(messageService.getMessage("user.email.exists", request.getEmail()));
         }
 
         // Check if identity card already exists
         if (request.getUserInfo() != null && request.getUserInfo().getIdentityCard() != null) {
             userRepository.findByEmailOrUserInfo_IdentityCard("", request.getUserInfo().getIdentityCard())
                     .ifPresent(u -> {
-                        throw new BadRequestException("User with identity card '" + request.getUserInfo().getIdentityCard() + "' already exists");
+                        throw new BadRequestException(messageService.getMessage("user.identity.card.exists", request.getUserInfo().getIdentityCard()));
                     });
         }
 
@@ -186,6 +194,7 @@ public class UserService {
 
     @Transactional
     public UserDto updateUser(Long id, UpdateUserRequest request) {
+        log.info("Updating user with id: {}", id);
         UserEntity userEntity = findUserById(id);
 
         // Check if email already exists (excluding current user)
@@ -193,7 +202,7 @@ public class UserService {
             userRepository.findByEmail(request.getEmail())
                     .ifPresent(u -> {
                         if (!u.getId().equals(id)) {
-                            throw new BadRequestException("User with email '" + request.getEmail() + "' already exists");
+                            throw new BadRequestException(messageService.getMessage("user.email.exists", request.getEmail()));
                         }
                     });
             userEntity.setEmail(request.getEmail());
@@ -218,7 +227,7 @@ public class UserService {
                 userRepository.findByEmailOrUserInfo_IdentityCard("", request.getUserInfo().getIdentityCard())
                         .ifPresent(u -> {
                             if (!u.getId().equals(id)) {
-                                throw new BadRequestException("User with identity card '" + request.getUserInfo().getIdentityCard() + "' already exists");
+                                throw new BadRequestException(messageService.getMessage("user.identity.card.exists", request.getUserInfo().getIdentityCard()));
                             }
                         });
                 userInfo.setIdentityCard(request.getUserInfo().getIdentityCard());
@@ -259,6 +268,7 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
+        log.info("Deactivating user with id: {}", id);
         UserEntity userEntity = findUserById(id);
         userEntity.setActive(false);
         userRepository.save(userEntity);
@@ -267,6 +277,7 @@ public class UserService {
 
     @Transactional
     public void setUserPassword(Long id, String newPassword) {
+        log.info("Setting password for user with id: {}", id);
         UserEntity userEntity = findUserById(id);
         userEntity.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(userEntity);
@@ -277,6 +288,7 @@ public class UserService {
     public PaginationResponse<UserDto> getUsersWithBirthday(
             PaginationRequest paginationRequest,
             LocalDate date) {
+        log.debug("Getting users with birthday on date: {}", date);
         
         // Use today's date if not provided
         LocalDate targetDate = date != null ? date : LocalDate.now();
@@ -329,6 +341,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public PaginationResponse<UserDto> getUsersWithUpcomingBirthdays(PaginationRequest paginationRequest) {
+        log.debug("Getting users with upcoming birthdays");
         LocalDate today = LocalDate.now();
         
         // Generate list of month-day strings for the next 4 days
@@ -387,6 +400,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<EUserRole> getAllRoles() {
+        log.debug("Getting all roles");
         return roleRepository.findAll()
                 .stream()
                 .map(role -> role.getUserRole())

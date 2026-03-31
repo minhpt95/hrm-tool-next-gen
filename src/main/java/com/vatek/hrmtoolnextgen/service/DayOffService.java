@@ -1,5 +1,6 @@
 package com.vatek.hrmtoolnextgen.service;
 
+import com.vatek.hrmtoolnextgen.component.MessageService;
 import com.vatek.hrmtoolnextgen.dto.dayoff.DayOffDto;
 import com.vatek.hrmtoolnextgen.dto.request.ApprovalDayOffRequest;
 import com.vatek.hrmtoolnextgen.dto.request.CreateDayOffRequest;
@@ -24,11 +25,13 @@ public class DayOffService {
 
     private final DayOffRepository dayOffRepository;
     private final UserRepository userRepository;
+    private final MessageService messageService;
 
     @Transactional
     public DayOffDto createDayOffRequest(Long userId, CreateDayOffRequest request) {
+        log.info("Creating day off request for user: {} from {} to {}", userId, request.getStartTime(), request.getEndTime());
         UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new BadRequestException("User not found with id: " + userId));
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", userId)));
 
         LocalDateTime startDateTime = request.getStartTime();
         LocalDateTime endDateTime = request.getEndTime();
@@ -54,7 +57,7 @@ public class DayOffService {
 
     private void validateTimeRange(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         if (!endDateTime.isAfter(startDateTime)) {
-            throw new BadRequestException("endTime must be after startTime");
+            throw new BadRequestException(messageService.getMessage("dayoff.end.after.start"));
         }
 
         // Disallow day off ranges that cover weekends
@@ -63,7 +66,7 @@ public class DayOffService {
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             switch (date.getDayOfWeek()) {
                 case SATURDAY, SUNDAY ->
-                        throw new BadRequestException("Day off cannot overlap weekends");
+                        throw new BadRequestException(messageService.getMessage("dayoff.overlap.weekend"));
                 default -> {
                 }
             }
@@ -85,12 +88,13 @@ public class DayOffService {
             // Extra guard if repository adds additional records beyond criteria
             boolean overlaps = existing.getStartTime().isBefore(endDateTime)
                     && existing.getEndTime().isAfter(startDateTime);
-            if (overlaps) throw new BadRequestException("Day off request overlaps with an existing request");
+            if (overlaps) throw new BadRequestException(messageService.getMessage("dayoff.overlap.existing"));
         }
     }
 
     @Transactional
     public DayOffDto approveDayOffRequest(ApprovalDayOffRequest request) {
+        log.info("Processing day off approval for user: {} from {} to {} with status: {}", request.getUserId(), request.getStartTime(), request.getEndTime(), request.getStatus());
         // Find day off by user, startTime, and endTime
         var dayOffs = dayOffRepository.findAll((root, query, cb) -> {
             var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
@@ -102,14 +106,14 @@ public class DayOffService {
         });
 
         if (dayOffs.isEmpty()) {
-            throw new BadRequestException("Day off request not found");
+            throw new BadRequestException(messageService.getMessage("dayoff.not.found"));
         }
 
         DayOffEntity dayOffEntity = dayOffs.getFirst();
 
         // Check if already processed
         if (dayOffEntity.getStatus() != EDayOffStatus.PENDING) {
-            throw new BadRequestException("Day off request has already been processed");
+            throw new BadRequestException(messageService.getMessage("dayoff.already.processed"));
         }
 
         // Update status

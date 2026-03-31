@@ -99,6 +99,7 @@ public class HolidayService {
      * @return List of holidays in the date range
      */
     public List<HolidayDto> getHolidays(LocalDate startDate, LocalDate endDate) {
+        log.debug("Getting holidays from {} to {}", startDate, endDate);
         List<HolidayDto> allHolidays = new ArrayList<>();
         int startYear = startDate.getYear();
         int endYear = endDate.getYear();
@@ -123,6 +124,7 @@ public class HolidayService {
      * @return true if the date is a holiday
      */
     public boolean isHoliday(LocalDate date) {
+        log.debug("Checking if date {} is a holiday", date);
         List<HolidayDto> holidays = getHolidays(date.getYear());
         return holidays.stream().anyMatch(holiday -> holiday.getDate().equals(date));
     }
@@ -133,6 +135,7 @@ public class HolidayService {
      * @return List of holidays for current year
      */
     public List<HolidayDto> getCurrentYearHolidays() {
+        log.debug("Getting current year holidays");
         return getHolidays(LocalDate.now().getYear());
     }
 

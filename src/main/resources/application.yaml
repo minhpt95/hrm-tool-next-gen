@@ -24,6 +24,21 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
+    show-sql: true
+    generate-ddl: false
+    properties:
+      format_sql: true
+      session:
+        events:
+          log:
+            LOG_QUERIES_SLOWER_THAN_MS: 1000
+      hibernate:
+        jdbc:
+          batch_size: 200
+          order_inserts: true
+          order_updates: true
+          batch_versioned_data: true
+          generate_statistics: true
   servlet:
     multipart:
       enabled: true
@@ -41,6 +56,8 @@ spring:
     change-log: classpath:/db/master.xml
     database-change-log-table: database-liquibase-changelog
     database-change-log-lock-table: database-liquibase-changelog-lock
+    show-summary-output: console
+    show-summary: summary
 
   rabbitmq:
     virtual-host: local
@@ -81,8 +98,3 @@ springdoc:
     path: /v3/api-docs
     version: OPENAPI_3_1
   packagesToScan: com.vatek.hrmtoolnextgen.controller
-
-calendarific:
-  api:
-    key: rUDjT57F2lrBFKQPt1l7C51bKJ7GMfPN
-    url: https://calendarific.com/api/v2/holidays

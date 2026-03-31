@@ -41,6 +41,10 @@ aws:
     bucket: hrm-tool
     object:
       url: 'https://${aws.s3.bucket}.s3.${aws.s3.region}.amazonaws.com/'
+calendarific:
+  api:
+    key: rUDjT57F2lrBFKQPt1l7C51bKJ7GMfPN
+    url: https://calendarific.com/api/v2/holidays
 server:
   address: 0.0.0.0
   port: 9800

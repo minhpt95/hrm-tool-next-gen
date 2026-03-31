@@ -5,6 +5,7 @@ import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.minhpt.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.minhpt.hrmtoolnextgen.repository.jpa.UserRepository;
+import com.minhpt.hrmtoolnextgen.component.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,6 +26,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 
     private final UserRepository userRepository;
+    private final MessageService messageService;
 
     @Override
     @Transactional
@@ -34,7 +36,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         UserEntity userEntity = userRepository.findByEmail(username)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User Not Found with -> username or email : " + username)
+                        new UsernameNotFoundException(messageService.getMessage("auth.user.not.found"))
                 );
 
         List<RoleEntity> roleEntities = userEntity.getRoles();

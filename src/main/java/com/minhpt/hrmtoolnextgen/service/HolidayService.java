@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minhpt.hrmtoolnextgen.dto.holiday.CalendarificResponse;
 import com.minhpt.hrmtoolnextgen.dto.holiday.HolidayDto;
 import com.minhpt.hrmtoolnextgen.exception.InternalServerException;
+import com.minhpt.hrmtoolnextgen.component.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ public class HolidayService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final MessageService messageService;
 
     @Value("${calendarific.api.key:}")
     private String apiKey;
@@ -73,7 +75,7 @@ public class HolidayService {
             if (response.getMeta() != null && response.getMeta().getCode() != null && response.getMeta().getCode() != 200) {
                 log.error("Calendarific API returned error code: {}", response.getMeta().getCode());
                 InternalServerException ex = new InternalServerException();
-                ex.setMessage("Failed to fetch holidays from Calendarific API");
+                ex.setMessage(messageService.getMessage("holiday.fetch.api.error"));
                 ex.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
                 throw ex;
             }
@@ -85,7 +87,7 @@ public class HolidayService {
         } catch (Exception e) {
             log.error("Error fetching holidays from Calendarific API", e);
             InternalServerException ex = new InternalServerException();
-            ex.setMessage("Failed to fetch holidays: " + e.getMessage());
+            ex.setMessage(messageService.getMessage("holiday.fetch.error"));
             ex.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             throw ex;
         }

@@ -87,8 +87,8 @@ in non-local setups.
 
 #### Execution time logging via `@LogExecutionTime`
 
-- **Annotation**: `com.vatek.hrmtoolnextgen.annotation.LogExecutionTime`  
-- **Aspect**: `com.vatek.hrmtoolnextgen.component.LogExecutionTimeAspect`
+- **Annotation**: `com.minhpt.hrmtoolnextgen.annotation.LogExecutionTime`  
+- **Aspect**: `com.minhpt.hrmtoolnextgen.component.LogExecutionTimeAspect`
 
 Use this to measure and log execution time of any method:
 
@@ -107,11 +107,11 @@ Features:
 
 #### End-to-end flow logging (Controller → Service → Repository)
 
-- **Aspect**: `com.vatek.hrmtoolnextgen.component.LoggingAspect`
+- **Aspect**: `com.minhpt.hrmtoolnextgen.component.LoggingAspect`
 - Applies to:
-  - `com.vatek.hrmtoolnextgen.controller..*`
-  - `com.vatek.hrmtoolnextgen.service..*`
-  - `com.vatek.hrmtoolnextgen.repository..*`
+  - `com.minhpt.hrmtoolnextgen.controller..*`
+  - `com.minhpt.hrmtoolnextgen.service..*`
+  - `com.minhpt.hrmtoolnextgen.repository..*`
 
 What it provides:
 
@@ -125,7 +125,7 @@ All flow logs are written at **TRACE** level; enable them by setting the
 logger in `log4j2.xml` to `TRACE`:
 
 ```xml
-<Logger name="com.vatek.hrmtoolnextgen" level="TRACE" additivity="false">
+<Logger name="com.minhpt.hrmtoolnextgen" level="TRACE" additivity="false">
     <!-- appenders -->
 </Logger>
 ```

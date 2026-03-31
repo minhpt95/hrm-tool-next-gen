@@ -78,7 +78,7 @@ hrm:
 logging:
   level:
     com:
-      vatek:
+      minhpt:
         hrmtoolnextgen: WARN
     root: WARN
   file:

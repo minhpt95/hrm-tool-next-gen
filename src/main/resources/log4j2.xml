@@ -84,7 +84,7 @@
 
     <Loggers>
         <!-- Application Loggers -->
-        <Logger name="com.vatek.hrmtoolnextgen" level="DEBUG" additivity="false">
+        <Logger name="com.minhpt.hrmtoolnextgen" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="FileAppender"/>
             <AppenderRef ref="ErrorFileAppender"/>
@@ -102,4 +102,3 @@
         </Root>
     </Loggers>
 </Configuration>
-

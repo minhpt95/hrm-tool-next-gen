@@ -1,0 +1,197 @@
+package com.minhpt.hrmtoolnextgen.controller;
+
+import com.minhpt.hrmtoolnextgen.component.MessageService;
+import com.minhpt.hrmtoolnextgen.dto.dayoff.DayOffDto;
+import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
+import com.minhpt.hrmtoolnextgen.dto.project.ProjectDto;
+import com.minhpt.hrmtoolnextgen.dto.request.*;
+import com.minhpt.hrmtoolnextgen.dto.response.CommonSuccessResponse;
+import com.minhpt.hrmtoolnextgen.dto.response.PaginationResponse;
+import com.minhpt.hrmtoolnextgen.dto.timesheet.TimesheetDto;
+import com.minhpt.hrmtoolnextgen.dto.user.UserDto;
+import com.minhpt.hrmtoolnextgen.enumeration.EProjectStatus;
+import com.minhpt.hrmtoolnextgen.enumeration.ETimesheetStatus;
+import com.minhpt.hrmtoolnextgen.service.DayOffService;
+import com.minhpt.hrmtoolnextgen.service.ProjectService;
+import com.minhpt.hrmtoolnextgen.service.TimesheetService;
+import com.minhpt.hrmtoolnextgen.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RestController
+@AllArgsConstructor
+@Log4j2
+@RequestMapping("/api/manager")
+@Tag(name = "Manager", description = "CRUD APIs for Manager")
+public class ManagerController {
+
+    private final UserService userService;
+    private final ProjectService projectService;
+    private final TimesheetService timesheetService;
+    private final DayOffService dayOffService;
+    private final MessageService messageService;
+
+    @GetMapping("/user/{id}")
+    @Operation(
+            summary = "Get user detail",
+            description = "Fetches a single employee by ID, including profile and assigned roles."
+    )
+    public ResponseEntity<CommonSuccessResponse<UserDto>> getUserById(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        UserDto user = userService.getUserById(id);
+        return ResponseEntity.ok(buildSuccessResponse(user, request));
+    }
+
+    @PostMapping("/project")
+    @Operation(
+            summary = "Create project",
+            description = "Creates a new project. The current manager will be set as the project manager if not specified in the request."
+    )
+    public ResponseEntity<CommonSuccessResponse<ProjectDto>> createProject(
+            @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
+            @RequestBody CreateProjectRequest createProjectRequest,
+            HttpServletRequest request) {
+        // Set the current manager as the project manager if not specified
+        if (createProjectRequest.getProjectManager() == null) {
+            createProjectRequest.setProjectManager(userPrincipalDto.getId());
+        }
+        ProjectDto project = projectService.createProject(createProjectRequest);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(buildSuccessResponse(project, request));
+    }
+
+    @PutMapping("/project/{id}")
+    @Operation(
+            summary = "Update project",
+            description = "Updates project metadata, status, manager, and members."
+    )
+    public ResponseEntity<CommonSuccessResponse<ProjectDto>> updateProject(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateProjectRequest updateProjectRequest,
+            HttpServletRequest request) {
+        ProjectDto project = projectService.updateProject(id, updateProjectRequest);
+        return ResponseEntity.ok(buildSuccessResponse(project, request));
+    }
+
+    @DeleteMapping("/project/{id}")
+    @Operation(
+            summary = "Delete project",
+            description = "Soft-deletes a project by setting its `isDelete` flag."
+    )
+    public ResponseEntity<CommonSuccessResponse<Void>> deleteProject(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        projectService.deleteProject(id);
+        return ResponseEntity.ok(buildSuccessResponse(null, request));
+    }
+
+
+    @PutMapping("/timesheet/approval")
+    @Operation(
+            summary = "Approve or reject timesheet",
+            description = "Manager can approve or reject a timesheet entry. Requires timesheet ID and the approval status (APPROVED or REJECTED)."
+    )
+    public ResponseEntity<CommonSuccessResponse<TimesheetDto>> approvalTimesheet(
+            @Valid @RequestBody ApprovalTimesheetRequest approvalForm,
+            HttpServletRequest request
+    ) {
+        TimesheetDto timesheetDto = timesheetService.approvalTimesheet(approvalForm);
+
+        return ResponseEntity.ok(buildSuccessResponse(timesheetDto, request));
+    }
+
+    @GetMapping("/project")
+    @Operation(
+            summary = "List projects by manager",
+            description = "Returns a paginated list of all non-deleted projects managed by the current user. Can filter by project name and project status. Default sort by created date descending."
+    )
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<ProjectDto>>> getProjectsByManagerId(
+            @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
+            @RequestParam(required = false) String projectName,
+            @RequestParam(required = false) EProjectStatus projectStatus,
+            HttpServletRequest request) {
+
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<ProjectDto> projects = projectService.getProjectsByManagerIdWithFilters(
+                userPrincipalDto.getId(),
+                paginationRequest,
+                projectName,
+                projectStatus
+        );
+        return ResponseEntity.ok(buildSuccessResponse(projects, request));
+    }
+
+    @GetMapping("/timesheet")
+    @Operation(
+            summary = "List timesheets by manager",
+            description = "Returns a paginated list of all non-deleted timesheets from projects managed by the current user. Can filter by status and project. Default sort by created date descending."
+    )
+    public ResponseEntity<CommonSuccessResponse<PaginationResponse<TimesheetDto>>> getTimesheetsByManager(
+            @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction,
+            @RequestParam(required = false) ETimesheetStatus status,
+            @RequestParam(required = false) Long projectId,
+            HttpServletRequest request) {
+
+        PaginationRequest paginationRequest = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(direction)
+                .build();
+
+        PaginationResponse<TimesheetDto> timesheets = timesheetService.getTimesheetsByManagerWithFilters(
+                userPrincipalDto.getId(),
+                paginationRequest,
+                status,
+                projectId
+        );
+        return ResponseEntity.ok(buildSuccessResponse(timesheets, request));
+    }
+
+    @PutMapping("/dayoff/approval")
+    @Operation(
+            summary = "Approve or reject day off request",
+            description = "Manager can approve or reject a day off request from a user"
+    )
+    public ResponseEntity<CommonSuccessResponse<DayOffDto>> approveDayOffRequest(
+            @Valid @RequestBody ApprovalDayOffRequest approvalDayOffRequest,
+            HttpServletRequest request) {
+        DayOffDto dayOff = dayOffService.approveDayOffRequest(approvalDayOffRequest);
+        return ResponseEntity.ok(buildSuccessResponse(dayOff, request));
+    }
+
+    private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {
+        return CommonSuccessResponse.<T>commonSuccessResponseBuilder()
+                .path(request.getServletPath())
+                .httpStatusCode(HttpStatus.OK)
+                .message(messageService.getMessage("success"))
+                .data(data)
+                .build();
+    }
+}
+

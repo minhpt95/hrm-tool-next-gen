@@ -44,7 +44,7 @@
             <tableExists tableName="users"/>
             <tableExists tableName="user_infos"/>
             <sqlCheck expectedResult="0">
-                SELECT COUNT(*) FROM users WHERE email = 'admin@vatek.com'
+                SELECT COUNT(*) FROM users WHERE email = 'admin@minhpt.com'
             </sqlCheck>
         </preConditions>
         <comment>Create admin user with hashed password (password: admin123)
@@ -66,7 +66,7 @@
                 0,
                 FALSE,
                 TRUE,
-                'admin@vatek.com',
+                'admin@minhpt.com',
                 '$2y$10$6A82Onep5.6eAIzkwRFYj.1wegjlxsc1iWnBSZb2zcKs61XTIMxrG',
                 (SELECT id FROM user_infos WHERE identity_card = 'ADMIN001' LIMIT 1)
             );
@@ -109,13 +109,13 @@
                 SELECT COUNT(*) FROM roles WHERE user_role = 'ADMIN'
             </sqlCheck>
             <sqlCheck expectedResult="1">
-                SELECT COUNT(*) FROM users WHERE email = 'admin@vatek.com'
+                SELECT COUNT(*) FROM users WHERE email = 'admin@minhpt.com'
             </sqlCheck>
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM users_roles ur
                 INNER JOIN users u ON ur.user_id = u.id
                 INNER JOIN roles r ON ur.role_id = r.id
-                WHERE u.email = 'admin@vatek.com' AND r.user_role = 'ADMIN'
+                WHERE u.email = 'admin@minhpt.com' AND r.user_role = 'ADMIN'
             </sqlCheck>
         </preConditions>
         <comment>Link admin user to ADMIN role</comment>
@@ -126,7 +126,7 @@
                 r.id
             FROM users u
             CROSS JOIN roles r
-            WHERE u.email = 'admin@vatek.com'
+            WHERE u.email = 'admin@minhpt.com'
             AND r.user_role = 'ADMIN'
             LIMIT 1;
         </sql>

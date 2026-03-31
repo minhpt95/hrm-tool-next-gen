@@ -7,7 +7,7 @@ This project includes a custom JSON logging format that produces structured logs
   "timestamp": "2025-12-04T03:45:03.633Z",
   "level": "INFO",
   "module": "UserService",
-  "file": "src/main/java/com/vatek/hrmtoolnextgen/service/UserService.java",
+  "file": "src/main/java/com/minhpt/hrmtoolnextgen/service/UserService.java",
   "line": 57,
   "message": "User created successfully",
   "operation": "createUser",
@@ -126,7 +126,7 @@ Output:
 {
   "timestamp": "2025-12-04T03:45:03.633Z",
   "level": "WARN",
-  "file": "src/main/java/com/vatek/hrmtoolnextgen/service/UserService.java",
+  "file": "src/main/java/com/minhpt/hrmtoolnextgen/service/UserService.java",
   "line": 42,
   "message": "This is a warning without structured context"
 }

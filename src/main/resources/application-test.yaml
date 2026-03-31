@@ -52,7 +52,7 @@ hrm:
 logging:
   level:
     com:
-      vatek:
+      minhpt:
         hrmtoolnextgen: INFO
     root: INFO
 

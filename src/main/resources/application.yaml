@@ -78,7 +78,7 @@ build:
 logging:
   level:
     com:
-      vatek:
+      minhpt:
         hrmtoolnextgen: DEBUG
 hrm:
   app:
@@ -97,4 +97,4 @@ springdoc:
   api-docs:
     path: /v3/api-docs
     version: OPENAPI_3_1
-  packagesToScan: com.vatek.hrmtoolnextgen.controller
+  packagesToScan: com.minhpt.hrmtoolnextgen.controller

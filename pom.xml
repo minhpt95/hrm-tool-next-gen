@@ -8,13 +8,13 @@
         <version>3.5.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.vatek</groupId>
+    <groupId>com.minhpt</groupId>
     <artifactId>hrm-tool-next-gen</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>HRM Tool Next Gen</name>
     <description>Backend services for the HRM Tool Next Gen platform</description>
     <properties>
-        <name>Vatek HRM Tool Next Gen</name>
+        <name>HRM Tool Next Gen</name>
         <description>Backend HRM Tool using Spring Boot Next Gen</description>
         <version>1.0.0</version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -134,16 +134,16 @@
             <artifactId>h2</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter</artifactId>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.springframework.boot</groupId>-->
-<!--                    <artifactId>spring-boot-starter-logging</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.boot</groupId>-->
+        <!--            <artifactId>spring-boot-starter</artifactId>-->
+        <!--            <exclusions>-->
+        <!--                <exclusion>-->
+        <!--                    <groupId>org.springframework.boot</groupId>-->
+        <!--                    <artifactId>spring-boot-starter-logging</artifactId>-->
+        <!--                </exclusion>-->
+        <!--            </exclusions>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -241,7 +241,7 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.6 </version>
+            <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>

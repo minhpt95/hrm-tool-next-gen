@@ -1,9 +1,0 @@
-package com.vatek.hrmtoolnextgen.constant;
-
-public class RoleConstant {
-    public static final String ADMIN = "ADMIN";
-    public static final String IT_ADMIN = "IT_ADMIN";
-    public static final String PROJECT_MANAGER = "PROJECT_MANAGER";
-    public static final String USER = "USER";
-    public static final String HR = "HR";
-}

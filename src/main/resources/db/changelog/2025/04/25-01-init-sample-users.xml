@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!--
+        Init sample users:
+          - admin@minhpt.com     (ADMIN role)           password: admin123  [created in 17-01-init-admin-user.xml]
+          - user@minhpt.com      (USER role)            password: user123
+          - pm@minhpt.com        (PROJECT_MANAGER role) password: pm123
+
+        Hashes generated with:
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y, 10);
+    -->
+
+    <!-- ==================== USER account ==================== -->
+
+    <changeSet id="init-sample-user-info" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user_infos"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM user_infos WHERE identity_card = 'USER001'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create user_info record for sample USER account</comment>
+        <sql>
+            INSERT INTO user_infos (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                first_name,
+                last_name,
+                identity_card,
+                phone_number
+            ) VALUES (
+                CURRENT_TIMESTAMP,
+                0,
+                FALSE,
+                TRUE,
+                'Sample',
+                'User',
+                'USER001',
+                '0111111111'
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="init-sample-user-account" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="users"/>
+            <tableExists tableName="user_infos"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM users WHERE email = 'user@minhpt.com'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create sample USER account (password: user123)</comment>
+        <sql>
+            INSERT INTO users (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                email,
+                password,
+                user_info_id
+            ) VALUES (
+                CURRENT_TIMESTAMP,
+                0,
+                FALSE,
+                TRUE,
+                'user@minhpt.com',
+                '$2y$10$TMEsHS131suka5VJFPKLKe8nOoiC79cxnDxk1QYvXDkdJbd6Qmdhy',
+                (SELECT id FROM user_infos WHERE identity_card = 'USER001' LIMIT 1)
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="init-sample-user-role-link" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="users_roles"/>
+            <tableExists tableName="users"/>
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'USER'
+            </sqlCheck>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM users WHERE email = 'user@minhpt.com'
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM users_roles ur
+                INNER JOIN users u ON ur.user_id = u.id
+                INNER JOIN roles r ON ur.role_id = r.id
+                WHERE u.email = 'user@minhpt.com' AND r.user_role = 'USER'
+            </sqlCheck>
+        </preConditions>
+        <comment>Assign USER role to sample user account</comment>
+        <sql>
+            INSERT INTO users_roles (user_id, role_id)
+            SELECT u.id, r.id
+            FROM users u
+            CROSS JOIN roles r
+            WHERE u.email = 'user@minhpt.com'
+              AND r.user_role = 'USER'
+            LIMIT 1;
+        </sql>
+    </changeSet>
+
+    <!-- ==================== PROJECT MANAGER account ==================== -->
+
+    <changeSet id="init-sample-pm-user-info" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user_infos"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM user_infos WHERE identity_card = 'PM001'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create user_info record for sample PROJECT_MANAGER account</comment>
+        <sql>
+            INSERT INTO user_infos (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                first_name,
+                last_name,
+                identity_card,
+                phone_number
+            ) VALUES (
+                CURRENT_TIMESTAMP,
+                0,
+                FALSE,
+                TRUE,
+                'Project',
+                'Manager',
+                'PM001',
+                '0222222222'
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="init-sample-pm-user-account" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="users"/>
+            <tableExists tableName="user_infos"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM users WHERE email = 'pm@minhpt.com'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create sample PROJECT_MANAGER account (password: pm123)</comment>
+        <sql>
+            INSERT INTO users (
+                create_date,
+                create_by,
+                is_delete,
+                is_active,
+                email,
+                password,
+                user_info_id
+            ) VALUES (
+                CURRENT_TIMESTAMP,
+                0,
+                FALSE,
+                TRUE,
+                'pm@minhpt.com',
+                '$2y$10$YqD5fTFBqMaT5W23B1HP4uTbkIXUJ4nTS6s5rd/T/o0fNcsoaJVpy',
+                (SELECT id FROM user_infos WHERE identity_card = 'PM001' LIMIT 1)
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="init-sample-pm-user-role-link" author="system">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="users_roles"/>
+            <tableExists tableName="users"/>
+            <tableExists tableName="roles"/>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM roles WHERE user_role = 'PROJECT_MANAGER'
+            </sqlCheck>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM users WHERE email = 'pm@minhpt.com'
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM users_roles ur
+                INNER JOIN users u ON ur.user_id = u.id
+                INNER JOIN roles r ON ur.role_id = r.id
+                WHERE u.email = 'pm@minhpt.com' AND r.user_role = 'PROJECT_MANAGER'
+            </sqlCheck>
+        </preConditions>
+        <comment>Assign PROJECT_MANAGER role to sample pm account</comment>
+        <sql>
+            INSERT INTO users_roles (user_id, role_id)
+            SELECT u.id, r.id
+            FROM users u
+            CROSS JOIN roles r
+            WHERE u.email = 'pm@minhpt.com'
+              AND r.user_role = 'PROJECT_MANAGER'
+            LIMIT 1;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

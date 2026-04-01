@@ -28,77 +28,68 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     /**
-     * Converter to parse JSON string to UserInfoDto from form data
-     */
-    private class StringToUserInfoDtoConverter implements Converter<String, UserInfoDto> {
-        private final ObjectMapper objectMapper;
-
-        public StringToUserInfoDtoConverter(ObjectMapper objectMapper) {
-            this.objectMapper = objectMapper;
-        }
+         * Converter to parse JSON string to UserInfoDto from form data
+         */
+        private record StringToUserInfoDtoConverter(ObjectMapper objectMapper) implements Converter<String, UserInfoDto> {
 
         @Override
-        public UserInfoDto convert(String source) {
-            try {
-                if (source.trim().isEmpty()) {
+            public UserInfoDto convert(String source) {
+                try {
+                    if (source.trim().isEmpty()) {
+                        return null;
+                    }
+                    // Try to parse as JSON first
+                    return objectMapper.readValue(source, UserInfoDto.class);
+                } catch (Exception e) {
+                    log.warn("Failed to parse UserInfoDto from JSON string: {}", source, e);
                     return null;
                 }
-                // Try to parse as JSON first
-                return objectMapper.readValue(source, UserInfoDto.class);
-            } catch (Exception e) {
-                log.warn("Failed to parse UserInfoDto from JSON string: {}", source, e);
-                return null;
             }
         }
-    }
 
     /**
-     * Converter to parse JSON string to Collection<EUserRole> from form data
-     */
-    private class StringToEUserRoleCollectionConverter implements Converter<String, Collection<EUserRole>> {
-        private final ObjectMapper objectMapper;
-
-        public StringToEUserRoleCollectionConverter(ObjectMapper objectMapper) {
-            this.objectMapper = objectMapper;
-        }
+         * Converter to parse JSON string to Collection<EUserRole> from form data
+         */
+        private record StringToEUserRoleCollectionConverter(
+            ObjectMapper objectMapper) implements Converter<String, Collection<EUserRole>> {
 
         @Override
-        public Collection<EUserRole> convert(String source) {
-            if (source.trim().isEmpty()) {
-                return new ArrayList<>();
-            }
-
-            String trimmed = source.trim();
-            // Accept JSON arrays (e.g., ["HR","ADMIN"]) or plain comma/space-separated (e.g., HR,ADMIN)
-            // First try JSON
-            try {
-                List<EUserRole> roles = objectMapper.readValue(
-                        trimmed,
-                        objectMapper.getTypeFactory().constructCollectionType(List.class, EUserRole.class)
-                );
-                if (roles != null) {
-                    return roles;
+            public Collection<EUserRole> convert(String source) {
+                if (source.trim().isEmpty()) {
+                    return new ArrayList<>();
                 }
-            } catch (Exception ignored) {
-                // fall through to simple parsing
-            }
 
-            // Fallback: split by comma/space and map to enum
-            try {
-                String[] parts = trimmed.split("[,\\s]+");
-                List<EUserRole> roles = new ArrayList<>();
-                for (String part : parts) {
-                    if (part.isBlank()) {
-                        continue;
+                String trimmed = source.trim();
+                // Accept JSON arrays (e.g., ["HR","ADMIN"]) or plain comma/space-separated (e.g., HR,ADMIN)
+                // First try JSON
+                try {
+                    List<EUserRole> roles = objectMapper.readValue(
+                            trimmed,
+                            objectMapper.getTypeFactory().constructCollectionType(List.class, EUserRole.class)
+                    );
+                    if (roles != null) {
+                        return roles;
                     }
-                    roles.add(EUserRole.valueOf(part.trim()));
+                } catch (Exception ignored) {
+                    // fall through to simple parsing
                 }
-                return roles;
-            } catch (Exception e) {
-                log.warn("Failed to parse Collection<EUserRole> from string: {}", source, e);
-                return new ArrayList<>();
+
+                // Fallback: split by comma/space and map to enum
+                try {
+                    String[] parts = trimmed.split("[,\\s]+");
+                    List<EUserRole> roles = new ArrayList<>();
+                    for (String part : parts) {
+                        if (part.isBlank()) {
+                            continue;
+                        }
+                        roles.add(EUserRole.valueOf(part.trim()));
+                    }
+                    return roles;
+                } catch (Exception e) {
+                    log.warn("Failed to parse Collection<EUserRole> from string: {}", source, e);
+                    return new ArrayList<>();
+                }
             }
         }
-    }
 }
 

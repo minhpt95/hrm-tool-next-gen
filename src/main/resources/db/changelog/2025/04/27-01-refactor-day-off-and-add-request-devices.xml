@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <!-- Rename day_off table to day_offs -->
+    <changeSet id="27-01-rename-day-off-table" author="minhpt">
+        <renameTable oldTableName="day_off" newTableName="day_offs"/>
+    </changeSet>
+
+    <!-- Rename request_title -> title, request_reason -> reason -->
+    <changeSet id="27-01-rename-day-offs-columns" author="minhpt">
+        <renameColumn tableName="day_offs" oldColumnName="request_title" newColumnName="title" columnDataType="VARCHAR(255)"/>
+        <renameColumn tableName="day_offs" oldColumnName="request_reason" newColumnName="reason" columnDataType="VARCHAR(255)"/>
+    </changeSet>
+
+    <!-- Rename user_id FK -> requested_by, add decided_at, requested_at, decided_by -->
+    <changeSet id="27-01-update-day-offs-fk-and-audit-columns" author="minhpt">
+        <renameColumn tableName="day_offs" oldColumnName="user_id" newColumnName="requested_by" columnDataType="BIGINT"/>
+        <addColumn tableName="day_offs">
+            <column name="requested_at" type="TIMESTAMP"/>
+            <column name="decided_at" type="TIMESTAMP"/>
+            <column name="decided_by" type="BIGINT">
+                <constraints foreignKeyName="fk_day_offs_decided_by" references="users(id)"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Create request_devices table -->
+    <changeSet id="27-01-create-request-devices-table" author="minhpt">
+        <createTable tableName="request_devices">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reason" type="VARCHAR(255)"/>
+            <column name="status" type="VARCHAR(50)"/>
+            <column name="requested_at" type="TIMESTAMP"/>
+            <column name="decided_at" type="TIMESTAMP"/>
+            <column name="requested_by" type="BIGINT">
+                <constraints foreignKeyName="fk_request_devices_requested_by" references="users(id)"/>
+            </column>
+            <column name="decided_by" type="BIGINT">
+                <constraints foreignKeyName="fk_request_devices_decided_by" references="users(id)"/>
+            </column>
+            <!-- Auditing columns (from AuditableEntity) -->
+            <column name="create_date" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_by" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="BIGINT"/>
+            <!-- Soft delete columns (from IdentityEntity) -->
+            <column name="is_delete" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_date" type="TIMESTAMP"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

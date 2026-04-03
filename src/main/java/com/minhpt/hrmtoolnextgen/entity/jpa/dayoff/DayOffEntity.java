@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "day_off")
+@Table(name = "day_offs")
 @SQLDelete(sql = "UPDATE day_off SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
 @SQLRestriction("is_delete = FALSE")
 @Getter
@@ -29,9 +29,9 @@ import lombok.Setter;
 public class DayOffEntity extends IdentityEntity {
 
     @Column
-    private String requestTitle;
+    private String title;
     @Column
-    private String requestReason;
+    private String reason;
 
     @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime startTime;
@@ -43,9 +43,21 @@ public class DayOffEntity extends IdentityEntity {
     @Enumerated(EnumType.STRING)
     private EDayOffStatus status;
 
+    @Column(columnDefinition = "TIMESTAMP",name = "requested_at")
+    private LocalDateTime requestedAt;
+
+    @Column(columnDefinition = "TIMESTAMP",name = "decided_at")
+    private LocalDateTime decidedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+    @JoinColumn(name = "requested_by")
+    private UserEntity requestedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "decided_by")
+    private UserEntity decidedBy;
+
+
 }
 
 

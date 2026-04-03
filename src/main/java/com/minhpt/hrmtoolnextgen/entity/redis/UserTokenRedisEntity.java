@@ -9,7 +9,7 @@ import org.springframework.data.redis.core.index.Indexed;
 
 import java.util.concurrent.TimeUnit;
 
-@RedisHash(value = "user_token")
+@RedisHash(value = "user_tokens")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

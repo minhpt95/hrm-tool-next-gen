@@ -1,17 +1,28 @@
 package com.minhpt.hrmtoolnextgen.entity.jpa.user;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.minhpt.hrmtoolnextgen.entity.common.IdentityEntity;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserLevel;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserPosition;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserProgramLanguage;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,6 +30,8 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "user_infos")
+@SQLDelete(sql = "UPDATE user_infos SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
+@SQLRestriction("is_delete = FALSE")
 public class UserInfoEntity extends IdentityEntity {
 
     @Column(name = "first_name", nullable = false)

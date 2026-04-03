@@ -8,12 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "roles")
+@SQLDelete(sql = "UPDATE roles SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
+@SQLRestriction("is_delete = FALSE")
 @Getter
 @Setter
 @AllArgsConstructor

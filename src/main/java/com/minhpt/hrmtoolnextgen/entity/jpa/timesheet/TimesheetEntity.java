@@ -1,21 +1,33 @@
 package com.minhpt.hrmtoolnextgen.entity.jpa.timesheet;
 
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.minhpt.hrmtoolnextgen.entity.common.IdentityEntity;
 import com.minhpt.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
 import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.minhpt.hrmtoolnextgen.enumeration.ETimesheetStatus;
 import com.minhpt.hrmtoolnextgen.enumeration.ETimesheetType;
-import jakarta.persistence.*;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 @Entity
 @Table(name = "timesheets")
+@SQLDelete(sql = "UPDATE timesheets SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
+@SQLRestriction("is_delete = FALSE")
 @Getter
 @Setter
 public class TimesheetEntity extends IdentityEntity {

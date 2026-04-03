@@ -1,10 +1,19 @@
 package com.minhpt.hrmtoolnextgen.entity.common;
 
-import jakarta.persistence.*;
-import lombok.*;
+import java.time.LocalDateTime;
+import java.util.Objects;
+
 import org.hibernate.proxy.HibernateProxy;
 
-import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @MappedSuperclass
 @Getter
@@ -19,6 +28,9 @@ public class IdentityEntity extends AuditableEntity {
 
     @Column(name = "is_delete", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean delete = Boolean.FALSE;
+
+    @Column(name = "deleted_date", columnDefinition = "TIMESTAMP")
+    private LocalDateTime deletedDate;
 
     @Column(name = "is_active", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean active = Boolean.TRUE;

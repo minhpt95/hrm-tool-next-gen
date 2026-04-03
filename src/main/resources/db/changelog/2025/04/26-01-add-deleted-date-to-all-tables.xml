@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="26-01-add-deleted-date-to-all-tables" author="minhpt">
+        <addColumn tableName="users">
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="user_infos">
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="projects">
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="roles">
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="timesheets">
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="day_off">
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

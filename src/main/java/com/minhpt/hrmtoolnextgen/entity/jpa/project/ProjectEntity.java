@@ -7,6 +7,8 @@ import com.minhpt.hrmtoolnextgen.enumeration.EProjectStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -14,6 +16,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "projects")
+@SQLDelete(sql = "UPDATE projects SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
+@SQLRestriction("is_delete = FALSE")
 @Getter
 @Setter
 public class ProjectEntity extends IdentityEntity {

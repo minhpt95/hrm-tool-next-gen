@@ -1,5 +1,44 @@
 ## HRM Tool Next Gen – Backend
 
+### My responsibilities
+
+As the sole backend developer on this project, I designed and implemented the entire backend from scratch. Key areas of ownership:
+
+#### Architecture & infrastructure
+- Set up Spring Boot 3.x project structure with layered architecture (controller → service → repository).
+- Migrated database from MySQL to **PostgreSQL** and configured **Liquibase** for schema versioning and seed data.
+- Configured **Docker Compose** with PostgreSQL, RabbitMQ, and Redis services.
+- Implemented **idempotency** support and **device-ID** request tracking headers.
+
+#### Security
+- Implemented **JWT authentication** (stateless access token + refresh token + logout flow).
+- Configured **Spring Security** with role-based access control (`ADMIN`, `PROJECT_MANAGER`, `USER`, `HR`, `IT_ADMIN`) using `hasAuthority` guards.
+- Built `JwtProvider`, `JwtAuthTokenFilter`, and `UnauthorizedHandler` for the full auth pipeline.
+- Exposed forgot-password and password-reset endpoints with secure email flows.
+
+#### REST API
+- **`AuthController`** – login, refresh token, logout, forgot/reset password.
+- **`UserController`** – personal timesheets, day-off requests, project views.
+- **`ManagerController`** – team member management, project assignments, approval workflows.
+- **`AdminController`** – system-wide user/project/role management.
+- **`DashboardController`** – aggregated KPI metrics for admins.
+- **`HolidayController`** – Vietnam public and lunar holidays via Calendarific API (with caching).
+- **`SseController`** – Server-Sent Events for real-time notifications.
+
+#### Cross-cutting concerns
+- Built custom **`@LogExecutionTime`** annotation + AOP aspect for method-level performance logging.
+- Implemented **`LoggingAspect`** for controller/service-layer request tracing.
+- Configured **Log4j2** with a custom JSON layout across five log files (info, debug, error, perf, trace).
+- Set up **async email processing** (`AsyncConfig`) and email templates (birthday, welcome, password-reset) via Thymeleaf.
+- Implemented **`BirthdaySchedule`** — scheduled job to send birthday emails to users.
+- Added **Spring Cache** (Redis) with custom `ObjectMapper` for holiday data and other cacheable responses.
+
+#### Internationalisation & observability
+- Configured i18n (`messages.properties`, `messages_vi.properties`) for all system and error messages.
+- Integrated Swagger / OpenAPI (`SwaggerConfig`) for full API documentation.
+
+---
+
 Spring Boot 3.x backend for the **HRM Tool Next Gen** platform. It provides
 REST APIs for authentication, user management, projects, timesheets, holidays,
 and more, following a layered architecture (controller → service → repository).

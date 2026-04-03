@@ -1,23 +1,41 @@
 package com.minhpt.hrmtoolnextgen.entity.jpa.user;
 
-import com.minhpt.hrmtoolnextgen.entity.common.IdentityEntity;
-import com.minhpt.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
-import com.minhpt.hrmtoolnextgen.entity.jpa.role.RoleEntity;
-import com.minhpt.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
-import com.minhpt.hrmtoolnextgen.enumeration.ETimesheetType;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import com.minhpt.hrmtoolnextgen.entity.common.IdentityEntity;
+import com.minhpt.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
+import com.minhpt.hrmtoolnextgen.entity.jpa.role.RoleEntity;
+import com.minhpt.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
+import com.minhpt.hrmtoolnextgen.enumeration.ETimesheetType;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
 @Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
+@SQLRestriction("is_delete = FALSE")
 @Getter
 @Setter
 public class UserEntity extends IdentityEntity {

@@ -180,8 +180,9 @@ public class ManagerController {
     )
     public ResponseEntity<CommonSuccessResponse<DayOffDto>> approveDayOffRequest(
             @Valid @RequestBody ApprovalDayOffRequest approvalDayOffRequest,
+            @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
             HttpServletRequest request) {
-        DayOffDto dayOff = dayOffService.approveDayOffRequest(approvalDayOffRequest);
+        DayOffDto dayOff = dayOffService.approveDayOffRequest(approvalDayOffRequest,userPrincipalDto);
         return ResponseEntity.ok(buildSuccessResponse(dayOff, request));
     }
 

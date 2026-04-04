@@ -115,7 +115,7 @@ public class UserController {
             @AuthenticationPrincipal UserPrincipalDto userPrincipalDto,
             @Valid @RequestBody CreateDayOffRequest createDayOffRequest,
             HttpServletRequest request) {
-        DayOffDto dayOff = dayOffService.createDayOffRequest(userPrincipalDto.getId(), createDayOffRequest);
+        DayOffDto dayOff = dayOffService.createDayOffRequest(userPrincipalDto, createDayOffRequest);
         return ResponseEntity.ok(buildSuccessResponse(dayOff, request));
     }
 

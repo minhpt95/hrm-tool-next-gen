@@ -2,6 +2,7 @@ package com.minhpt.hrmtoolnextgen.service;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
 import com.minhpt.hrmtoolnextgen.dto.dayoff.DayOffDto;
+import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.minhpt.hrmtoolnextgen.dto.request.ApprovalDayOffRequest;
 import com.minhpt.hrmtoolnextgen.dto.request.CreateDayOffRequest;
 import com.minhpt.hrmtoolnextgen.entity.jpa.dayoff.DayOffEntity;
@@ -28,29 +29,33 @@ public class DayOffService {
     private final MessageService messageService;
 
     @Transactional
-    public DayOffDto createDayOffRequest(Long userId, CreateDayOffRequest request) {
-        log.info("Creating day off request for user: {} from {} to {}", userId, request.getStartTime(), request.getEndTime());
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", userId)));
+    public DayOffDto createDayOffRequest(UserPrincipalDto userPrincipalDto, CreateDayOffRequest request) {
+
+        Long requestId = userPrincipalDto.getId();
+
+        log.info("Creating day off request for user: {} from {} to {}", requestId, request.getStartTime(), request.getEndTime());
+        UserEntity userEntity = userRepository.findById(requestId)
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", requestId)));
 
         LocalDateTime startDateTime = request.getStartTime();
         LocalDateTime endDateTime = request.getEndTime();
 
         validateTimeRange(startDateTime, endDateTime);
-        ensureNoOverlap(userId, startDateTime, endDateTime);
+        ensureNoOverlap(requestId, startDateTime, endDateTime);
 
         // Create a new day off entity
         DayOffEntity dayOffEntity = new DayOffEntity();
-        dayOffEntity.setUser(userEntity);
-        dayOffEntity.setRequestTitle(request.getRequestTitle());
-        dayOffEntity.setRequestReason(request.getRequestReason());
+        dayOffEntity.setRequestedBy(userEntity);
+        dayOffEntity.setRequestedAt(LocalDateTime.now());
+        dayOffEntity.setTitle(request.getRequestTitle());
+        dayOffEntity.setReason(request.getRequestReason());
         dayOffEntity.setStartTime(startDateTime);
         dayOffEntity.setEndTime(endDateTime);
         dayOffEntity.setStatus(EDayOffStatus.PENDING);
 
         DayOffEntity savedEntity = dayOffRepository.save(dayOffEntity);
         log.info("Created day off request for user: {} from {} to {}",
-                userId, startDateTime, endDateTime);
+                requestId, startDateTime, endDateTime);
 
         return toDto(savedEntity);
     }
@@ -76,7 +81,7 @@ public class DayOffService {
     private void ensureNoOverlap(Long userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
         var existingDayOffs = dayOffRepository.findAll((root, query, cb) -> {
             var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
-            predicates.add(cb.equal(root.get("user").get("id"), userId));
+            predicates.add(cb.equal(root.get("requestedBy").get("id"), userId));
             predicates.add(cb.equal(root.get("delete"), false));
             // Overlap when existing.start < newEnd && existing.end > newStart
             predicates.add(cb.lessThan(root.get("startTime"), endDateTime));
@@ -93,12 +98,20 @@ public class DayOffService {
     }
 
     @Transactional
-    public DayOffDto approveDayOffRequest(ApprovalDayOffRequest request) {
-        log.info("Processing day off approval for user: {} from {} to {} with status: {}", request.getUserId(), request.getStartTime(), request.getEndTime(), request.getStatus());
+    public DayOffDto approveDayOffRequest(ApprovalDayOffRequest request, UserPrincipalDto userPrincipalDto) {
+
+        Long decidedId = userPrincipalDto.getId();
+
+        log.info("Processing day off approval for user: {} from {} to {} with status: {}", decidedId, request.getStartTime(), request.getEndTime(), request.getStatus());
         // Find day off by user, startTime, and endTime
+
+        UserEntity userEntity = userRepository.findById(decidedId)
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", decidedId)));
+
+
         var dayOffs = dayOffRepository.findAll((root, query, cb) -> {
             var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
-            predicates.add(cb.equal(root.get("user").get("id"), request.getUserId()));
+            predicates.add(cb.equal(root.get("requestedBy").get("id"), userPrincipalDto.getId()));
             predicates.add(cb.equal(root.get("startTime"), request.getStartTime()));
             predicates.add(cb.equal(root.get("endTime"), request.getEndTime()));
             predicates.add(cb.equal(root.get("delete"), false));
@@ -118,24 +131,26 @@ public class DayOffService {
 
         // Update status
         dayOffEntity.setStatus(request.getStatus());
+        dayOffEntity.setDecidedAt(LocalDateTime.now());
+        dayOffEntity.setDecidedBy(userEntity);
         DayOffEntity savedEntity = dayOffRepository.save(dayOffEntity);
 
         log.info("Updated day off request status to {} for user: {} from {} to {}",
-                request.getStatus(), request.getUserId(), request.getStartTime(), request.getEndTime());
+                request.getStatus(), decidedId, request.getStartTime(), request.getEndTime());
 
         return toDto(savedEntity);
     }
 
     private DayOffDto toDto(DayOffEntity entity) {
         return DayOffDto.builder()
-                .userId(entity.getUser().getId())
-                .userName(entity.getUser().getUserInfo() != null
-                        ? entity.getUser().getUserInfo().getFirstName() + " " +
-                        entity.getUser().getUserInfo().getLastName()
+                .requestId(entity.getId())
+                .requesterName(entity.getRequestedBy().getUserInfo() != null
+                        ? entity.getRequestedBy().getUserInfo().getFirstName() + " " +
+                        entity.getRequestedBy().getUserInfo().getLastName()
                         : null)
-                .userEmail(entity.getUser().getEmail())
-                .requestTitle(entity.getRequestTitle())
-                .requestReason(entity.getRequestReason())
+                .requesterEmail(entity.getRequestedBy().getEmail())
+                .requestTitle(entity.getTitle())
+                .requestReason(entity.getReason())
                 .startTime(entity.getStartTime())
                 .endTime(entity.getEndTime())
                 .status(entity.getStatus())

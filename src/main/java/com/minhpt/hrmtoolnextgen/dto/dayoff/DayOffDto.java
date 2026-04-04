@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DayOffDto {
-    private Long userId;
-    private String userName;
-    private String userEmail;
+    private Long requestId;
+    private String requesterName;
+    private String requesterEmail;
     private String requestTitle;
     private String requestReason;
     private LocalDateTime startTime;

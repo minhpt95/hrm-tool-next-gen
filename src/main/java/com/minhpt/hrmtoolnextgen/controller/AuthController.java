@@ -1,6 +1,18 @@
 package com.minhpt.hrmtoolnextgen.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.minhpt.hrmtoolnextgen.annotation.RateLimit;
+import com.minhpt.hrmtoolnextgen.annotation.RateLimit.RateLimitStrategy;
 import com.minhpt.hrmtoolnextgen.component.MessageService;
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.minhpt.hrmtoolnextgen.dto.request.ForgotPasswordRequest;
 import com.minhpt.hrmtoolnextgen.dto.request.LoginRequest;
@@ -10,22 +22,19 @@ import com.minhpt.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.minhpt.hrmtoolnextgen.dto.response.LoginResponse;
 import com.minhpt.hrmtoolnextgen.dto.response.RefreshTokenResponse;
 import com.minhpt.hrmtoolnextgen.service.AuthService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/api/auth")
+@RequestMapping({ApiConstant.AUTH_BASE, ApiConstant.AUTH_V1_BASE})
 @Tag(name = "Authentication", description = "Authentication management APIs")
 public class AuthController {
 
@@ -34,8 +43,9 @@ public class AuthController {
 
     @PostMapping(value = "/login")
     @Operation(summary = "User login", description = "Authenticate user and return access token and refresh token")
+    @RateLimit(capacity = 10, refillRate = 10, keyPrefix = "ratelimit:login", strategy = RateLimitStrategy.IP)
     public ResponseEntity<CommonSuccessResponse<LoginResponse>> login(
-            @RequestBody LoginRequest loginRequest,
+            @Valid @RequestBody LoginRequest loginRequest,
             HttpServletRequest request) {
         LoginResponse loginResponse = authService.login(loginRequest);
         return ResponseEntity.ok(buildSuccessResponse(loginResponse, request));
@@ -64,6 +74,7 @@ public class AuthController {
             summary = "Forgot password",
             description = "Generates a password reset token for the user with the provided email and sends it via email."
     )
+    @RateLimit(capacity = 5, refillRate = 5, keyPrefix = "ratelimit:forgot-password", strategy = RateLimitStrategy.IP)
     public ResponseEntity<CommonSuccessResponse<String>> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest,
             HttpServletRequest request) {
@@ -78,6 +89,7 @@ public class AuthController {
             summary = "Reset password",
             description = "Resets the user's password using the reset token received via email. The token must be valid and not expired."
     )
+    @RateLimit(capacity = 5, refillRate = 5, keyPrefix = "ratelimit:reset-password", strategy = RateLimitStrategy.IP)
     public ResponseEntity<CommonSuccessResponse<String>> resetPassword(
             @Valid @RequestBody ResetPasswordRequest resetPasswordRequest,
             HttpServletRequest request) {

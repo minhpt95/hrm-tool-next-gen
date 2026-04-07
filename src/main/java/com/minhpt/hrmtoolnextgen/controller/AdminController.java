@@ -1,6 +1,7 @@
 package com.minhpt.hrmtoolnextgen.controller;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.project.ProjectDto;
 import com.minhpt.hrmtoolnextgen.dto.request.CreateUserRequest;
 import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/api/admin")
+@RequestMapping({ApiConstant.ADMIN_BASE, ApiConstant.ADMIN_V1_BASE})
 @Tag(name = "Admin", description = "CRUD APIs for Admin User")
 public class AdminController {
 

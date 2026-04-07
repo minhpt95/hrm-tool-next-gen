@@ -14,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -21,8 +22,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "day_offs")
-@SQLDelete(sql = "UPDATE day_off SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
+@Table(name = "day_offs", indexes = {
+        @Index(name = "idx_day_offs_requested_status", columnList = "requested_by, status"),
+        @Index(name = "idx_day_offs_requested_range", columnList = "requested_by, start_time, end_time"),
+        @Index(name = "idx_day_offs_delete_requested_at", columnList = "is_delete, requested_at")
+})
+@SQLDelete(sql = "UPDATE day_offs SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
 @SQLRestriction("is_delete = FALSE")
 @Getter
 @Setter

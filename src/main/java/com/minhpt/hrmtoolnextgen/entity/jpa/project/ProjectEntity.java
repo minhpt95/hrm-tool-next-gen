@@ -15,7 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "projects")
+@Table(name = "projects", indexes = {
+        @Index(name = "idx_projects_delete_status", columnList = "is_delete, project_status"),
+        @Index(name = "idx_projects_manager", columnList = "project_manager"),
+        @Index(name = "idx_projects_delete_created", columnList = "is_delete, create_date")
+})
 @SQLDelete(sql = "UPDATE projects SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
 @SQLRestriction("is_delete = FALSE")
 @Getter

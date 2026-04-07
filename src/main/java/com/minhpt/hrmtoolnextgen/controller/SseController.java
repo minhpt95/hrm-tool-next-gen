@@ -1,5 +1,6 @@
 package com.minhpt.hrmtoolnextgen.controller;
 
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.minhpt.hrmtoolnextgen.service.SseService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,7 +20,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("/sse")
+@RequestMapping({ApiConstant.SSE_BASE, ApiConstant.SSE_V1_BASE})
 @Tag(name = "Server-Sent Events", description = "Real-time event streaming APIs using Server-Sent Events (SSE)")
 public class SseController {
 

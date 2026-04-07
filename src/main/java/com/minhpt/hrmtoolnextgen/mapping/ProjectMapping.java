@@ -11,6 +11,7 @@ import org.mapstruct.*;
         componentModel = "spring",
         uses = {UserMapping.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
         implementationName = "ProjectCrudMappingImpl"
 )
 public interface ProjectMapping extends BasePagingMapper<ProjectDto, ProjectEntity> {

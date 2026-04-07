@@ -75,6 +75,8 @@ hrm:
     jwtSecret: ${JWT_SECRET:}
     jwtExpiration: ${JWT_EXPIRATION:86400000}
     refreshTokenExpiration: ${REFRESH_TOKEN_EXPIRATION:86400000}
+  security:
+    swagger-enabled: false
 logging:
   level:
     com:

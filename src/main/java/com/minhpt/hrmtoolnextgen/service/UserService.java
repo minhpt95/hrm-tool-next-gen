@@ -1,24 +1,10 @@
 package com.minhpt.hrmtoolnextgen.service;
 
-import com.minhpt.hrmtoolnextgen.dto.request.CreateUserRequest;
-import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
-import com.minhpt.hrmtoolnextgen.dto.request.UpdateUserRequest;
-import com.minhpt.hrmtoolnextgen.dto.response.PaginationResponse;
-import com.minhpt.hrmtoolnextgen.dto.user.UserDto;
-import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserEntity;
-import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserInfoEntity;
-import com.minhpt.hrmtoolnextgen.exception.BadRequestException;
-import com.minhpt.hrmtoolnextgen.enumeration.EUserRole;
-import com.minhpt.hrmtoolnextgen.enumeration.EUserLevel;
-import com.minhpt.hrmtoolnextgen.enumeration.EUserPosition;
-import com.minhpt.hrmtoolnextgen.mapping.UserMapping;
-import com.minhpt.hrmtoolnextgen.repository.jpa.RoleRepository;
-import com.minhpt.hrmtoolnextgen.repository.jpa.UserRepository;
-import com.minhpt.hrmtoolnextgen.component.MessageService;
-import com.minhpt.hrmtoolnextgen.util.CommonUtils;
-import jakarta.persistence.criteria.Predicate;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,11 +13,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.minhpt.hrmtoolnextgen.component.MessageService;
+import com.minhpt.hrmtoolnextgen.constant.CommonConstant;
+import com.minhpt.hrmtoolnextgen.dto.request.CreateUserRequest;
+import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
+import com.minhpt.hrmtoolnextgen.dto.request.UpdateUserRequest;
+import com.minhpt.hrmtoolnextgen.dto.response.PaginationResponse;
+import com.minhpt.hrmtoolnextgen.dto.user.UserDto;
+import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserEntity;
+import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserInfoEntity;
+import com.minhpt.hrmtoolnextgen.enumeration.EUserLevel;
+import com.minhpt.hrmtoolnextgen.enumeration.EUserPosition;
+import com.minhpt.hrmtoolnextgen.enumeration.EUserRole;
+import com.minhpt.hrmtoolnextgen.exception.BadRequestException;
+import com.minhpt.hrmtoolnextgen.exception.NotFoundException;
+import com.minhpt.hrmtoolnextgen.mapping.UserMapping;
+import com.minhpt.hrmtoolnextgen.repository.jpa.RoleRepository;
+import com.minhpt.hrmtoolnextgen.repository.jpa.UserRepository;
+import com.minhpt.hrmtoolnextgen.util.CommonUtils;
+
+import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
@@ -47,13 +50,13 @@ public class UserService {
     public UserEntity findUserByEmail(String email) {
         log.debug("Finding user by email: {}", email);
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found.email", email)));
+                .orElseThrow(() -> new NotFoundException(messageService.getMessage("user.not.found.email", email)));
     }
 
     public UserEntity findUserById(Long id) {
         log.debug("Finding user by id: {}", id);
         return userRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", id)));
+                .orElseThrow(() -> new NotFoundException(messageService.getMessage("user.not.found", id)));
     }
 
     @Transactional(readOnly = true)
@@ -104,13 +107,13 @@ public class UserService {
                 predicates.add(cb.or(firstNamePredicate, lastNamePredicate));
             }
 
-            return cb.and(predicates.toArray(new Predicate[0]));
+            return cb.and(predicates.toArray(Predicate[]::new));
         };
 
         // Build pageable with default sort by id asc
         Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "id", "ASC");
 
-        Page<UserEntity> entityPage = userRepository.findAll(spec, pageable);
+        Page<UserEntity> entityPage = userRepository.findAll(spec, Objects.requireNonNull(pageable));
         Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
 
         // Build pagination request for response
@@ -152,7 +155,7 @@ public class UserService {
         userEntity.setActive(true);
 
         // Generate random password
-        String randomPassword = CommonUtils.randomPassword(12);
+        String randomPassword = CommonUtils.randomPassword(CommonConstant.DEFAULT_PASSWORD_LENGTH);
         userEntity.setPassword(passwordEncoder.encode(randomPassword));
 
 
@@ -261,7 +264,7 @@ public class UserService {
             userEntity.setRoles(roles);
         }
 
-        UserEntity updatedEntity = userRepository.save(userEntity);
+        UserEntity updatedEntity = userRepository.save(Objects.requireNonNull(userEntity));
         log.info("Updated user with id: {}", updatedEntity.getId());
         return userMapping.toDto(updatedEntity);
     }
@@ -282,120 +285,6 @@ public class UserService {
         userEntity.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(userEntity);
         log.info("Password updated for user with id: {}", id);
-    }
-
-    @Transactional(readOnly = true)
-    public PaginationResponse<UserDto> getUsersWithBirthday(
-            PaginationRequest paginationRequest,
-            LocalDate date) {
-        log.debug("Getting users with birthday on date: {}", date);
-
-        // Use today's date if not provided
-        LocalDate targetDate = date != null ? date : LocalDate.now();
-        String targetDateStr = String.format("%02d-%02d", targetDate.getMonthValue(), targetDate.getDayOfMonth());
-
-        // Build specification for filtering by birthday (month and day, ignoring year)
-        Specification<UserEntity> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            var userInfoPath = root.get("userInfo");
-
-            // Filter by birth date (month and day, ignoring year)
-            Predicate birthDateNotNull = cb.isNotNull(userInfoPath.get("birthDate"));
-
-            // Format birth date as MM-DD and compare with target date
-            // Using PostgreSQL TO_CHAR function: TO_CHAR(birth_date, 'MM-DD')
-            Predicate dateMatch = cb.equal(
-                    cb.function("TO_CHAR", String.class,
-                            userInfoPath.get("birthDate"),
-                            cb.literal("MM-DD")),
-                    targetDateStr
-            );
-
-            predicates.add(cb.and(birthDateNotNull, dateMatch));
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-
-        // Build pageable with default sort by id asc
-        Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "id", "ASC");
-
-        Page<UserEntity> entityPage = userRepository.findAll(spec, pageable);
-        Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
-
-        // Build pagination request for response
-        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank()
-                ? paginationRequest.getSortBy() : "id";
-        String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
-                ? paginationRequest.getDirection() : "ASC";
-        PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
-                paginationRequest, actualSortBy, actualDirection);
-
-        return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
-    }
-
-    @Transactional(readOnly = true)
-    public PaginationResponse<UserDto> getUsersWithBirthdayToday(PaginationRequest paginationRequest) {
-        return getUsersWithBirthday(paginationRequest, LocalDate.now());
-    }
-
-    @Transactional(readOnly = true)
-    public PaginationResponse<UserDto> getUsersWithUpcomingBirthdays(PaginationRequest paginationRequest) {
-        log.debug("Getting users with upcoming birthdays");
-        LocalDate today = LocalDate.now();
-
-        // Generate list of month-day strings for the next 4 days
-        List<String> upcomingDates = new ArrayList<>();
-        for (int i = 1; i <= 4; i++) {
-            LocalDate upcomingDate = today.plusDays(i);
-            String dateStr = String.format("%02d-%02d", upcomingDate.getMonthValue(), upcomingDate.getDayOfMonth());
-            upcomingDates.add(dateStr);
-        }
-
-        // Build specification for filtering by upcoming birthdays (month and day, ignoring year)
-        Specification<UserEntity> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            var userInfoPath = root.get("userInfo");
-
-            // Filter by birth date (month and day, ignoring year)
-            Predicate birthDateNotNull = cb.isNotNull(userInfoPath.get("birthDate"));
-
-            // Create predicates for each upcoming date
-            List<Predicate> datePredicates = new ArrayList<>();
-            for (String dateStr : upcomingDates) {
-                Predicate dateMatch = cb.equal(
-                        cb.function("TO_CHAR", String.class,
-                                userInfoPath.get("birthDate"),
-                                cb.literal("MM-DD")),
-                        dateStr
-                );
-                datePredicates.add(dateMatch);
-            }
-
-            // Combine all date predicates with OR
-            Predicate anyUpcomingDate = cb.or(datePredicates.toArray(new Predicate[0]));
-
-            predicates.add(cb.and(birthDateNotNull, anyUpcomingDate));
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-
-        // Build pageable with default sort by id asc
-        Pageable pageable = CommonUtils.buildPageableWithDefaultSort(paginationRequest, "id", "ASC");
-
-        Page<UserEntity> entityPage = userRepository.findAll(spec, pageable);
-        Page<UserDto> dtoPage = userMapping.toDtoPageable(entityPage);
-
-        // Build pagination request for response
-        String actualSortBy = paginationRequest.getSortBy() != null && !paginationRequest.getSortBy().isBlank()
-                ? paginationRequest.getSortBy() : "id";
-        String actualDirection = paginationRequest.getDirection() != null && !paginationRequest.getDirection().isBlank()
-                ? paginationRequest.getDirection() : "ASC";
-        PaginationRequest responseRequest = CommonUtils.buildPaginationRequestForResponse(
-                paginationRequest, actualSortBy, actualDirection);
-
-        return CommonUtils.buildPaginationResponse(dtoPage, responseRequest);
     }
 
     @Transactional(readOnly = true)

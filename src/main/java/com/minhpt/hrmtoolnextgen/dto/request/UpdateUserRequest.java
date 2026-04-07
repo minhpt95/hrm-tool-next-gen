@@ -1,9 +1,12 @@
 package com.minhpt.hrmtoolnextgen.dto.request;
 
+import com.minhpt.hrmtoolnextgen.annotation.SafeString;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserRole;
 import com.minhpt.hrmtoolnextgen.dto.user.UserInfoDto;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,9 +22,12 @@ import java.util.Collection;
 @NoArgsConstructor
 @Schema(description = "Payload for updating an existing employee account")
 public class UpdateUserRequest {
+    @Email(message = "Email must be a valid email address")
+    @SafeString
     @Schema(description = "Updated email address")
     private String email;
 
+    @Valid
     @Schema(description = "Updated profile information")
     private UserInfoDto userInfo;
 

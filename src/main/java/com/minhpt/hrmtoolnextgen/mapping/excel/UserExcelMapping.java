@@ -2,7 +2,6 @@ package com.minhpt.hrmtoolnextgen.mapping.excel;
 
 import com.minhpt.hrmtoolnextgen.dto.user.UserExcelDto;
 import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserEntity;
-import com.minhpt.hrmtoolnextgen.mapping.common.BaseMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

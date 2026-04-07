@@ -1,6 +1,7 @@
 package com.minhpt.hrmtoolnextgen.controller;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.dashboard.DashboardSummaryDto;
 import com.minhpt.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.minhpt.hrmtoolnextgen.service.DashboardService;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/api/admin/dashboard")
+@RequestMapping({ApiConstant.ADMIN_DASHBOARD_BASE, ApiConstant.ADMIN_DASHBOARD_V1_BASE})
 @Tag(name = "Dashboard", description = "Dashboard metrics for administrators")
 public class DashboardController {
 

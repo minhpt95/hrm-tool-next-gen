@@ -12,6 +12,7 @@ import java.util.UUID;
 public class LoginResponse {
     private Long id;
     private String accessToken;
+    @Builder.Default
     private String type = "Bearer";
     private String firstName;
     private String lastName;

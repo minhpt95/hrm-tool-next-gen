@@ -1,6 +1,21 @@
 package com.minhpt.hrmtoolnextgen.controller;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.minhpt.hrmtoolnextgen.component.MessageService;
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.dayoff.DayOffDto;
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.minhpt.hrmtoolnextgen.dto.project.ProjectDto;
@@ -19,25 +34,21 @@ import com.minhpt.hrmtoolnextgen.enumeration.EUserRole;
 import com.minhpt.hrmtoolnextgen.service.DayOffService;
 import com.minhpt.hrmtoolnextgen.service.ProjectService;
 import com.minhpt.hrmtoolnextgen.service.TimesheetService;
+import com.minhpt.hrmtoolnextgen.service.UserBirthdayService;
 import com.minhpt.hrmtoolnextgen.service.UserService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/api/user")
+@RequestMapping({ApiConstant.USER_BASE, ApiConstant.USER_V1_BASE})
 @Tag(name = "User", description = "CRUD APIs for User")
 public class UserController {
 
@@ -45,6 +56,7 @@ public class UserController {
     private final ProjectService projectService;
     private final DayOffService dayOffService;
     private final UserService userService;
+    private final UserBirthdayService userBirthdayService;
     private final MessageService messageService;
 
     @PostMapping("/timesheet")
@@ -138,7 +150,7 @@ public class UserController {
                 .direction(direction)
                 .build();
 
-        PaginationResponse<UserDto> users = userService.getUsersWithBirthdayToday(paginationRequest);
+        PaginationResponse<UserDto> users = userBirthdayService.getUsersWithBirthdayToday(paginationRequest);
         return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 
@@ -161,7 +173,7 @@ public class UserController {
                 .direction(direction)
                 .build();
 
-        PaginationResponse<UserDto> users = userService.getUsersWithUpcomingBirthdays(paginationRequest);
+        PaginationResponse<UserDto> users = userBirthdayService.getUsersWithUpcomingBirthdays(paginationRequest);
         return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 

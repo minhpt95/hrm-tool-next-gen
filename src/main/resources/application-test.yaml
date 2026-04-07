@@ -49,6 +49,8 @@ hrm:
     jwtSecret: ${JWT_SECRET:test-jwt-secret-change-me}
     jwtExpiration: ${JWT_EXPIRATION:86400000}
     refreshTokenExpiration: ${REFRESH_TOKEN_EXPIRATION:86400000}
+  security:
+    swagger-enabled: true
 logging:
   level:
     com:

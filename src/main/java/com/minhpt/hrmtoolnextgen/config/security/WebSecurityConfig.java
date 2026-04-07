@@ -1,14 +1,11 @@
 package com.minhpt.hrmtoolnextgen.config.security;
 
-import com.minhpt.hrmtoolnextgen.component.jwt.JwtAuthTokenFilter;
-import com.minhpt.hrmtoolnextgen.component.jwt.JwtProvider;
-import com.minhpt.hrmtoolnextgen.constant.RoleConstant;
-import com.minhpt.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
-import com.minhpt.hrmtoolnextgen.service.security.UserDetailsServiceImpl;
-import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,25 +17,35 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
+import com.minhpt.hrmtoolnextgen.component.jwt.JwtAuthTokenFilter;
+import com.minhpt.hrmtoolnextgen.component.jwt.JwtProvider;
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
+import com.minhpt.hrmtoolnextgen.constant.RoleConstant;
+import com.minhpt.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
+import com.minhpt.hrmtoolnextgen.service.security.UserDetailsServiceImpl;
+
+import lombok.extern.log4j.Log4j2;
+import lombok.RequiredArgsConstructor;
 
 @Log4j2
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class WebSecurityConfig implements WebMvcConfigurer {
     private final UserDetailsServiceImpl userDetailsService;
     // Inject via the interface type to work with JDK dynamic proxies
     private final AuthenticationEntryPoint unauthorizedHandler;
     private final JwtProvider jwtProvider;
     private final UserTokenRedisRepository userTokenRedisRepository;
+
+        @Value("${hrm.security.swagger-enabled:false}")
+        private boolean swaggerEnabled;
 
     @Bean
     public JwtAuthTokenFilter authenticationJwtTokenFilter() {
@@ -71,13 +78,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
-        DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
-        expressionHandler.setRoleHierarchy(roleHierarchy);
-        return expressionHandler;
-    }
-
-    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y, 10);
     }
@@ -88,48 +88,91 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         // 1. CORS and CSRF Configuration
         http
                 .cors(AbstractHttpConfigurer::disable)
-                .csrf(AbstractHttpConfigurer::disable); // Use new lambda style for disabling
+                .csrf(AbstractHttpConfigurer::disable);
+
+        // 2. Security response headers
+        http
+                .headers(headers -> headers
+                        .contentTypeOptions(ct -> {}) // X-Content-Type-Options: nosniff
+                        .frameOptions(fo -> fo.deny())  // X-Frame-Options: DENY
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31_536_000))
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; frame-ancestors 'none'"))
+                );
 
 
         // 2. Authorization Rules
         http
-                .authorizeHttpRequests(authz -> authz
-                        // Permit access to public endpoints
-                        .requestMatchers(
+                .authorizeHttpRequests(authz -> {
+                    if (swaggerEnabled) {
+                        authz.requestMatchers(
                                 "/swagger-ui.html",
-                                "/swagger-ui/**", // Permit Swagger UI
-                                "/v3/api-docs/**" // Permit OpenAPI v3 docs (adjust path if necessary)
-                        ).permitAll()
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll();
+                    } else {
+                        authz.requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).denyAll();
+                    }
 
-                        .requestMatchers(
-                                "/error" // Allow Error
-                        ).permitAll()
+                    authz.requestMatchers(
+                            "/error"
+                    ).permitAll();
 
-                        .requestMatchers(
-                                "/actuator/health" // Health Check
-                        ).permitAll()
+                    authz.requestMatchers(
+                            "/actuator/health"
+                    ).permitAll();
 
-                        .requestMatchers(
-                                "/api/auth/login" // Login API
-                        ).permitAll()
+                    authz.requestMatchers(
+                            ApiConstant.AUTH_BASE + "/**",
+                            ApiConstant.AUTH_V1_BASE + "/**"
+                    ).permitAll();
 
-                        .requestMatchers(
-                                "/api/admin",
-                                "/api/admin/**"
-                        ).hasAnyAuthority(RoleConstant.ADMIN, RoleConstant.IT_ADMIN)
+                    authz.requestMatchers(
+                            ApiConstant.ADMIN_BASE,
+                            ApiConstant.ADMIN_BASE + "/**",
+                            ApiConstant.ADMIN_V1_BASE,
+                            ApiConstant.ADMIN_V1_BASE + "/**"
+                    ).hasAnyAuthority(RoleConstant.ADMIN, RoleConstant.IT_ADMIN);
 
-                        .requestMatchers(
-                                "/api/manager",
-                                "/api/manager/**"
-                        ).hasAuthority(RoleConstant.PROJECT_MANAGER)
+                    authz.requestMatchers(
+                            ApiConstant.MANAGER_BASE,
+                            ApiConstant.MANAGER_BASE + "/**",
+                            ApiConstant.MANAGER_V1_BASE,
+                            ApiConstant.MANAGER_V1_BASE + "/**"
+                    ).hasAuthority(RoleConstant.PROJECT_MANAGER);
 
-                        .requestMatchers(
-                                "/api/user",
-                                "/api/user/**"
-                        ).hasAuthority(RoleConstant.USER)
+                    authz.requestMatchers(
+                            ApiConstant.USER_BASE,
+                            ApiConstant.USER_BASE + "/**",
+                            ApiConstant.USER_V1_BASE,
+                            ApiConstant.USER_V1_BASE + "/**",
+                            ApiConstant.SSE_BASE,
+                            ApiConstant.SSE_BASE + "/**",
+                            ApiConstant.SSE_V1_BASE,
+                            ApiConstant.SSE_V1_BASE + "/**"
+                    ).hasAnyAuthority(
+                            RoleConstant.USER,
+                            RoleConstant.PROJECT_MANAGER,
+                            RoleConstant.HR,
+                            RoleConstant.ADMIN,
+                            RoleConstant.IT_ADMIN
+                    );
 
-                        .anyRequest().authenticated()
-                );
+                    authz.requestMatchers(
+                            ApiConstant.HOLIDAYS_BASE,
+                            ApiConstant.HOLIDAYS_BASE + "/**",
+                            ApiConstant.HOLIDAYS_V1_BASE,
+                            ApiConstant.HOLIDAYS_V1_BASE + "/**"
+                    ).authenticated();
+
+                    authz.anyRequest().authenticated();
+                });
 
         http
                 .exceptionHandling(exception -> exception
@@ -148,7 +191,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+    public void addArgumentResolvers(@NonNull List<HandlerMethodArgumentResolver> resolvers) {
         WebMvcConfigurer.super.addArgumentResolvers(resolvers);
     }
 }

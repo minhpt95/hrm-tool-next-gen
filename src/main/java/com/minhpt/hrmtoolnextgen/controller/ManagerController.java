@@ -1,6 +1,7 @@
 package com.minhpt.hrmtoolnextgen.controller;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.dayoff.DayOffDto;
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.minhpt.hrmtoolnextgen.dto.project.ProjectDto;
@@ -31,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @Log4j2
-@RequestMapping("/api/manager")
+@RequestMapping({ApiConstant.MANAGER_BASE, ApiConstant.MANAGER_V1_BASE})
 @Tag(name = "Manager", description = "CRUD APIs for Manager")
 public class ManagerController {
 

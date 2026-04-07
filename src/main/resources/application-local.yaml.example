@@ -7,8 +7,8 @@ spring:
   mail:
     host: sandbox.smtp.mailtrap.io
     port: '587'
-    username: e7293b181fa903
-    password: 2785eee5ecd256
+    username: CHANGE_ME
+    password: CHANGE_ME
   datasource:
     url: 'jdbc:postgresql://localhost:5433/hrm'
     username: postgres
@@ -35,23 +35,19 @@ system:
     mail: HRM System
 aws:
   s3:
-    accessKeyId: AKIA2ZKIEPJATUNMPXY3
-    secretAccessKey: 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
+    accessKeyId: CHANGE_ME
+    secretAccessKey: CHANGE_ME
     region: ap-southeast-1
     bucket: hrm-tool
     object:
       url: 'https://${aws.s3.bucket}.s3.${aws.s3.region}.amazonaws.com/'
 calendarific:
   api:
-    key: rUDjT57F2lrBFKQPt1l7C51bKJ7GMfPN
+    key: CHANGE_ME
     url: https://calendarific.com/api/v2/holidays
 hrm:
   app:
     jwtSecret: CHANGE_ME_local_dev_secret_min_32_chars
-    # Set this to the old secret when rotating keys locally
-    jwtSecretPrevious: CHANGE_ME_local_dev_secret_min_32_chars
-  security:
-    swagger-enabled: true
 server:
   address: 0.0.0.0
   port: 9800

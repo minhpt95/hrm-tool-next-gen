@@ -17,6 +17,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -29,7 +30,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "user_infos")
+@Table(name = "user_infos", indexes = {
+        @Index(name = "idx_user_infos_birth_date", columnList = "birth_date")
+})
 @SQLDelete(sql = "UPDATE user_infos SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
 @SQLRestriction("is_delete = FALSE")
 public class UserInfoEntity extends IdentityEntity {

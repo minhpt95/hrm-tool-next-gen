@@ -20,6 +20,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -33,7 +34,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_users_active_delete", columnList = "is_active, is_delete")
+})
 @SQLDelete(sql = "UPDATE users SET is_delete = TRUE, deleted_date = NOW() WHERE id = ?")
 @SQLRestriction("is_delete = FALSE")
 @Getter
@@ -100,6 +103,7 @@ public class UserEntity extends IdentityEntity {
     private List<TimesheetEntity> bonusHours = new ArrayList<>();
 
     @PostLoad
+        @SuppressWarnings("unused")
     private void loadToTransientData() {
         this.normalHours = timesheets.stream().filter(x -> x.getType() == ETimesheetType.NORMAL).toList();
         this.overtimeHours = timesheets.stream().filter(x -> x.getType() == ETimesheetType.OVERTIME).toList();

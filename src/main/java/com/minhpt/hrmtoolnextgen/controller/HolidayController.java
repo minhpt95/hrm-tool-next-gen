@@ -1,6 +1,7 @@
 package com.minhpt.hrmtoolnextgen.controller;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.holiday.HolidayDto;
 import com.minhpt.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.minhpt.hrmtoolnextgen.service.HolidayService;
@@ -22,7 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("/api/holidays")
+@RequestMapping({ApiConstant.HOLIDAYS_BASE, ApiConstant.HOLIDAYS_V1_BASE})
 @Tag(name = "Holidays", description = "Vietnam holidays and lunar calendar holidays API")
 public class HolidayController {
 

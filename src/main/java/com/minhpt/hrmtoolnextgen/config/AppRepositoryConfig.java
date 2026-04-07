@@ -1,14 +1,12 @@
 package com.minhpt.hrmtoolnextgen.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
-import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
+/**
+ * Placeholder retained for future repository-level configuration.
+ * (spring-boot-starter-data-rest was removed; repository exposure is
+ * controlled exclusively via Spring Security rules.)
+ */
 @Configuration
-public class AppRepositoryConfig implements RepositoryRestConfigurer {
-    @Override
-    public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
-        config.setExposeRepositoryMethodsByDefault(false);
-    }
+public class AppRepositoryConfig {
 }

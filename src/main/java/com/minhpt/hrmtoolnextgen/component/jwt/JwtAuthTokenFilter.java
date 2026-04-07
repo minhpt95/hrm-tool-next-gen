@@ -1,10 +1,19 @@
 package com.minhpt.hrmtoolnextgen.component.jwt;
 
+import java.io.IOException;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.minhpt.hrmtoolnextgen.entity.redis.UserTokenRedisEntity;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserTokenType;
 import com.minhpt.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
 import com.minhpt.hrmtoolnextgen.service.security.UserDetailsServiceImpl;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,13 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -98,10 +100,11 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
             return null;
         }
 
-        if (!StringUtils.containsIgnoreCase(authHeader, "Bearer ")) {
-            return authHeader.trim();
+        if (!StringUtils.startsWithIgnoreCase(authHeader, "Bearer ")) {
+            log.warn("Authorization header present but does not start with 'Bearer ': rejecting");
+            return null;
         }
 
-        return StringUtils.replaceIgnoreCase(authHeader, "bearer", "", 1).trim();
+        return authHeader.substring(7).trim();
     }
 }

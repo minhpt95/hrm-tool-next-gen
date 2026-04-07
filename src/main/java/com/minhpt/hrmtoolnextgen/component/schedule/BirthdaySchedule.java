@@ -1,23 +1,26 @@
 package com.minhpt.hrmtoolnextgen.component.schedule;
 
-import com.minhpt.hrmtoolnextgen.dto.user.UserDto;
-import com.minhpt.hrmtoolnextgen.service.EmailService;
-import com.minhpt.hrmtoolnextgen.service.UserService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
-import com.minhpt.hrmtoolnextgen.dto.response.PaginationResponse;
 import java.time.LocalDate;
 import java.util.List;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
+import com.minhpt.hrmtoolnextgen.dto.response.PaginationResponse;
+import com.minhpt.hrmtoolnextgen.dto.user.UserDto;
+import com.minhpt.hrmtoolnextgen.service.EmailService;
+import com.minhpt.hrmtoolnextgen.service.UserBirthdayService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Component
 @RequiredArgsConstructor
 @Log4j2
 public class BirthdaySchedule {
 
-    private final UserService userService;
+    private final UserBirthdayService userBirthdayService;
     private final EmailService emailService;
 
     /**
@@ -43,7 +46,7 @@ public class BirthdaySchedule {
                         .build();
 
                 PaginationResponse<UserDto> response = 
-                    userService.getUsersWithBirthdayToday(paginationRequest);
+                    userBirthdayService.getUsersWithBirthdayToday(paginationRequest);
 
                 List<UserDto> users = response.getItems();
                 

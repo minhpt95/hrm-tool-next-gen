@@ -24,7 +24,7 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
-    show-sql: true
+    show-sql: false
     generate-ddl: false
     properties:
       format_sql: true
@@ -45,8 +45,6 @@ spring:
       file-size-threshold: 15MB
       max-file-size: 20MB
       max-request-size: 20MB
-  main:
-    allow-bean-definition-overriding: true
   liquibase:
     enabled: true
     url: '${spring.datasource.url}'
@@ -82,7 +80,11 @@ logging:
         hrmtoolnextgen: DEBUG
 hrm:
   app:
-    jwtSecret: 78Obiiz91cAbwzreim1DnLXbn2UGZuKZ
+    jwtSecret: ${JWT_SECRET}
+    # During key rotation: set this to the old JWT_SECRET value.
+    # Tokens signed with the previous key remain valid until they expire.
+    # Clear this once all previously-issued tokens have expired.
+    jwtSecretPrevious: ${JWT_SECRET_PREVIOUS:}
     jwtExpiration: '86400000'
     refreshTokenExpiration: '86400000'
     resetPasswordTokenExpiration: '3600000'  # 1 hour in milliseconds
@@ -90,6 +92,8 @@ hrm:
       url: ${FRONTEND_URL:http://localhost:3000}  # Frontend URL for password reset links
   api:
     prefix: /api
+  security:
+    swagger-enabled: false
 
 springdoc:
   swagger-ui:

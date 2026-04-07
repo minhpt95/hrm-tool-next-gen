@@ -1,6 +1,7 @@
 package com.minhpt.hrmtoolnextgen.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.minhpt.hrmtoolnextgen.annotation.SafeString;
 import com.minhpt.hrmtoolnextgen.enumeration.EProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
@@ -21,9 +22,11 @@ import java.util.List;
 @Schema(description = "Payload for creating a project")
 public class CreateProjectRequest {
     @NotEmpty
+    @SafeString
     @Schema(description = "Project name displayed to end users")
     private String projectName;
 
+    @SafeString
     @Schema(description = "Optional project summary/description")
     private String projectDescription;
 

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="28-01-project-indexes" author="copilot">
+        <createIndex tableName="projects" indexName="idx_projects_delete_status">
+            <column name="is_delete"/>
+            <column name="project_status"/>
+        </createIndex>
+        <createIndex tableName="projects" indexName="idx_projects_manager">
+            <column name="project_manager"/>
+        </createIndex>
+        <createIndex tableName="projects" indexName="idx_projects_delete_created">
+            <column name="is_delete"/>
+            <column name="create_date"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="28-01-timesheet-indexes" author="copilot">
+        <createIndex tableName="timesheets" indexName="idx_timesheets_user_day_status">
+            <column name="user_id"/>
+            <column name="working_day"/>
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="timesheets" indexName="idx_timesheets_project_status">
+            <column name="project_id"/>
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="timesheets" indexName="idx_timesheets_delete_created">
+            <column name="is_delete"/>
+            <column name="create_date"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="28-01-day-off-indexes" author="copilot">
+        <createIndex tableName="day_offs" indexName="idx_day_offs_requested_status">
+            <column name="requested_by"/>
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="day_offs" indexName="idx_day_offs_requested_range">
+            <column name="requested_by"/>
+            <column name="start_time"/>
+            <column name="end_time"/>
+        </createIndex>
+        <createIndex tableName="day_offs" indexName="idx_day_offs_delete_requested_at">
+            <column name="is_delete"/>
+            <column name="requested_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="28-01-user-indexes" author="copilot">
+        <createIndex tableName="users" indexName="idx_users_active_delete">
+            <column name="is_active"/>
+            <column name="is_delete"/>
+        </createIndex>
+        <createIndex tableName="users_projects_working" indexName="idx_users_projects_working_project_user">
+            <column name="project_id"/>
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="users_projects_working" indexName="idx_users_projects_working_user_project">
+            <column name="user_id"/>
+            <column name="project_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="28-01-user-info-indexes" author="copilot">
+        <createIndex tableName="user_infos" indexName="idx_user_infos_birth_date">
+            <column name="birth_date"/>
+        </createIndex>
+        <sql dbms="postgresql">
+            CREATE INDEX IF NOT EXISTS idx_user_infos_birth_mm_dd
+            ON user_infos ((EXTRACT(MONTH FROM birth_date)), (EXTRACT(DAY FROM birth_date)));
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

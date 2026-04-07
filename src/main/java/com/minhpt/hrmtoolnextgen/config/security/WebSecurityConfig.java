@@ -2,6 +2,8 @@ package com.minhpt.hrmtoolnextgen.config.security;
 
 import java.util.List;
 
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,16 +11,17 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -52,17 +55,15 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         return new JwtAuthTokenFilter(jwtProvider, userDetailsService, userTokenRedisRepository);
     }
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
+        private DaoAuthenticationProvider daoAuthenticationProvider() {
         var authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-
         return authProvider;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfiguration) throws Exception {
-        return authConfiguration.getAuthenticationManager();
+        public AuthenticationManager authenticationManager() {
+                return new ProviderManager(daoAuthenticationProvider());
     }
 
     @Bean
@@ -105,74 +106,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
         // 2. Authorization Rules
         http
-                .authorizeHttpRequests(auth -> {
-                    if (swaggerEnabled) {
-                        auth.requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll();
-                    } else {
-                        auth.requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).denyAll();
-                    }
-
-                    auth.requestMatchers(
-                            "/error"
-                    ).permitAll();
-
-                    auth.requestMatchers(
-                            "/actuator/health"
-                    ).permitAll();
-
-                    auth.requestMatchers(
-                            ApiConstant.AUTH_BASE + "/**",
-                            ApiConstant.AUTH_V1_BASE + "/**"
-                    ).permitAll();
-
-                    auth.requestMatchers(
-                            ApiConstant.ADMIN_BASE,
-                            ApiConstant.ADMIN_BASE + "/**",
-                            ApiConstant.ADMIN_V1_BASE,
-                            ApiConstant.ADMIN_V1_BASE + "/**"
-                    ).hasAnyAuthority(RoleConstant.ADMIN, RoleConstant.IT_ADMIN);
-
-                    auth.requestMatchers(
-                            ApiConstant.MANAGER_BASE,
-                            ApiConstant.MANAGER_BASE + "/**",
-                            ApiConstant.MANAGER_V1_BASE,
-                            ApiConstant.MANAGER_V1_BASE + "/**"
-                    ).hasAuthority(RoleConstant.PROJECT_MANAGER);
-
-                    auth.requestMatchers(
-                            ApiConstant.USER_BASE,
-                            ApiConstant.USER_BASE + "/**",
-                            ApiConstant.USER_V1_BASE,
-                            ApiConstant.USER_V1_BASE + "/**",
-                            ApiConstant.SSE_BASE,
-                            ApiConstant.SSE_BASE + "/**",
-                            ApiConstant.SSE_V1_BASE,
-                            ApiConstant.SSE_V1_BASE + "/**"
-                    ).hasAnyAuthority(
-                            RoleConstant.USER,
-                            RoleConstant.PROJECT_MANAGER,
-                            RoleConstant.HR,
-                            RoleConstant.ADMIN,
-                            RoleConstant.IT_ADMIN
-                    );
-
-                    auth.requestMatchers(
-                            ApiConstant.HOLIDAYS_BASE,
-                            ApiConstant.HOLIDAYS_BASE + "/**",
-                            ApiConstant.HOLIDAYS_V1_BASE,
-                            ApiConstant.HOLIDAYS_V1_BASE + "/**"
-                    ).authenticated();
-
-                    auth.anyRequest().authenticated();
-                });
+                .authorizeHttpRequests(this::configureAuthorizationRules);
 
         http
                 .exceptionHandling(exception -> exception
@@ -184,6 +118,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
+        http.authenticationProvider(daoAuthenticationProvider());
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -193,6 +128,53 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Override
     public void addArgumentResolvers(@NonNull List<HandlerMethodArgumentResolver> resolvers) {
         WebMvcConfigurer.super.addArgumentResolvers(resolvers);
+    }
+
+    private void configureAuthorizationRules(
+            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        configureSwaggerAccess(auth);
+        configurePublicAccess(auth);
+        configureActuatorAccess(auth);
+        configureApplicationAccess(auth);
+        auth.anyRequest().authenticated();
+    }
+
+    private void configureSwaggerAccess(
+            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        if (swaggerEnabled) {
+            auth.requestMatchers(ApiConstant.SWAGGER_ENDPOINTS)
+                    .hasAnyAuthority(RoleConstant.ADMIN_AUTHORITIES);
+            return;
+        }
+
+        auth.requestMatchers(ApiConstant.SWAGGER_ENDPOINTS).denyAll();
+    }
+
+    private void configurePublicAccess(
+            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth.requestMatchers("/error").permitAll();
+        auth.requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll();
+        auth.requestMatchers(ApiConstant.AUTH_ENDPOINTS).permitAll();
+    }
+
+    private void configureActuatorAccess(
+            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth.requestMatchers(EndpointRequest.toAnyEndpoint())
+                .hasAnyAuthority(RoleConstant.ADMIN_AUTHORITIES);
+    }
+
+    private void configureApplicationAccess(
+            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth.requestMatchers(ApiConstant.ADMIN_ENDPOINTS)
+                .hasAnyAuthority(RoleConstant.ADMIN_AUTHORITIES);
+
+        auth.requestMatchers(ApiConstant.MANAGER_ENDPOINTS)
+                .hasAuthority(RoleConstant.PROJECT_MANAGER);
+
+        auth.requestMatchers(ApiConstant.USER_ENDPOINTS)
+                .hasAnyAuthority(RoleConstant.USER_ACCESS_AUTHORITIES);
+
+        auth.requestMatchers(ApiConstant.HOLIDAY_ENDPOINTS).authenticated();
     }
 }
 

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -36,6 +37,7 @@ public class RateLimitingAspect {
 
     private final TokenBucketRateLimiter rateLimiter;
     private final MessageService messageService;
+    private final MeterRegistry meterRegistry;
 
     @Around("@annotation(rateLimit)")
     public Object enforce(ProceedingJoinPoint pjp, RateLimit rateLimit) throws Throwable {
@@ -45,6 +47,12 @@ public class RateLimitingAspect {
         if (!rateLimiter.tryConsume(redisKey, rateLimit.capacity(), rateLimit.refillRate())) {
             log.warn("Rate limit exceeded – key: {}, capacity: {}, refillRate: {}/min",
                     redisKey, rateLimit.capacity(), rateLimit.refillRate());
+            meterRegistry.counter(
+                "hrm.rate_limit.violations",
+                "key_prefix", rateLimit.keyPrefix(),
+                "strategy", rateLimit.strategy().name(),
+                "method", pjp.getSignature().getName()
+            ).increment();
             throw new RateLimitException(messageService.getMessage("rate.limit.exceeded"));
         }
 

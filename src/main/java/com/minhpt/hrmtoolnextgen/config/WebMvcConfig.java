@@ -1,6 +1,7 @@
 package com.minhpt.hrmtoolnextgen.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.minhpt.hrmtoolnextgen.config.interceptor.LegacyApiDeprecationInterceptor;
 import com.minhpt.hrmtoolnextgen.dto.user.UserInfoDto;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserRole;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
@@ -20,11 +22,17 @@ import java.util.List;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final ObjectMapper objectMapper;
+    private final LegacyApiDeprecationInterceptor legacyApiDeprecationInterceptor;
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
         registry.addConverter(new StringToUserInfoDtoConverter(objectMapper));
         registry.addConverter(new StringToEUserRoleCollectionConverter(objectMapper));
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(legacyApiDeprecationInterceptor);
     }
 
     /**

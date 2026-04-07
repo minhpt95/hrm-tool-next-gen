@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -71,6 +72,7 @@ public class UserEntity extends IdentityEntity {
     private List<ProjectEntity> projectManagements = new ArrayList<>();
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @BatchSize(size = 50)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(

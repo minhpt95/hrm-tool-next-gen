@@ -61,6 +61,16 @@ and more, following a layered architecture (controller → service → repositor
 
 This is a high-level overview of the main REST entry points. For full details, use Swagger UI (see `SwaggerConfig`) or OpenAPI docs.
 
+Versioning and deprecation:
+
+- Legacy endpoints remain available under `/api/...` and `/sse...` for backward compatibility.
+- Versioned endpoints are available under `/api/v1/...`.
+- Legacy endpoints are marked as deprecated in OpenAPI and emit runtime response headers:
+  - `Deprecation: true`
+  - `Sunset: Wed, 31 Dec 2026 23:59:59 GMT`
+  - `Link: <successor-path>; rel="successor-version"`
+- New client integrations should target `/api/v1/...` only.
+
 - **Authentication** – `AuthController`  
   - Base path: `/api/auth`  
   - Login, refresh token, logout, forgot password, reset password.
@@ -168,6 +178,34 @@ logger in `log4j2.xml` to `TRACE`:
     <!-- appenders -->
 </Logger>
 ```
+
+### Monitoring metrics
+
+Spring Boot Actuator is enabled and the application emits rate-limit violation metrics.
+
+- Metric name: `hrm.rate_limit.violations`
+- Tags:
+  - `key_prefix` – logical limiter key prefix such as `ratelimit:login`
+  - `strategy` – `IP`, `USER`, or `GLOBAL`
+  - `method` – intercepted method name
+
+This metric is incremented whenever a request is rejected by the rate limiter.
+
+Prometheus scraping:
+
+- Prometheus-format metrics are exposed at `/actuator/prometheus`.
+- Example scrape config:
+
+```yaml
+scrape_configs:
+  - job_name: hrm-tool-next-gen
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - localhost:9800
+```
+
+- To inspect the series locally, request `/actuator/prometheus` and search for `hrm_rate_limit_violations_total`.
 
 ### Code style & design principles
 

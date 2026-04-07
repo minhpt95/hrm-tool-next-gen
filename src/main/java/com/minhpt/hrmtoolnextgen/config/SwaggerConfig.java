@@ -9,13 +9,15 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 import io.swagger.v3.oas.models.parameters.Parameter;
-import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
+
+import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 
 import java.util.List;
 
@@ -79,4 +81,32 @@ public class SwaggerConfig {
             return operation;
         };
     }
+
+        @Bean
+        public OpenApiCustomizer deprecatedLegacyApiCustomizer() {
+                return openApi -> {
+                        if (openApi.getPaths() == null) {
+                                return;
+                        }
+                        openApi.getPaths().forEach((path, pathItem) -> {
+                                if (!ApiConstant.isLegacyPath(path)) {
+                                        return;
+                                }
+
+                                String successorPath = ApiConstant.toVersionedPath(path);
+                                pathItem.readOperations().forEach(operation -> {
+                                        operation.setDeprecated(true);
+                                        String note = String.format(
+                                                        "Deprecated legacy endpoint. Use %s instead. Sunset: %s.",
+                                                        successorPath,
+                                                        ApiConstant.LEGACY_API_SUNSET
+                                        );
+                                        String description = operation.getDescription();
+                                        operation.setDescription(description == null || description.isBlank()
+                                                        ? note
+                                                        : description + "\n\n" + note);
+                                });
+                        });
+                };
+        }
 }

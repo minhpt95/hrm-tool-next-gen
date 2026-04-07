@@ -102,3 +102,16 @@ springdoc:
     path: /v3/api-docs
     version: OPENAPI_3_1
   packagesToScan: com.minhpt.hrmtoolnextgen.controller
+
+management:
+  endpoint:
+    prometheus:
+      access: read-only
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true

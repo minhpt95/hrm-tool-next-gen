@@ -75,7 +75,6 @@ public class TokenBucketRateLimiter {
     public boolean tryConsume(String key, int capacity, int refillRate) {
         try {
             long nowMs = Instant.now().toEpochMilli();
-            @SuppressWarnings("rawtypes")
             List<?> result = stringRedisTemplate.execute(
                     TOKEN_BUCKET_SCRIPT,
                     List.of(key),
@@ -84,7 +83,7 @@ public class TokenBucketRateLimiter {
                     String.valueOf(nowMs)
             );
 
-            if (result == null || result.isEmpty()) {
+            if (result.isEmpty()) {
                 log.warn("Rate limiter Redis script returned null for key '{}'; allowing request", key);
                 return true; // fail-open: don't block traffic if Redis is temporarily unavailable
             }

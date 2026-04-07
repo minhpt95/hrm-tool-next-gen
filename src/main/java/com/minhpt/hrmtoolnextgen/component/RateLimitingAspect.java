@@ -35,6 +35,7 @@ import lombok.extern.log4j.Log4j2;
 public class RateLimitingAspect {
 
     private final TokenBucketRateLimiter rateLimiter;
+    private final MessageService messageService;
 
     @Around("@annotation(rateLimit)")
     public Object enforce(ProceedingJoinPoint pjp, RateLimit rateLimit) throws Throwable {
@@ -44,7 +45,7 @@ public class RateLimitingAspect {
         if (!rateLimiter.tryConsume(redisKey, rateLimit.capacity(), rateLimit.refillRate())) {
             log.warn("Rate limit exceeded – key: {}, capacity: {}, refillRate: {}/min",
                     redisKey, rateLimit.capacity(), rateLimit.refillRate());
-            throw new RateLimitException("Too many requests. Please try again later.");
+            throw new RateLimitException(messageService.getMessage("rate.limit.exceeded"));
         }
 
         return pjp.proceed();

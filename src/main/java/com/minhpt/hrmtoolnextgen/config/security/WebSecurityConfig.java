@@ -44,8 +44,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     private final JwtProvider jwtProvider;
     private final UserTokenRedisRepository userTokenRedisRepository;
 
-        @Value("${hrm.security.swagger-enabled:false}")
-        private boolean swaggerEnabled;
+    @Value("${hrm.security.swagger-enabled:false}")
+    private boolean swaggerEnabled;
 
     @Bean
     public JwtAuthTokenFilter authenticationJwtTokenFilter() {
@@ -105,49 +105,49 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
         // 2. Authorization Rules
         http
-                .authorizeHttpRequests(authz -> {
+                .authorizeHttpRequests(auth -> {
                     if (swaggerEnabled) {
-                        authz.requestMatchers(
+                        auth.requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll();
                     } else {
-                        authz.requestMatchers(
+                        auth.requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).denyAll();
                     }
 
-                    authz.requestMatchers(
+                    auth.requestMatchers(
                             "/error"
                     ).permitAll();
 
-                    authz.requestMatchers(
+                    auth.requestMatchers(
                             "/actuator/health"
                     ).permitAll();
 
-                    authz.requestMatchers(
+                    auth.requestMatchers(
                             ApiConstant.AUTH_BASE + "/**",
                             ApiConstant.AUTH_V1_BASE + "/**"
                     ).permitAll();
 
-                    authz.requestMatchers(
+                    auth.requestMatchers(
                             ApiConstant.ADMIN_BASE,
                             ApiConstant.ADMIN_BASE + "/**",
                             ApiConstant.ADMIN_V1_BASE,
                             ApiConstant.ADMIN_V1_BASE + "/**"
                     ).hasAnyAuthority(RoleConstant.ADMIN, RoleConstant.IT_ADMIN);
 
-                    authz.requestMatchers(
+                    auth.requestMatchers(
                             ApiConstant.MANAGER_BASE,
                             ApiConstant.MANAGER_BASE + "/**",
                             ApiConstant.MANAGER_V1_BASE,
                             ApiConstant.MANAGER_V1_BASE + "/**"
                     ).hasAuthority(RoleConstant.PROJECT_MANAGER);
 
-                    authz.requestMatchers(
+                    auth.requestMatchers(
                             ApiConstant.USER_BASE,
                             ApiConstant.USER_BASE + "/**",
                             ApiConstant.USER_V1_BASE,
@@ -164,14 +164,14 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                             RoleConstant.IT_ADMIN
                     );
 
-                    authz.requestMatchers(
+                    auth.requestMatchers(
                             ApiConstant.HOLIDAYS_BASE,
                             ApiConstant.HOLIDAYS_BASE + "/**",
                             ApiConstant.HOLIDAYS_V1_BASE,
                             ApiConstant.HOLIDAYS_V1_BASE + "/**"
                     ).authenticated();
 
-                    authz.anyRequest().authenticated();
+                    auth.anyRequest().authenticated();
                 });
 
         http

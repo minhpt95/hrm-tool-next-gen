@@ -10,15 +10,13 @@ import com.minhpt.hrmtoolnextgen.enumeration.EDayOffStatus;
 import com.minhpt.hrmtoolnextgen.exception.BadRequestException;
 import com.minhpt.hrmtoolnextgen.repository.jpa.DayOffRepository;
 import com.minhpt.hrmtoolnextgen.repository.jpa.UserRepository;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -35,23 +33,16 @@ public class DayOffApprovalService {
         log.info("Processing day off approval for user: {} from {} to {} with status: {}",
                 decidedId, request.getStartTime(), request.getEndTime(), request.getStatus());
 
-        UserEntity userEntity = userRepository.findById(decidedId)
+        UserEntity userEntity = userRepository.findById(Objects.requireNonNull(decidedId))
                 .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", decidedId)));
 
-        List<DayOffEntity> dayOffs = dayOffRepository.findAll((root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("requestedBy").get("id"), userPrincipalDto.getId()));
-            predicates.add(cb.equal(root.get("startTime"), request.getStartTime()));
-            predicates.add(cb.equal(root.get("endTime"), request.getEndTime()));
-            predicates.add(cb.equal(root.get("delete"), false));
-            return cb.and(predicates.toArray(Predicate[]::new));
-        });
+        DayOffEntity dayOffEntity = dayOffRepository
+            .findByRequestedByIdAndStartTimeAndEndTimeAndDeleteFalse(
+                userPrincipalDto.getId(),
+                request.getStartTime(),
+                request.getEndTime())
+            .orElseThrow(() -> new BadRequestException(messageService.getMessage("dayoff.not.found")));
 
-        if (dayOffs.isEmpty()) {
-            throw new BadRequestException(messageService.getMessage("dayoff.not.found"));
-        }
-
-        DayOffEntity dayOffEntity = dayOffs.getFirst();
         if (dayOffEntity.getStatus() != EDayOffStatus.PENDING) {
             throw new BadRequestException(messageService.getMessage("dayoff.already.processed"));
         }

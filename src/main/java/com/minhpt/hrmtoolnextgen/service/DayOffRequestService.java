@@ -10,7 +10,6 @@ import com.minhpt.hrmtoolnextgen.enumeration.EDayOffStatus;
 import com.minhpt.hrmtoolnextgen.exception.BadRequestException;
 import com.minhpt.hrmtoolnextgen.repository.jpa.DayOffRepository;
 import com.minhpt.hrmtoolnextgen.repository.jpa.UserRepository;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -18,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +33,7 @@ public class DayOffRequestService {
         Long requestId = userPrincipalDto.getId();
         log.info("Creating day off request for user: {} from {} to {}", requestId, request.getStartTime(), request.getEndTime());
 
-        UserEntity userEntity = userRepository.findById(requestId)
+        UserEntity userEntity = userRepository.findById(Objects.requireNonNull(requestId))
                 .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", requestId)));
 
         LocalDateTime startDateTime = request.getStartTime();
@@ -74,21 +72,14 @@ public class DayOffRequestService {
     }
 
     private void ensureNoOverlap(Long userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        List<DayOffEntity> existingDayOffs = dayOffRepository.findAll((root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("requestedBy").get("id"), userId));
-            predicates.add(cb.equal(root.get("delete"), false));
-            predicates.add(cb.lessThan(root.get("startTime"), endDateTime));
-            predicates.add(cb.greaterThan(root.get("endTime"), startDateTime));
-            return cb.and(predicates.toArray(Predicate[]::new));
-        });
+        boolean overlaps = dayOffRepository.existsByRequestedByIdAndDeleteFalseAndStartTimeLessThanAndEndTimeGreaterThan(
+                userId,
+                endDateTime,
+                startDateTime
+        );
 
-        for (DayOffEntity existing : existingDayOffs) {
-            boolean overlaps = existing.getStartTime().isBefore(endDateTime)
-                    && existing.getEndTime().isAfter(startDateTime);
-            if (overlaps) {
-                throw new BadRequestException(messageService.getMessage("dayoff.overlap.existing"));
-            }
+        if (overlaps) {
+            throw new BadRequestException(messageService.getMessage("dayoff.overlap.existing"));
         }
     }
 

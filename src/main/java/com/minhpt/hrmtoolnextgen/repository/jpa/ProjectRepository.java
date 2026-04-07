@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,16 +19,15 @@ import java.util.Optional;
 public interface ProjectRepository extends JpaRepository<ProjectEntity, Long>, JpaSpecificationExecutor<ProjectEntity> {
     @Override
     @EntityGraph(attributePaths = {
-            "projectManager",
-            "members"
+            "projectManager"
     })
-    Page<ProjectEntity> findAll(Pageable pageable);
+    @NonNull Page<ProjectEntity> findAll(@NonNull Pageable pageable);
 
+    @Override
     @EntityGraph(attributePaths = {
-            "projectManager",
-            "members"
+            "projectManager"
     })
-    Page<ProjectEntity> findAll(Specification<ProjectEntity> spec, Pageable pageable);
+    @NonNull Page<ProjectEntity> findAll(@Nullable Specification<ProjectEntity> spec, @NonNull Pageable pageable);
 
     @EntityGraph(attributePaths = {
             "projectManager",
@@ -42,11 +43,12 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long>, J
 
     boolean existsByNameIgnoreCaseAndDeleteFalse(String name);
 
+    @Override
     @EntityGraph(attributePaths = {
             "projectManager",
             "members"
     })
-    Optional<ProjectEntity> findById(Long id);
+    @NonNull Optional<ProjectEntity> findById(@NonNull Long id);
 
     @Query("""
             SELECT p.projectStatus as status, COUNT(p) as total

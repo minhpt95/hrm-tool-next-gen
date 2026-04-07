@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ public class ProjectEntity extends IdentityEntity {
             CascadeType.PERSIST,
             CascadeType.REFRESH,
     })
+    @BatchSize(size = 50)
     private List<UserEntity> members = new ArrayList<>();
 
     public void addMemberToProject(UserEntity userEntity) {

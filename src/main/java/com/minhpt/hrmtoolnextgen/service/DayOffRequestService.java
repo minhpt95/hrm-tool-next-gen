@@ -19,6 +19,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import static com.minhpt.hrmtoolnextgen.service.DayOffApprovalService.getDayOffDto;
+
 @Service
 @RequiredArgsConstructor
 @Log4j2
@@ -84,17 +86,6 @@ public class DayOffRequestService {
     }
 
     private DayOffDto toDto(DayOffEntity entity) {
-        return DayOffDto.builder()
-                .requestId(entity.getId())
-                .requesterName(entity.getRequestedBy().getUserInfo() != null
-                        ? entity.getRequestedBy().getUserInfo().getFirstName() + " " + entity.getRequestedBy().getUserInfo().getLastName()
-                        : null)
-                .requesterEmail(entity.getRequestedBy().getEmail())
-                .requestTitle(entity.getTitle())
-                .requestReason(entity.getReason())
-                .startTime(entity.getStartTime())
-                .endTime(entity.getEndTime())
-                .status(entity.getStatus())
-                .build();
+        return getDayOffDto(entity);
     }
 }

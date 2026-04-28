@@ -32,10 +32,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>, JpaSpec
     @NonNull Page<UserEntity> findAll(@Nullable org.springframework.data.jpa.domain.Specification<UserEntity> spec,
                                       @NonNull Pageable pageable);
 
-    Optional<UserEntity> findAllByEmail(String email);
-
-    UserEntity findUserEntityByEmail(String email);
-
     Collection<UserEntity> findUserEntitiesByIdIn(List<Long> ids);
 
     @Override

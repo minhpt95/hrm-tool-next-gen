@@ -79,6 +79,8 @@ logging:
       minhpt:
         hrmtoolnextgen: DEBUG
 hrm:
+  sse:
+    timeout-ms: 1800000  # 30 minutes
   app:
     jwtSecret: ${JWT_SECRET}
     # During key rotation: set this to the old JWT_SECRET value.

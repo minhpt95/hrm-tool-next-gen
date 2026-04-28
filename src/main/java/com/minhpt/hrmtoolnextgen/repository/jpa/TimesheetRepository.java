@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TimesheetRepository extends JpaRepository<TimesheetEntity, Long>, JpaSpecificationExecutor<TimesheetEntity>  {
+    @EntityGraph(attributePaths = {"userEntity"})
     List<TimesheetWorkingHourProjection> findByUserEntityIdAndWorkingDayAndStatusNot(Long userId, LocalDate workingDay, ETimesheetStatus status);
 
     @EntityGraph(attributePaths = {

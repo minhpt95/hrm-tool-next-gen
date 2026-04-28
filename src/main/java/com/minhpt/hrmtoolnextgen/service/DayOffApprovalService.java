@@ -30,18 +30,16 @@ public class DayOffApprovalService {
     @Transactional
     public DayOffDto approveDayOffRequest(ApprovalDayOffRequest request, UserPrincipalDto userPrincipalDto) {
         Long decidedId = userPrincipalDto.getId();
-        log.info("Processing day off approval for user: {} from {} to {} with status: {}",
-                decidedId, request.getStartTime(), request.getEndTime(), request.getStatus());
+        log.info("Processing day off approval for user: {} with status: {}",
+                decidedId, request.getStatus());
 
-        UserEntity userEntity = userRepository.findById(Objects.requireNonNull(decidedId))
+        UserEntity decidedUserEntity = userRepository
+                .findById(Objects.requireNonNull(decidedId))
                 .orElseThrow(() -> new BadRequestException(messageService.getMessage("user.not.found", decidedId)));
 
         DayOffEntity dayOffEntity = dayOffRepository
-            .findByRequestedByIdAndStartTimeAndEndTimeAndDeleteFalse(
-                userPrincipalDto.getId(),
-                request.getStartTime(),
-                request.getEndTime())
-            .orElseThrow(() -> new BadRequestException(messageService.getMessage("dayoff.not.found")));
+                .findById(request.getId())
+                .orElseThrow(() -> new BadRequestException(messageService.getMessage("dayoff.not.found", request.getId())));
 
         if (dayOffEntity.getStatus() != EDayOffStatus.PENDING) {
             throw new BadRequestException(messageService.getMessage("dayoff.already.processed"));
@@ -49,15 +47,19 @@ public class DayOffApprovalService {
 
         dayOffEntity.setStatus(request.getStatus());
         dayOffEntity.setDecidedAt(LocalDateTime.now());
-        dayOffEntity.setDecidedBy(userEntity);
+        dayOffEntity.setDecidedBy(decidedUserEntity);
         DayOffEntity savedEntity = dayOffRepository.save(dayOffEntity);
 
-        log.info("Updated day off request status to {} for user: {} from {} to {}",
-                request.getStatus(), decidedId, request.getStartTime(), request.getEndTime());
+        log.info("Updated day off request status to {} for user: {}",
+                request.getStatus(), decidedId);
         return toDto(savedEntity);
     }
 
     private DayOffDto toDto(DayOffEntity entity) {
+        return getDayOffDto(entity);
+    }
+
+    static DayOffDto getDayOffDto(DayOffEntity entity) {
         return DayOffDto.builder()
                 .requestId(entity.getId())
                 .requesterName(entity.getRequestedBy().getUserInfo() != null

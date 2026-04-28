@@ -3,6 +3,7 @@ package com.minhpt.hrmtoolnextgen.service;
 import com.minhpt.hrmtoolnextgen.dto.response.SseEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -16,20 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Log4j2
 public class SseService {
 
-    // Map of connectionId -> SseEmitter
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
-    // Map of userId -> connectionId for tracking user connections
     private final Map<String, String> userConnections = new ConcurrentHashMap<>();
-    private static final long DEFAULT_TIMEOUT = 30 * 60 * 1000L; // 30 minutes
 
-    /**
-     * Create a new SSE connection for a user
-     *
-     * @param userId User ID to identify the connection
-     * @return SseEmitter instance
-     */
+    @Value("${hrm.sse.timeout-ms:1800000}")
+    private long defaultTimeout;
+
     public SseEmitter createConnection(String userId) {
-        SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
+        SseEmitter emitter = new SseEmitter(defaultTimeout);
         String connectionId = UUID.randomUUID().toString();
 
         emitter.onCompletion(() -> {
@@ -66,13 +61,6 @@ public class SseService {
         return emitter;
     }
 
-    /**
-     * Send an event to a specific user
-     *
-     * @param userId    User ID
-     * @param eventType Event type
-     * @param data      Event data
-     */
     public void sendEvent(String userId, String eventType, Object data) {
         SseEventDto event = SseEventDto.create(eventType, data);
         sendEventToUser(userId, event);

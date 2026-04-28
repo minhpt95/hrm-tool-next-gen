@@ -18,18 +18,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @Schema(description = "Payload for approving or rejecting a day off request")
 public class ApprovalDayOffRequest {
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm")
     @NotNull
-    @Schema(description = "Start date and time of the day off request (format: yyyy-MM-dd'T'HH:mm)", example = "2024-01-15T09:00", required = true)
-    private LocalDateTime startTime;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm")
-    @NotNull
-    @Schema(description = "End date and time of the day off request (format: yyyy-MM-dd'T'HH:mm)", example = "2024-01-15T17:00", required = true)
-    private LocalDateTime endTime;
+    @Schema(description = "ID of the day off request to approve or reject", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Long id;
 
     @NotNull
-    @Schema(description = "Approval status: APPROVED or REJECTED", required = true)
+    @Schema(description = "Approval status: APPROVED or REJECTED", requiredMode = Schema.RequiredMode.REQUIRED)
     private EDayOffStatus status; // APPROVED or REJECTED
 }
 

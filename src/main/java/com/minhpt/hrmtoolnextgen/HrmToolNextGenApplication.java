@@ -36,6 +36,7 @@ public class HrmToolNextGenApplication {
 
     final Environment env;
 
+
     public static void main(String[] args) {
         SpringApplication.run(HrmToolNextGenApplication.class, args);
     }
@@ -48,9 +49,14 @@ public class HrmToolNextGenApplication {
 
 
     @EventListener(ApplicationReadyEvent.class)
-    public void clearAllToken(){
+    public void showApplicationInfo(){
         log.info("Application Name : {}", () -> env.getProperty("application.name"));
         log.info("Build Version : {}", () -> env.getProperty("build.version"));
         log.info("Build Timestamp : {}", () -> env.getProperty("build.timestamp"));
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void clearRedisToken(){
+
     }
 }

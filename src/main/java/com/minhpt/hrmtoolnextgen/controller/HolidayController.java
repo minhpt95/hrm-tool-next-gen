@@ -39,7 +39,7 @@ public class HolidayController {
             @Parameter(description = "Year to get holidays for", example = "2024")
             @PathVariable int year,
             HttpServletRequest request) {
-        List<HolidayDto> holidays = holidayService.getHolidays(year);
+        List<HolidayDto> holidays = holidayService.getHolidaysByYear(year);
         return ResponseEntity.ok(buildSuccessResponse(holidays, request));
     }
 
@@ -65,7 +65,7 @@ public class HolidayController {
             @Parameter(description = "End date (format: yyyy-MM-dd)", example = "2024-12-31")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             HttpServletRequest request) {
-        List<HolidayDto> holidays = holidayService.getHolidays(startDate, endDate);
+        List<HolidayDto> holidays = holidayService.getHolidaysByRange(startDate, endDate);
         return ResponseEntity.ok(buildSuccessResponse(holidays, request));
     }
 

@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.service;
+package com.minhpt.hrmtoolnextgen.service.dayoff;
 
 import com.minhpt.hrmtoolnextgen.dto.dayoff.DayOffDto;
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
@@ -12,12 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DayOffService {
 
-    private final DayOffRequestService dayOffRequestService;
+    private final DayOffCommandService dayOffCommandService;
     private final DayOffApprovalService dayOffApprovalService;
 
     @Transactional
     public DayOffDto createDayOffRequest(UserPrincipalDto userPrincipalDto, CreateDayOffRequest request) {
-        return dayOffRequestService.createDayOffRequest(userPrincipalDto, request);
+        return dayOffCommandService.createDayOffRequest(userPrincipalDto, request);
     }
 
     @Transactional

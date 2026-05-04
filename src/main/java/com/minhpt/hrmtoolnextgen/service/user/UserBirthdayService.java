@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.service;
+package com.minhpt.hrmtoolnextgen.service.user;
 
 import com.minhpt.hrmtoolnextgen.constant.CommonConstant;
 import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;

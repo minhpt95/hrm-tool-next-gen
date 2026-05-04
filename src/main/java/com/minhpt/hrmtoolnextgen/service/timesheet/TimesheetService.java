@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.service;
+package com.minhpt.hrmtoolnextgen.service.timesheet;
 
 import com.minhpt.hrmtoolnextgen.dto.request.ApprovalTimesheetRequest;
 import com.minhpt.hrmtoolnextgen.dto.request.CreateTimesheetRequest;

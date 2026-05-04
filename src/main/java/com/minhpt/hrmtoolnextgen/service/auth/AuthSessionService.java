@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.service;
+package com.minhpt.hrmtoolnextgen.service.auth;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
 import com.minhpt.hrmtoolnextgen.component.jwt.JwtProvider;

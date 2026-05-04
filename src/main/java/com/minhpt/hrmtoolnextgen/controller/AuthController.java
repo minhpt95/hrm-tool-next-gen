@@ -21,7 +21,7 @@ import com.minhpt.hrmtoolnextgen.dto.request.ResetPasswordRequest;
 import com.minhpt.hrmtoolnextgen.dto.response.CommonSuccessResponse;
 import com.minhpt.hrmtoolnextgen.dto.response.LoginResponse;
 import com.minhpt.hrmtoolnextgen.dto.response.RefreshTokenResponse;
-import com.minhpt.hrmtoolnextgen.service.AuthService;
+import com.minhpt.hrmtoolnextgen.service.auth.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

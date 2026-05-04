@@ -10,7 +10,7 @@ import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.minhpt.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.minhpt.hrmtoolnextgen.dto.user.UserDto;
 import com.minhpt.hrmtoolnextgen.service.EmailService;
-import com.minhpt.hrmtoolnextgen.service.UserBirthdayService;
+import com.minhpt.hrmtoolnextgen.service.user.UserBirthdayService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

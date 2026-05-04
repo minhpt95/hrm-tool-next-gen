@@ -253,7 +253,7 @@ public class CustomJsonLayout extends AbstractStringLayout {
 
     /**
      * Convert Java class name to file path format.
-     * Example: com.minhpt.hrmtoolnextgen.service.UserService -> src/main/java/com/minhpt/hrmtoolnextgen/service/UserService.java
+     * Example: com.minhpt.hrmtoolnextgen.service.user.UserService -> src/main/java/com/minhpt/hrmtoolnextgen/service/UserService.java
      */
     private String convertClassNameToFilePath(String className, String fileName) {
         if (className == null || fileName == null) {

@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.service;
+package com.minhpt.hrmtoolnextgen.service.project;
 
 import com.minhpt.hrmtoolnextgen.dto.project.ProjectDto;
 import com.minhpt.hrmtoolnextgen.dto.request.CreateProjectRequest;

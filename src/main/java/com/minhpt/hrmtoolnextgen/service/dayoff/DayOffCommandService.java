@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.service;
+package com.minhpt.hrmtoolnextgen.service.dayoff;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
 import com.minhpt.hrmtoolnextgen.dto.dayoff.DayOffDto;
@@ -19,12 +19,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import static com.minhpt.hrmtoolnextgen.service.DayOffApprovalService.getDayOffDto;
+import static com.minhpt.hrmtoolnextgen.service.dayoff.DayOffApprovalService.getDayOffDto;
 
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class DayOffRequestService {
+public class DayOffCommandService {
 
     private final DayOffRepository dayOffRepository;
     private final UserRepository userRepository;
@@ -66,9 +66,9 @@ public class DayOffRequestService {
         LocalDate endDate = endDateTime.toLocalDate();
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             switch (date.getDayOfWeek()) {
-                case SATURDAY, SUNDAY -> throw new BadRequestException(messageService.getMessage("dayoff.overlap.weekend"));
-                default -> {
-                }
+                case SATURDAY, SUNDAY ->
+                        throw new BadRequestException(messageService.getMessage("dayoff.overlap.weekend"));
+                default -> {}
             }
         }
     }

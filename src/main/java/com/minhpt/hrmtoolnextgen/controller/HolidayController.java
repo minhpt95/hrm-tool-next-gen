@@ -1,5 +1,6 @@
 package com.minhpt.hrmtoolnextgen.controller;
 
+import com.minhpt.hrmtoolnextgen.annotation.RateLimit;
 import com.minhpt.hrmtoolnextgen.component.MessageService;
 import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.holiday.HolidayDto;
@@ -35,6 +36,7 @@ public class HolidayController {
             summary = "Get holidays for a specific year",
             description = "Retrieves all Vietnam public holidays and lunar holidays for the specified year"
     )
+    @RateLimit(capacity = 5,refillRate = 5,keyPrefix = "ratelimit:holiday-year",strategy = RateLimit.RateLimitStrategy.GLOBAL)
     public ResponseEntity<CommonSuccessResponse<List<HolidayDto>>> getHolidaysByYear(
             @Parameter(description = "Year to get holidays for", example = "2024")
             @PathVariable int year,
@@ -48,6 +50,7 @@ public class HolidayController {
             summary = "Get holidays for current year",
             description = "Retrieves all Vietnam public holidays and lunar holidays for the current year"
     )
+    @RateLimit(capacity = 5,refillRate = 5,keyPrefix = "ratelimit:holiday-current",strategy = RateLimit.RateLimitStrategy.GLOBAL)
     public ResponseEntity<CommonSuccessResponse<List<HolidayDto>>> getCurrentYearHolidays(
             HttpServletRequest request) {
         List<HolidayDto> holidays = holidayService.getCurrentYearHolidays();
@@ -59,6 +62,7 @@ public class HolidayController {
             summary = "Get holidays for a date range",
             description = "Retrieves all Vietnam holidays within the specified date range"
     )
+    @RateLimit(capacity = 5,refillRate = 5,keyPrefix = "ratelimit:holiday-range",strategy = RateLimit.RateLimitStrategy.GLOBAL)
     public ResponseEntity<CommonSuccessResponse<List<HolidayDto>>> getHolidaysByRange(
             @Parameter(description = "Start date (format: yyyy-MM-dd)", example = "2024-01-01")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -74,6 +78,7 @@ public class HolidayController {
             summary = "Check if a date is a holiday",
             description = "Checks if the specified date is a public holiday in Vietnam"
     )
+    @RateLimit(capacity = 5,refillRate = 5,keyPrefix = "ratelimit:holiday-check",strategy = RateLimit.RateLimitStrategy.GLOBAL)
     public ResponseEntity<CommonSuccessResponse<Boolean>> isHoliday(
             @Parameter(description = "Date to check (format: yyyy-MM-dd)", example = "2024-01-01")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

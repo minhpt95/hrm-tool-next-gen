@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.service;
+package com.minhpt.hrmtoolnextgen.service.auth;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
 import com.minhpt.hrmtoolnextgen.constant.CommonConstant;
@@ -16,6 +16,7 @@ import com.minhpt.hrmtoolnextgen.mapping.UserMapping;
 import com.minhpt.hrmtoolnextgen.repository.jpa.RoleRepository;
 import com.minhpt.hrmtoolnextgen.repository.jpa.UserRepository;
 import com.minhpt.hrmtoolnextgen.repository.redis.UserTokenRedisRepository;
+import com.minhpt.hrmtoolnextgen.service.EmailService;
 import com.minhpt.hrmtoolnextgen.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

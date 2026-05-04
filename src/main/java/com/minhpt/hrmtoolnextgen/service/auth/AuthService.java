@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.service;
+package com.minhpt.hrmtoolnextgen.service.auth;
 
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
 import com.minhpt.hrmtoolnextgen.dto.request.ForgotPasswordRequest;

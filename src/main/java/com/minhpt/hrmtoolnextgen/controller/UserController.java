@@ -31,11 +31,11 @@ import com.minhpt.hrmtoolnextgen.enumeration.EProjectStatus;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserLevel;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserPosition;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserRole;
-import com.minhpt.hrmtoolnextgen.service.DayOffService;
-import com.minhpt.hrmtoolnextgen.service.ProjectService;
-import com.minhpt.hrmtoolnextgen.service.TimesheetService;
-import com.minhpt.hrmtoolnextgen.service.UserBirthdayService;
-import com.minhpt.hrmtoolnextgen.service.UserService;
+import com.minhpt.hrmtoolnextgen.service.dayoff.DayOffService;
+import com.minhpt.hrmtoolnextgen.service.project.ProjectService;
+import com.minhpt.hrmtoolnextgen.service.timesheet.TimesheetService;
+import com.minhpt.hrmtoolnextgen.service.user.UserBirthdayService;
+import com.minhpt.hrmtoolnextgen.service.user.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -12,6 +12,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import com.minhpt.hrmtoolnextgen.entity.common.IdentityEntity;
+import com.minhpt.hrmtoolnextgen.entity.jpa.device.DeviceEntity;
 import com.minhpt.hrmtoolnextgen.entity.jpa.project.ProjectEntity;
 import com.minhpt.hrmtoolnextgen.entity.jpa.role.RoleEntity;
 import com.minhpt.hrmtoolnextgen.entity.jpa.timesheet.TimesheetEntity;
@@ -94,6 +95,18 @@ public class UserEntity extends IdentityEntity {
             inverseJoinColumns = @JoinColumn(
                     name = "project_id", referencedColumnName = "id"))
     private Set<ProjectEntity> workingProject = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {
+            CascadeType.DETACH,
+            CascadeType.MERGE,
+            CascadeType.PERSIST,
+            CascadeType.REFRESH,
+    })
+    @JoinTable(
+            name = "users_devices",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "device_id", referencedColumnName = "id"))
+    private Set<DeviceEntity> devices = new HashSet<>();
 
     @Transient
     private List<TimesheetEntity> normalHours = new ArrayList<>();

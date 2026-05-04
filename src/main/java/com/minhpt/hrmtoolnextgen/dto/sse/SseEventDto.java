@@ -1,4 +1,4 @@
-package com.minhpt.hrmtoolnextgen.dto.response;
+package com.minhpt.hrmtoolnextgen.dto.sse;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

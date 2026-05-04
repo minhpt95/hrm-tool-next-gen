@@ -1,6 +1,6 @@
 package com.minhpt.hrmtoolnextgen.service;
 
-import com.minhpt.hrmtoolnextgen.dto.response.SseEventDto;
+import com.minhpt.hrmtoolnextgen.dto.sse.SseEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;

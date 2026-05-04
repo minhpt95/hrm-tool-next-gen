@@ -10,6 +10,10 @@ public final class ApiConstant {
 
     public static final String ADMIN_BASE = API_PREFIX + "/admin";
     public static final String ADMIN_V1_BASE = API_V1_PREFIX + "/admin";
+
+    public static final String DEVICE_BASE = API_PREFIX + "/device";
+    public static final String DEVICE_V1_BASE = API_V1_PREFIX + "/device";
+
     public static final String ADMIN_DASHBOARD_BASE = ADMIN_BASE + "/dashboard";
     public static final String ADMIN_DASHBOARD_V1_BASE = ADMIN_V1_BASE + "/dashboard";
 
@@ -58,6 +62,10 @@ public final class ApiConstant {
             USER_BASE + "/**",
             USER_V1_BASE,
             USER_V1_BASE + "/**",
+            DEVICE_BASE,
+            DEVICE_BASE + "/**",
+            DEVICE_V1_BASE,
+            DEVICE_V1_BASE + "/**",
             SSE_BASE,
             SSE_BASE + "/**",
             SSE_V1_BASE,

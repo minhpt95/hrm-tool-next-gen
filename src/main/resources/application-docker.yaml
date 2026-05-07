@@ -1,0 +1,59 @@
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:10}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+  datasource:
+    url: 'jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:hrm}'
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driverClassName: org.postgresql.Driver
+  docker:
+    compose:
+      enabled: false
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+    hibernate:
+      ddl-auto: none
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:rabbitmq_admin}
+    password: ${RABBITMQ_PASSWORD:rabbitmq_admin}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST:local}
+system:
+  name:
+    mail: HRM System - Docker
+aws:
+  s3:
+    accessKeyId: ${AWS_ACCESS_KEY_ID:}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY:}
+    region: ${AWS_REGION:ap-southeast-1}
+    bucket: ${AWS_S3_BUCKET:hrm-tool-docker}
+    object:
+      url: 'https://${aws.s3.bucket}.s3.${aws.s3.region}.amazonaws.com/'
+server:
+  address: 0.0.0.0
+  port: ${SERVER_PORT:9000}
+hrm:
+  app:
+    jwtSecret: ${JWT_SECRET:}
+    jwtExpiration: ${JWT_EXPIRATION:86400000}
+    refreshTokenExpiration: ${REFRESH_TOKEN_EXPIRATION:86400000}
+  security:
+    swagger-enabled: ${SWAGGER_ENABLED:true}
+logging:
+  level:
+    com:
+      minhpt:
+        hrmtoolnextgen: INFO
+    root: WARN

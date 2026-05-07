@@ -32,5 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 
+### Claude Code local agent state ###
+.claude/
+
 ### Local secrets — never commit real credentials ###
 src/main/resources/application-local.yaml

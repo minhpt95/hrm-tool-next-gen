@@ -114,13 +114,13 @@ Versioning and deprecation:
 
 ### Docker & infrastructure
 
-- `compose.yaml` defines:
-  - **mysql** – primary relational database
+- `docker-compose.yml` defines:
+  - **postgres** – primary relational database
   - **rabbitmq** – messaging
   - **redis** – cache & session store
 
-Ensure the image tags in `compose.yaml` match your environment before using
-in non-local setups.
+Ensure the image tags in `docker-compose.yml` match your environment before
+using in non-local setups.
 
 ### Logging & observability
 

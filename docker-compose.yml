@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:17-alpine
@@ -42,6 +40,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: hrm-rabbitmq
     restart: unless-stopped
+    # Default credentials below are for local development only.
+    # Override via environment or a secrets mechanism in stg/prod.
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmq_admin
       RABBITMQ_DEFAULT_PASS: rabbitmq_admin
@@ -80,7 +80,7 @@ services:
       SPRING_RABBITMQ_USERNAME: rabbitmq_admin
       SPRING_RABBITMQ_PASSWORD: rabbitmq_admin
       SPRING_RABBITMQ_VIRTUAL_HOST: local
-      SERVER_PORT: 8081
+      SERVER_PORT: 9000
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,7 +93,7 @@ services:
     networks:
       - hrm-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5

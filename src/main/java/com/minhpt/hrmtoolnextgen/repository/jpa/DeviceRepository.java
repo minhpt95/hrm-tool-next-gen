@@ -4,8 +4,11 @@ import com.minhpt.hrmtoolnextgen.entity.jpa.device.DeviceEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
@@ -28,4 +31,8 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, Long>, Jpa
     @Override
     @NonNull
     Optional<DeviceEntity> findById(@NonNull Long id);
+
+    @EntityGraph(attributePaths = {"users", "users.userInfo"})
+    @Query("SELECT d FROM DeviceEntity d WHERE d.id = :id")
+    Optional<DeviceEntity> findByIdWithUsers(@Param("id") Long id);
 }

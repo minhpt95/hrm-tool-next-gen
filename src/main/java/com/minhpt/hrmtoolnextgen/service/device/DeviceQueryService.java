@@ -2,13 +2,16 @@ package com.minhpt.hrmtoolnextgen.service.device;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
 import com.minhpt.hrmtoolnextgen.dto.device.DeviceDto;
+import com.minhpt.hrmtoolnextgen.dto.device.DeviceUserDto;
 import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.minhpt.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.minhpt.hrmtoolnextgen.entity.jpa.device.DeviceEntity;
+import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.minhpt.hrmtoolnextgen.enumeration.EDeviceStatus;
 import com.minhpt.hrmtoolnextgen.enumeration.EDeviceType;
 import com.minhpt.hrmtoolnextgen.exception.NotFoundException;
 import com.minhpt.hrmtoolnextgen.mapping.DeviceMapping;
+import com.minhpt.hrmtoolnextgen.mapping.DeviceUserMapping;
 import com.minhpt.hrmtoolnextgen.repository.jpa.DeviceRepository;
 import com.minhpt.hrmtoolnextgen.util.CommonUtils;
 import jakarta.persistence.criteria.Predicate;
@@ -22,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -34,6 +38,7 @@ public class DeviceQueryService {
 
     private final DeviceRepository deviceRepository;
     private final DeviceMapping deviceMapping;
+    private final DeviceUserMapping deviceUserMapping;
     private final MessageService messageService;
 
     @Transactional(readOnly = true)
@@ -66,6 +71,17 @@ public class DeviceQueryService {
         DeviceEntity entity = deviceRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(messageService.getMessage("device.not.found", id)));
         return deviceMapping.toDto(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DeviceUserDto> getDeviceUsers(Long deviceId) {
+        log.debug("Listing users assigned to device id: {}", deviceId);
+        DeviceEntity entity = deviceRepository.findByIdWithUsers(deviceId)
+                .orElseThrow(() -> new NotFoundException(messageService.getMessage("device.not.found", deviceId)));
+
+        List<UserEntity> users = new ArrayList<>(entity.getUsers());
+        users.sort(Comparator.comparing(UserEntity::getId));
+        return deviceUserMapping.toDtoList(users);
     }
 
     private Specification<DeviceEntity> buildFilterSpecification(

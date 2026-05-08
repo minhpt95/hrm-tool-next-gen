@@ -1,6 +1,7 @@
 package com.minhpt.hrmtoolnextgen.service.device;
 
 import com.minhpt.hrmtoolnextgen.dto.device.DeviceDto;
+import com.minhpt.hrmtoolnextgen.dto.device.DeviceUserDto;
 import com.minhpt.hrmtoolnextgen.dto.request.CreateDeviceDto;
 import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.minhpt.hrmtoolnextgen.dto.request.UpdateDeviceDto;
@@ -10,6 +11,8 @@ import com.minhpt.hrmtoolnextgen.enumeration.EDeviceType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -46,5 +49,15 @@ public class DeviceService {
     @Transactional
     public void deleteDevice(Long id) {
         deviceCommandService.deleteDevice(id);
+    }
+
+    @Transactional
+    public List<DeviceUserDto> manageDeviceUsers(Long deviceId, List<Long> userIds) {
+        return deviceCommandService.manageDeviceUsers(deviceId, userIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DeviceUserDto> getDeviceUsers(Long deviceId) {
+        return deviceQueryService.getDeviceUsers(deviceId);
     }
 }

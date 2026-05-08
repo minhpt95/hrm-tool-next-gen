@@ -3,7 +3,9 @@ package com.minhpt.hrmtoolnextgen.controller;
 import com.minhpt.hrmtoolnextgen.component.MessageService;
 import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.dto.device.DeviceDto;
+import com.minhpt.hrmtoolnextgen.dto.device.DeviceUserDto;
 import com.minhpt.hrmtoolnextgen.dto.request.CreateDeviceDto;
+import com.minhpt.hrmtoolnextgen.dto.request.ManageDeviceUsersDto;
 import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.minhpt.hrmtoolnextgen.dto.request.UpdateDeviceDto;
 import com.minhpt.hrmtoolnextgen.dto.response.CommonSuccessResponse;
@@ -29,6 +31,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -117,6 +121,31 @@ public class DeviceController {
         PaginationResponse<DeviceDto> devices = deviceService.getAllDevices(
                 paginationRequest, name, serialNumber, type, status);
         return ResponseEntity.ok(buildSuccessResponse(devices, request));
+    }
+
+    @PostMapping("/{id}/users")
+    @Operation(
+            summary = "Sync users assigned to a device",
+            description = "Replace semantics: the supplied `userIds` becomes the device's full assigned-user set. The server diffs against the current state — users in the list but not yet assigned are added, users currently assigned but not in the list are removed, users in both are kept. Sending an empty list detaches all users."
+    )
+    public ResponseEntity<CommonSuccessResponse<List<DeviceUserDto>>> manageDeviceUsers(
+            @PathVariable Long id,
+            @Valid @RequestBody ManageDeviceUsersDto manageDeviceUsersDto,
+            HttpServletRequest request) {
+        List<DeviceUserDto> users = deviceService.manageDeviceUsers(id, manageDeviceUsersDto.getUserIds());
+        return ResponseEntity.ok(buildSuccessResponse(users, request));
+    }
+
+    @GetMapping("/{id}/users")
+    @Operation(
+            summary = "List users assigned to a device",
+            description = "Returns the lightweight list of users currently assigned to the device."
+    )
+    public ResponseEntity<CommonSuccessResponse<List<DeviceUserDto>>> getDeviceUsers(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        List<DeviceUserDto> users = deviceService.getDeviceUsers(id);
+        return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 
     private <T> CommonSuccessResponse<T> buildSuccessResponse(T data, HttpServletRequest request) {

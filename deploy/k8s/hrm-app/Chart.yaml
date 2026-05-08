@@ -1,0 +1,8 @@
+apiVersion: v2
+name: hrm-app
+description: HRM Tool Next-Gen Spring Boot application
+type: application
+version: 0.1.0
+appVersion: "0.0.1-SNAPSHOT"
+maintainers:
+  - name: 724softwares

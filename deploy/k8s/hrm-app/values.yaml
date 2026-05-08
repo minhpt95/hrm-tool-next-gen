@@ -1,0 +1,140 @@
+replicaCount: 2
+
+image:
+  repository: hrm-app
+  tag: ""  # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false  # Spring writes to /app/logs and /tmp
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 9000
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: hrm.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 768Mi
+  limits:
+    cpu: "1"
+    memory: 1536Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 80
+
+probes:
+  liveness:
+    path: /actuator/health/liveness
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 5
+  readiness:
+    path: /actuator/health/readiness
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  startup:
+    path: /actuator/health
+    periodSeconds: 10
+    failureThreshold: 30
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Spring profile (matches src/main/resources/application-<profile>.yaml)
+springProfile: docker
+
+# JVM options passed via JAVA_TOOL_OPTIONS
+javaOpts: "-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
+
+# Non-secret env exposed via ConfigMap
+config:
+  SERVER_PORT: "9000"
+  DB_HOST: hrm-postgres
+  DB_PORT: "5432"
+  DB_NAME: hrm
+  DB_USERNAME: postgres
+  REDIS_HOST: hrm-redis-master
+  REDIS_PORT: "6379"
+  REDIS_DATABASE: "10"
+  RABBITMQ_HOST: hrm-rabbitmq
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USERNAME: rabbitmq_admin
+  RABBITMQ_VIRTUAL_HOST: local
+  MAIL_HOST: smtp.gmail.com
+  MAIL_PORT: "587"
+  AWS_REGION: ap-southeast-1
+  AWS_S3_BUCKET: hrm-tool-docker
+  FRONTEND_URL: http://localhost:3000
+  SWAGGER_ENABLED: "true"
+  JWT_EXPIRATION: "86400000"
+  REFRESH_TOKEN_EXPIRATION: "86400000"
+
+# Secret values. In real environments, set externalSecret.enabled=true and source these
+# from External Secrets Operator / Vault / Sealed Secrets instead of putting them here.
+secret:
+  create: true
+  data:
+    JWT_SECRET: ""           # REQUIRED — chart will fail to install if empty
+    JWT_SECRET_PREVIOUS: ""
+    DB_PASSWORD: postgres
+    RABBITMQ_PASSWORD: rabbitmq_admin
+    MAIL_USERNAME: ""
+    MAIL_PASSWORD: ""
+    AWS_ACCESS_KEY_ID: ""
+    AWS_SECRET_ACCESS_KEY: ""
+
+# Use a pre-existing Secret in the cluster instead of rendering one from values.
+# When set, `secret.create` is ignored and envFrom uses this Secret's name.
+existingSecret: ""
+
+# Persistent volume for application logs. Disable if you ship logs via stdout only.
+logs:
+  persistence:
+    enabled: false
+    size: 1Gi
+    storageClass: ""
+    accessMode: ReadWriteOnce

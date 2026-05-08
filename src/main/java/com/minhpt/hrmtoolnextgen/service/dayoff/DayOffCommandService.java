@@ -8,6 +8,7 @@ import com.minhpt.hrmtoolnextgen.entity.jpa.dayoff.DayOffEntity;
 import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.minhpt.hrmtoolnextgen.enumeration.EDayOffStatus;
 import com.minhpt.hrmtoolnextgen.exception.BadRequestException;
+import com.minhpt.hrmtoolnextgen.mapping.DayOffMapping;
 import com.minhpt.hrmtoolnextgen.repository.jpa.DayOffRepository;
 import com.minhpt.hrmtoolnextgen.repository.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import static com.minhpt.hrmtoolnextgen.service.dayoff.DayOffApprovalService.getDayOffDto;
-
 @Service
 @RequiredArgsConstructor
 @Log4j2
@@ -29,6 +28,7 @@ public class DayOffCommandService {
     private final DayOffRepository dayOffRepository;
     private final UserRepository userRepository;
     private final MessageService messageService;
+    private final DayOffMapping dayOffMapping;
 
     @Transactional
     public DayOffDto createDayOffRequest(UserPrincipalDto userPrincipalDto, CreateDayOffRequest request) {
@@ -54,7 +54,7 @@ public class DayOffCommandService {
 
         DayOffEntity savedEntity = dayOffRepository.save(dayOffEntity);
         log.info("Created day off request for user: {} from {} to {}", requestId, startDateTime, endDateTime);
-        return toDto(savedEntity);
+        return dayOffMapping.toDto(savedEntity);
     }
 
     private void validateTimeRange(LocalDateTime startDateTime, LocalDateTime endDateTime) {
@@ -83,9 +83,5 @@ public class DayOffCommandService {
         if (overlaps) {
             throw new BadRequestException(messageService.getMessage("dayoff.overlap.existing"));
         }
-    }
-
-    private DayOffDto toDto(DayOffEntity entity) {
-        return getDayOffDto(entity);
     }
 }

@@ -8,6 +8,7 @@ import com.minhpt.hrmtoolnextgen.entity.jpa.dayoff.DayOffEntity;
 import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserEntity;
 import com.minhpt.hrmtoolnextgen.enumeration.EDayOffStatus;
 import com.minhpt.hrmtoolnextgen.exception.BadRequestException;
+import com.minhpt.hrmtoolnextgen.mapping.DayOffMapping;
 import com.minhpt.hrmtoolnextgen.repository.jpa.DayOffRepository;
 import com.minhpt.hrmtoolnextgen.repository.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class DayOffApprovalService {
     private final DayOffRepository dayOffRepository;
     private final UserRepository userRepository;
     private final MessageService messageService;
+    private final DayOffMapping dayOffMapping;
 
     @Transactional
     public DayOffDto approveDayOffRequest(ApprovalDayOffRequest request, UserPrincipalDto userPrincipalDto) {
@@ -52,25 +54,6 @@ public class DayOffApprovalService {
 
         log.info("Updated day off request status to {} for user: {}",
                 request.getStatus(), decidedId);
-        return toDto(savedEntity);
-    }
-
-    private DayOffDto toDto(DayOffEntity entity) {
-        return getDayOffDto(entity);
-    }
-
-    static DayOffDto getDayOffDto(DayOffEntity entity) {
-        return DayOffDto.builder()
-                .requestId(entity.getId())
-                .requesterName(entity.getRequestedBy().getUserInfo() != null
-                        ? entity.getRequestedBy().getUserInfo().getFirstName() + " " + entity.getRequestedBy().getUserInfo().getLastName()
-                        : null)
-                .requesterEmail(entity.getRequestedBy().getEmail())
-                .requestTitle(entity.getTitle())
-                .requestReason(entity.getReason())
-                .startTime(entity.getStartTime())
-                .endTime(entity.getEndTime())
-                .status(entity.getStatus())
-                .build();
+        return dayOffMapping.toDto(savedEntity);
     }
 }

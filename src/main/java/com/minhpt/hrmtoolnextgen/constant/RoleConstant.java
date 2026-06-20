@@ -19,4 +19,7 @@ public class RoleConstant {
             ADMIN,
             IT_ADMIN
     };
+
+    public static final String HAS_ADMIN_AUTHORITY =
+            "hasAnyAuthority(T(com.minhpt.hrmtoolnextgen.constant.RoleConstant).ADMIN_AUTHORITIES)";
 }

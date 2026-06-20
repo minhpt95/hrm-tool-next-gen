@@ -88,6 +88,8 @@ public class DeviceCommandService {
 
         DeviceEntity device = deviceRepository.findByIdWithUsers(deviceId)
                 .orElseThrow(() -> new NotFoundException(messageService.getMessage("device.not.found", deviceId)));
+        // Defense-in-depth: DeviceEntity is @SQLRestriction(is_delete=false), so a soft-deleted
+        // device is never loaded here; this guard only matters if that restriction is ever lifted.
         if (device.isDelete()) {
             throw new BadRequestException(messageService.getMessage("device.cannot.update.deleted"));
         }
@@ -124,7 +126,13 @@ public class DeviceCommandService {
     private List<UserEntity> resolveUsers(List<Long> userIds) {
         List<UserEntity> users = userRepository.findAllById(userIds);
         if (users.size() != userIds.size()) {
-            throw new BadRequestException(messageService.getMessage("device.user.ids.invalid"));
+            Set<Long> foundIds = users.stream().map(UserEntity::getId).collect(Collectors.toSet());
+            String invalidIds = userIds.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .distinct()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(", "));
+            throw new BadRequestException(messageService.getMessage("device.user.ids.invalid", invalidIds));
         }
         return users;
     }

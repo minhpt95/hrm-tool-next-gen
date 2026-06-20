@@ -2,6 +2,7 @@ package com.minhpt.hrmtoolnextgen.controller;
 
 import com.minhpt.hrmtoolnextgen.component.MessageService;
 import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
+import com.minhpt.hrmtoolnextgen.constant.RoleConstant;
 import com.minhpt.hrmtoolnextgen.dto.device.DeviceDto;
 import com.minhpt.hrmtoolnextgen.dto.device.DeviceUserDto;
 import com.minhpt.hrmtoolnextgen.dto.request.CreateDeviceDto;
@@ -46,6 +47,7 @@ public class DeviceController {
     private final DeviceService deviceService;
     private final MessageService messageService;
 
+    @PreAuthorize(RoleConstant.HAS_ADMIN_AUTHORITY)
     @PostMapping
     @Operation(
             summary = "Create device",
@@ -59,6 +61,7 @@ public class DeviceController {
                 .body(buildSuccessResponse(device, request));
     }
 
+    @PreAuthorize(RoleConstant.HAS_ADMIN_AUTHORITY)
     @PutMapping("/{id}")
     @Operation(
             summary = "Update device",
@@ -72,6 +75,7 @@ public class DeviceController {
         return ResponseEntity.ok(buildSuccessResponse(device, request));
     }
 
+    @PreAuthorize(RoleConstant.HAS_ADMIN_AUTHORITY)
     @DeleteMapping("/{id}")
     @Operation(
             summary = "Delete device",
@@ -124,7 +128,7 @@ public class DeviceController {
         return ResponseEntity.ok(buildSuccessResponse(devices, request));
     }
 
-    @PreAuthorize("hasAnyAuthority(T(com.minhpt.hrmtoolnextgen.constant.RoleConstant).ADMIN_AUTHORITIES)")
+    @PreAuthorize(RoleConstant.HAS_ADMIN_AUTHORITY)
     @PostMapping("/{id}/users")
     @Operation(
             summary = "Sync users assigned to a device",
@@ -138,7 +142,7 @@ public class DeviceController {
         return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 
-    @PreAuthorize("hasAnyAuthority(T(com.minhpt.hrmtoolnextgen.constant.RoleConstant).ADMIN_AUTHORITIES)")
+    @PreAuthorize(RoleConstant.HAS_ADMIN_AUTHORITY)
     @GetMapping("/{id}/users")
     @Operation(
             summary = "List users assigned to a device",

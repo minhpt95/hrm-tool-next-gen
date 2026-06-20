@@ -102,6 +102,7 @@ public class UserEntity extends IdentityEntity {
             CascadeType.PERSIST,
             CascadeType.REFRESH,
     })
+    @BatchSize(size = 50)
     @JoinTable(
             name = "users_devices",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),

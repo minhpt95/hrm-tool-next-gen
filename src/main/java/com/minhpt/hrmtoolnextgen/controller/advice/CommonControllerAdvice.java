@@ -2,6 +2,7 @@ package com.minhpt.hrmtoolnextgen.controller.advice;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -75,6 +76,20 @@ public class CommonControllerAdvice {
                 .path(request.getServletPath())
                 .build();
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<CommonResponse> handleAccessDeniedException(
+            HttpServletRequest request,
+            AccessDeniedException ex) {
+        CommonResponse errorResponse = CommonErrorResponse
+                .commonErrorResponseBuilder()
+                .message(ex.getMessage())
+                .httpStatusCode(HttpStatus.FORBIDDEN)
+                .path(request.getServletPath())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @ExceptionHandler(UnauthorizedException.class)

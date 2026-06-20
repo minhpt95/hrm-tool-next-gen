@@ -85,7 +85,7 @@ public class CommonControllerAdvice {
             AccessDeniedException ex) {
         CommonResponse errorResponse = CommonErrorResponse
                 .commonErrorResponseBuilder()
-                .message(ex.getMessage())
+                .message(messageService.getMessage("error.access.denied"))
                 .httpStatusCode(HttpStatus.FORBIDDEN)
                 .path(request.getServletPath())
                 .build();

@@ -5,9 +5,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.OptimisticLock;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -32,6 +33,7 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,6 +46,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserEntity extends IdentityEntity {
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @Column(name = "email", unique = true, nullable = false)
     private String email;
@@ -107,6 +113,7 @@ public class UserEntity extends IdentityEntity {
             name = "users_devices",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "device_id", referencedColumnName = "id"))
+    @OptimisticLock(excluded = false)
     private Set<DeviceEntity> devices = new HashSet<>();
 
     @Transient

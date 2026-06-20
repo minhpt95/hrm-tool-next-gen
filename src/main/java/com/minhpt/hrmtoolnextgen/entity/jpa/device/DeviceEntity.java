@@ -21,6 +21,10 @@ import java.util.Set;
 @Setter
 public class DeviceEntity extends IdentityEntity {
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     @Column
     private String name;
 

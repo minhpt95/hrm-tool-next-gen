@@ -6,8 +6,10 @@ import static com.minhpt.hrmtoolnextgen.constant.RoleConstant.USER;
 import static com.minhpt.hrmtoolnextgen.constant.RoleConstant.PROJECT_MANAGER;
 import static com.minhpt.hrmtoolnextgen.constant.RoleConstant.HR;
 import static org.mockito.Mockito.mock;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -150,6 +152,150 @@ class DeviceControllerAuthorizationTest {
         mockMvc.perform(post("/api/v1/device/999999/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userIds\":[]}"))
+                .andExpect(status().isNotFound());
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /api/v1/device  (createDevice)
+    // -------------------------------------------------------------------------
+
+    private static final String VALID_CREATE_DEVICE_JSON =
+            "{\"name\":\"Test Laptop\",\"serialNumber\":\"SN-AUTH-TEST-001\"," +
+            "\"type\":\"LAPTOP\",\"status\":\"ACTIVE\"}";
+
+    @Test
+    @WithMockUser(authorities = USER)
+    void createDevice_withUserAuthority_shouldBeBlockedByPreAuthorize() throws Exception {
+        // AccessDeniedException from @PreAuthorize → handled by CommonControllerAdvice → 403
+        mockMvc.perform(post("/api/v1/device")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_CREATE_DEVICE_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = PROJECT_MANAGER)
+    void createDevice_withProjectManagerAuthority_shouldBeBlockedByPreAuthorize() throws Exception {
+        mockMvc.perform(post("/api/v1/device")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_CREATE_DEVICE_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = ADMIN)
+    void createDevice_withAdminAuthority_shouldPassPreAuthorizeAndReachService() throws Exception {
+        // @PreAuthorize passes for ADMIN. A valid body with a unique serial number → 201 Created.
+        // 201 proves the method was invoked (gate did NOT block).
+        mockMvc.perform(post("/api/v1/device")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_CREATE_DEVICE_JSON))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    @WithMockUser(authorities = IT_ADMIN)
+    void createDevice_withItAdminAuthority_shouldPassPreAuthorizeAndReachService() throws Exception {
+        // Use a different serial number to avoid unique-constraint collision with the ADMIN test above.
+        mockMvc.perform(post("/api/v1/device")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Test Laptop IT\",\"serialNumber\":\"SN-AUTH-TEST-002\"," +
+                                 "\"type\":\"LAPTOP\",\"status\":\"ACTIVE\"}"))
+                .andExpect(status().isCreated());
+    }
+
+    // -------------------------------------------------------------------------
+    // PUT /api/v1/device/{id}  (updateDevice)
+    // -------------------------------------------------------------------------
+
+    private static final String VALID_UPDATE_DEVICE_JSON =
+            "{\"name\":\"Updated Laptop\",\"serialNumber\":\"SN-UPDATED-001\"," +
+            "\"type\":\"DESKTOP\",\"status\":\"INACTIVE\"}";
+
+    @Test
+    @WithMockUser(authorities = USER)
+    void updateDevice_withUserAuthority_shouldBeBlockedByPreAuthorize() throws Exception {
+        // AccessDeniedException from @PreAuthorize → 403
+        mockMvc.perform(put("/api/v1/device/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_UPDATE_DEVICE_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = HR)
+    void updateDevice_withHrAuthority_shouldBeBlockedByPreAuthorize() throws Exception {
+        mockMvc.perform(put("/api/v1/device/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_UPDATE_DEVICE_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = ADMIN)
+    void updateDevice_withAdminAuthority_shouldPassPreAuthorizeAndReachService() throws Exception {
+        // @PreAuthorize passes for ADMIN. Non-existent device → NotFoundException → 404.
+        // 404 proves the method was actually invoked (gate did NOT block).
+        mockMvc.perform(put("/api/v1/device/999999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_UPDATE_DEVICE_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(authorities = IT_ADMIN)
+    void updateDevice_withItAdminAuthority_shouldPassPreAuthorizeAndReachService() throws Exception {
+        mockMvc.perform(put("/api/v1/device/999999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_UPDATE_DEVICE_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    // -------------------------------------------------------------------------
+    // DELETE /api/v1/device/{id}  (deleteDevice)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @WithMockUser(authorities = USER)
+    void deleteDevice_withUserAuthority_shouldBeBlockedByPreAuthorize() throws Exception {
+        // AccessDeniedException from @PreAuthorize → 403
+        mockMvc.perform(delete("/api/v1/device/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = PROJECT_MANAGER)
+    void deleteDevice_withProjectManagerAuthority_shouldBeBlockedByPreAuthorize() throws Exception {
+        mockMvc.perform(delete("/api/v1/device/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = ADMIN)
+    void deleteDevice_withAdminAuthority_shouldPassPreAuthorizeAndReachService() throws Exception {
+        // @PreAuthorize passes for ADMIN. Non-existent device → NotFoundException → 404.
+        // 404 proves the method was actually invoked (gate did NOT block).
+        mockMvc.perform(delete("/api/v1/device/999999"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(authorities = IT_ADMIN)
+    void deleteDevice_withItAdminAuthority_shouldPassPreAuthorizeAndReachService() throws Exception {
+        mockMvc.perform(delete("/api/v1/device/999999"))
+                .andExpect(status().isNotFound());
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /api/v1/device/{id}  (getDeviceById) — sanity: READ stays open
+    // -------------------------------------------------------------------------
+
+    @Test
+    @WithMockUser(authorities = USER)
+    void getDeviceById_withUserAuthority_shouldNotBeBlockedByPreAuthorize() throws Exception {
+        // No @PreAuthorize on getDeviceById. Non-existent device → NotFoundException → 404.
+        // The key assertion: NOT 403 — the read endpoint has no admin gate.
+        mockMvc.perform(get("/api/v1/device/999999"))
                 .andExpect(status().isNotFound());
     }
 }

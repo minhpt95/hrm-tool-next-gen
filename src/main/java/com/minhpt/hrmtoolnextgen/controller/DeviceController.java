@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -123,6 +124,7 @@ public class DeviceController {
         return ResponseEntity.ok(buildSuccessResponse(devices, request));
     }
 
+    @PreAuthorize("hasAnyAuthority(T(com.minhpt.hrmtoolnextgen.constant.RoleConstant).ADMIN_AUTHORITIES)")
     @PostMapping("/{id}/users")
     @Operation(
             summary = "Sync users assigned to a device",
@@ -136,6 +138,7 @@ public class DeviceController {
         return ResponseEntity.ok(buildSuccessResponse(users, request));
     }
 
+    @PreAuthorize("hasAnyAuthority(T(com.minhpt.hrmtoolnextgen.constant.RoleConstant).ADMIN_AUTHORITIES)")
     @GetMapping("/{id}/users")
     @Operation(
             summary = "List users assigned to a device",

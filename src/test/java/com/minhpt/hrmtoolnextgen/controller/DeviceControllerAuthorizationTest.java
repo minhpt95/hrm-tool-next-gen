@@ -298,4 +298,25 @@ class DeviceControllerAuthorizationTest {
         mockMvc.perform(get("/api/v1/device/999999"))
                 .andExpect(status().isNotFound());
     }
+
+    // -------------------------------------------------------------------------
+    // GET /api/v1/device  (getAllDevices) — sanity: list READ stays open
+    // Gap: this endpoint was not covered by any prior assertion.
+    // -------------------------------------------------------------------------
+
+    @Test
+    @WithMockUser(authorities = USER)
+    void getAllDevices_withUserAuthority_shouldNotBeBlockedByPreAuthorize() throws Exception {
+        // No @PreAuthorize on getAllDevices. Any authenticated user may list devices.
+        // Empty result set → 200 OK (NOT 403).
+        mockMvc.perform(get("/api/v1/device"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(authorities = HR)
+    void getAllDevices_withHrAuthority_shouldNotBeBlockedByPreAuthorize() throws Exception {
+        mockMvc.perform(get("/api/v1/device"))
+                .andExpect(status().isOk());
+    }
 }

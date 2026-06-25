@@ -326,6 +326,31 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!--
+                Explicit Surefire declaration (managed version from Spring Boot parent).
+
+                External-system isolation contract:
+                  - H2 in-memory database is activated by src/test/resources/application.yaml
+                    (the default test-classpath config), NOT by a Spring profile.
+                    DO NOT set spring.profiles.active=test here: src/main/resources/application-test.yaml
+                    points at a real PostgreSQL instance and would override H2, breaking the suite.
+                  - Redis / RabbitMQ: test application.yaml points at localhost; both are absent
+                    during CI; the suite tolerates this without live connections.
+                  - Mail (JavaMailSender): mocked per test class via @TestConfiguration @Bean.
+                  - Calendarific / S3 HTTP: mocked via RestTemplate/service mocks per test.
+                  No Surefire profile override is needed or safe; isolation is structurally
+                  enforced by the per-test mock wiring above.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!-- Prevents AWT/font subsystem init in headless CI environments. -->
+                        <java.awt.headless>true</java.awt.headless>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

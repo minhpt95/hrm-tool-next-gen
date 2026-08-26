@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Approval Notification</title>
+	<style>
+		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+		.container { background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+		.header { text-align: center; margin-bottom: 30px; }
+		.header h1 { color: #2c3e50; margin: 0; font-size: 24px; }
+		.content { margin-bottom: 30px; }
+		.status { display: inline-block; padding: 8px 16px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+		.status-approved { background-color: #d4edda; color: #155724; }
+		.status-rejected { background-color: #f8d7da; color: #721c24; }
+		.footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1; font-size: 12px; color: #7f8c8d; text-align: center; }
+	</style>
+</head>
+<body>
+<div class="container">
+	<div class="header">
+		<h1 th:text="'Your ' + ${type} + ' has been ' + ${status}">Approval Notification</h1>
+	</div>
+	<div class="content">
+		<p>Dear <span th:text="${userName}">User</span>,</p>
+		<p>Your <strong th:text="${type}">request</strong> has been <strong th:text="${status}">processed</strong>.</p>
+		<p>
+			<span class="status" th:classappend="${status == 'APPROVED'} ? 'status-approved' : 'status-rejected'"
+			      th:text="${status}">STATUS</span>
+		</p>
+		<p>Please log in to the HRM Tool for more details.</p>
+	</div>
+	<div class="footer">
+		<p>Best regards,<br>HRM Tool Team</p>
+		<p>This is an automated email, please do not reply.</p>
+	</div>
+</div>
+</body>
+</html>

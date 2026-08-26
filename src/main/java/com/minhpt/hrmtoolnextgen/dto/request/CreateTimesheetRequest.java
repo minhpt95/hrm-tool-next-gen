@@ -25,7 +25,6 @@ public class CreateTimesheetRequest {
     @Schema(description = "Optional description or notes about the work performed")
     private String description;
 
-    @NotEmpty
     @NotNull
     @Schema(description = "ID of the project this timesheet entry is associated with", required = true)
     private Long projectId;

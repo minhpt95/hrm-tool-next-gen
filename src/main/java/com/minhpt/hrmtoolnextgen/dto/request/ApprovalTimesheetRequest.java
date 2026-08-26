@@ -22,7 +22,6 @@ public class ApprovalTimesheetRequest {
     @Schema(description = "ID of the timesheet entry to approve or reject", requiredMode = RequiredMode.REQUIRED)
     private Long id;
 
-    @NotEmpty
     @NotNull
     @Schema(description = "Approval status (e.g., APPROVED, REJECTED)", requiredMode = RequiredMode.REQUIRED)
     private ETimesheetStatus timesheetStatus;

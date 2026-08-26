@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Log4j2
@@ -26,124 +28,104 @@ public class EmailService {
     @Value("${hrm.app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
-    @Async("emailTaskExecutor")
-    public void sendPasswordResetEmail(String toEmail, String resetToken) {
+    private void sendEmail(String to, String subject, String template, Map<String, Object> vars) {
         try {
-            // Check if email is configured
             if (fromEmail == null || fromEmail.isEmpty()) {
-                log.warn("Email not configured. Password reset token for {}: {}", toEmail, resetToken);
-                log.warn("Reset link: {}/reset-password?token={}", frontendUrl, resetToken);
-                return; // Don't throw exception, just log for development
+                log.warn("Email not configured. Template '{}' for recipient: {}", template, to);
+                return;
             }
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Password Reset Request");
+            helper.setTo(to);
+            helper.setSubject(subject);
 
-            String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
-
-            // Prepare template variables
             Context context = new Context();
-            context.setVariable("resetLink", resetLink);
-            context.setVariable("resetToken", resetToken);
+            if (vars != null) {
+                vars.forEach(context::setVariable);
+            }
 
-            // Process the Thymeleaf template
-            String htmlContent = emailTemplateEngine.process("password-reset", context);
-            helper.setText(htmlContent, true); // true = isHtml
+            String htmlContent = emailTemplateEngine.process(template, context);
+            helper.setText(htmlContent, true);
 
             mailSender.send(message);
-
-            log.info("Password reset email sent successfully to: {}", toEmail);
         } catch (MessagingException e) {
-            log.error("Failed to send password reset email to: {}. Token: {}", toEmail, resetToken, e);
-            // In development, log the token instead of failing
-            log.warn("Reset link: {}/reset-password?token={}", frontendUrl, resetToken);
-            // Don't throw exception to allow development without email server
-            // In production, you might want to throw: throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
+            log.error("Failed to send email (template: {}) to: {}", template, to, e);
         } catch (Exception e) {
-            log.error("Unexpected error sending password reset email to: {}. Token: {}", toEmail, resetToken, e);
-            log.warn("Reset link: {}/reset-password?token={}", frontendUrl, resetToken);
+            log.error("Unexpected error sending email (template: {}) to: {}", template, to, e);
+        }
+    }
+
+    @Async("emailTaskExecutor")
+    public void sendPasswordResetEmail(String toEmail, String resetToken) {
+        String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
+
+        if (fromEmail == null || fromEmail.isEmpty()) {
+            log.warn("Email not configured. Password reset email for {} skipped.", toEmail);
+            return;
+        }
+
+        sendEmail(toEmail, "Password Reset Request", "password-reset", Map.of(
+                "resetLink", resetLink,
+                "resetToken", resetToken
+        ));
+
+        if (fromEmail != null && !fromEmail.isEmpty()) {
+            log.info("Password reset email sent successfully to: {}", toEmail);
         }
     }
 
     @Async("emailTaskExecutor")
     public void sendWelcomeEmail(String toEmail, String userName, String password) {
-        try {
-            // Check if email is configured
-            if (fromEmail == null || fromEmail.isEmpty()) {
-                log.warn("Email not configured. Welcome email for {} - Email: {}, Password: {}", toEmail, toEmail, password);
-                return; // Don't throw exception, just log for development
-            }
+        String loginUrl = frontendUrl + "/login";
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        if (fromEmail == null || fromEmail.isEmpty()) {
+            log.warn("Email not configured. Welcome email for {}", toEmail);
+            return;
+        }
 
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Welcome to HRM Tool - Your Account Credentials");
+        sendEmail(toEmail, "Welcome to HRM Tool - Your Account Credentials", "welcome-user", Map.of(
+                "userName", userName != null ? userName : "User",
+                "email", toEmail,
+                "loginUrl", loginUrl
+        ));
 
-            String loginUrl = frontendUrl + "/login";
-
-            // Prepare template variables
-            Context context = new Context();
-            context.setVariable("userName", userName != null ? userName : "User");
-            context.setVariable("email", toEmail);
-            context.setVariable("password", password);
-            context.setVariable("loginUrl", loginUrl);
-
-            // Process the Thymeleaf template
-            String htmlContent = emailTemplateEngine.process("welcome-user", context);
-            helper.setText(htmlContent, true); // true = isHtml
-
-            mailSender.send(message);
-
+        if (fromEmail != null && !fromEmail.isEmpty()) {
             log.info("Welcome email sent successfully to: {}", toEmail);
-        } catch (MessagingException e) {
-            log.error("Failed to send welcome email to: {}. Password: {}", toEmail, password, e);
-            // Don't throw exception to allow development without email server
-            // In production, you might want to throw: throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
-        } catch (Exception e) {
-            log.error("Unexpected error sending welcome email to: {}. Password: {}", toEmail, password, e);
         }
     }
 
     @Async("emailTaskExecutor")
     public void sendBirthdayEmail(String toEmail, String userName) {
-        try {
-            // Check if email is configured
-            if (fromEmail == null || fromEmail.isEmpty()) {
-                log.warn("Email not configured. Birthday email for {} ({})", toEmail, userName);
-                return; // Don't throw exception, just log for development
-            }
-
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Happy Birthday! 🎉");
-
-            // Prepare template variables
-            Context context = new Context();
-            context.setVariable("userName", userName != null && !userName.isEmpty() ? userName : "Valued Employee");
-            context.setVariable("frontendUrl", frontendUrl);
-
-            // Process the Thymeleaf template
-            String htmlContent = emailTemplateEngine.process("birthday", context);
-            helper.setText(htmlContent, true); // true = isHtml
-
-            mailSender.send(message);
-
-            log.info("Birthday email sent successfully to: {} ({})", toEmail, userName);
-        } catch (MessagingException e) {
-            log.error("Failed to send birthday email to: {} ({})", toEmail, userName, e);
-            // Don't throw exception to allow development without email server
-        } catch (Exception e) {
-            log.error("Unexpected error sending birthday email to: {} ({})", toEmail, userName, e);
+        if (fromEmail == null || fromEmail.isEmpty()) {
+            log.warn("Email not configured. Birthday email for {} ({})", toEmail, userName);
+            return;
         }
+
+        sendEmail(toEmail, "Happy Birthday!", "birthday", Map.of(
+                "userName", userName != null && !userName.isEmpty() ? userName : "Valued Employee",
+                "frontendUrl", frontendUrl
+        ));
+
+        log.info("Birthday email sent successfully to: {} ({})", toEmail, userName);
+    }
+
+    @Async("emailTaskExecutor")
+    public void sendApprovalNotificationEmail(String toEmail, String userName, String type, String status) {
+        if (fromEmail == null || fromEmail.isEmpty()) {
+            log.warn("Email not configured. Approval notification for {}: {} -> {}", toEmail, type, status);
+            return;
+        }
+
+        sendEmail(toEmail, "Your " + type + " has been " + status, "approval-notification", Map.of(
+                "userName", userName != null && !userName.isEmpty() ? userName : "User",
+                "type", type,
+                "status", status,
+                "frontendUrl", frontendUrl
+        ));
+
+        log.info("Approval notification email sent to: {} for {} -> {}", toEmail, type, status);
     }
 }
-

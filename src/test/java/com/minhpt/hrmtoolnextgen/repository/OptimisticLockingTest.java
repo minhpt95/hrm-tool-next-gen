@@ -43,12 +43,12 @@ import jakarta.persistence.PersistenceUnit;
  * to the shared H2 database, making the stale-version conflict visible across
  * separate persistence contexts (TEST 1). Rows are cleaned up in @AfterEach.
  */
-@SpringBootTest(classes = {HrmToolNextGenApplication.class, OptimisticLockingTest.MailTestConfig.class})
+@SpringBootTest(classes = {HrmToolNextGenApplication.class, OptimisticLockingTest.TestConfig.class})
 class OptimisticLockingTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
+    static class TestConfig {
         @SuppressWarnings("unused")
         @Bean
         JavaMailSender javaMailSender() {
@@ -250,6 +250,100 @@ class OptimisticLockingTest {
                 vAfter > v0,
                 "UserEntity version should have incremented after mutating the devices collection. "
                         + "v0=" + v0 + ", vAfter=" + vAfter
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 3 — Concurrent device-user assignment collision (R15.5)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Proves that concurrent mutations of a user's devices collection are protected
+     * by optimistic locking (R15.5, R16.1–R16.3).
+     *
+     * <p>The join-table lives on the UserEntity side (ManyToMany owner). Mutating
+     * {@code user.getDevices()} triggers an UPDATE on the users row that increments
+     * the {@code @Version} counter (as shown by TEST 2). This means two concurrent
+     * transactions that both try to add or remove a device for the same user will
+     * collide on the version column.
+     *
+     * <pre>
+     * tx-A: persist user (v0) + deviceA + deviceB, committed.
+     * tx-B: load fresh user, add deviceA to user.devices → commit → user version = 1.
+     * tx-C: load another fresh user reference (still v0), add deviceB to user.devices
+     *       → save + flush → Hibernate: UPDATE users … WHERE version = 0
+     *       but DB already has version = 1 → 0 rows affected →
+     *       ObjectOptimisticLockingFailureException.
+     * </pre>
+     *
+     * Non-vacuousness: removing {@code @Version} from UserEntity causes the stale
+     * save in tx-C to succeed silently, and assertThrows would fail.
+     */
+    @Test
+    void concurrentUserDeviceAssignment_staleTransactionFails_withOptimisticLockingFailure() {
+        long seed = System.nanoTime();
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+
+        // tx-A: persist user + two devices in committed state.
+        final long[] ids = tx.execute(status -> {
+            RoleEntity role = getOrCreateUserRole();
+            UserEntity user = buildUser(seed, role);
+            UserEntity savedUser = userRepository.save(user);
+            userRepository.flush();
+
+            DeviceEntity deviceA = buildDevice(seed + 1);
+            DeviceEntity savedA = deviceRepository.save(deviceA);
+            deviceRepository.flush();
+
+            DeviceEntity deviceB = buildDevice(seed + 2);
+            DeviceEntity savedB = deviceRepository.save(deviceB);
+            deviceRepository.flush();
+
+            return new long[]{savedUser.getId(), savedA.getId(), savedB.getId()};
+        });
+        assert ids != null;
+        long userId   = ids[0];
+        long deviceAId = ids[1];
+        long deviceBId = ids[2];
+        userIdsToDelete.add(userId);
+        deviceIdsToDelete.add(deviceAId);
+        deviceIdsToDelete.add(deviceBId);
+
+        // Load a STALE reference of user (version = v0) before tx-B mutates it.
+        // Force-initialize the lazy devices collection inside the transaction so it is
+        // populated on the detached entity; without this, staleUser.getDevices().add()
+        // in tx-C would throw LazyInitializationException (no open session).
+        final UserEntity staleUser = tx.execute(status -> {
+            UserEntity u = entityManager.find(UserEntity.class, userId);
+            assert u != null;
+            u.getDevices().size(); // initialize lazy collection while session is open
+            return u;
+        });
+        assert staleUser != null;
+
+        // tx-B: load fresh user, add deviceA, commit → user version becomes v0+1.
+        tx.execute(status -> {
+            UserEntity freshUser = entityManager.find(UserEntity.class, userId);
+            DeviceEntity deviceA = entityManager.find(DeviceEntity.class, deviceAId);
+            freshUser.getDevices().add(deviceA);
+            userRepository.save(freshUser);
+            userRepository.flush();
+            return null;
+        });
+
+        // tx-C: attempt to persist the STALE user reference (version = v0) with deviceB added.
+        // Hibernate issues UPDATE users … WHERE version = v0 but DB now has v0+1 → conflict.
+        assertThrows(
+                ObjectOptimisticLockingFailureException.class,
+                () -> tx.execute(status -> {
+                    DeviceEntity deviceB = entityManager.find(DeviceEntity.class, deviceBId);
+                    staleUser.getDevices().add(deviceB);
+                    userRepository.save(staleUser);
+                    userRepository.flush();
+                    return null;
+                }),
+                "Expected ObjectOptimisticLockingFailureException when a stale user assignment "
+                        + "conflicts with a committed device-assignment mutation"
         );
     }
 

@@ -1,11 +1,14 @@
 package com.minhpt.hrmtoolnextgen.service.device;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,7 @@ import com.minhpt.hrmtoolnextgen.entity.jpa.user.UserInfoEntity;
 import com.minhpt.hrmtoolnextgen.enumeration.EDeviceStatus;
 import com.minhpt.hrmtoolnextgen.enumeration.EDeviceType;
 import com.minhpt.hrmtoolnextgen.enumeration.EUserRole;
+import com.minhpt.hrmtoolnextgen.dto.device.DeviceUserDto;
 import com.minhpt.hrmtoolnextgen.exception.BadRequestException;
 import com.minhpt.hrmtoolnextgen.repository.jpa.DeviceRepository;
 import com.minhpt.hrmtoolnextgen.repository.jpa.RoleRepository;
@@ -121,6 +125,38 @@ class DeviceCommandServiceResolveUsersTest {
                 "Message should list only the invalid ID 888999 after the separator, but was: " + msg);
     }
 
+    /**
+     * R15.1 — Happy-path assignment on a device with NO prior users.
+     *
+     * Gap filled: ManageUsersBatchTest covers removal-heavy scenarios (8 initial
+     * users → keep 3). This test covers the complementary case: a fresh device
+     * (zero existing assignments) receives its first set of users. Verifies that
+     * the returned list matches the requested target IDs exactly.
+     */
+    @Test
+    void manageDeviceUsers_freshDeviceNoExistingUsers_returnsExactlyRequestedUsers() {
+        RoleEntity userRole = roleRepository.findByUserRole(EUserRole.USER);
+        if (userRole == null) {
+            userRole = new RoleEntity();
+            userRole.setUserRole(EUserRole.USER);
+            userRole = roleRepository.save(userRole);
+        }
+
+        UserEntity userA = persistUser(userRole);
+        UserEntity userB = persistUser(userRole);
+        List<Long> targetIds = List.of(userA.getId(), userB.getId());
+
+        List<DeviceUserDto> result = deviceCommandService.manageDeviceUsers(deviceId, targetIds);
+
+        Set<Long> returnedIds = result.stream()
+                .map(DeviceUserDto::getId)
+                .collect(Collectors.toSet());
+        assertEquals(Set.copyOf(targetIds), returnedIds,
+                "Returned user IDs must match the requested target set exactly");
+        assertEquals(2, result.size(),
+                "Expected exactly 2 users in the result");
+    }
+
     private UserEntity persistUser(RoleEntity role) {
         long seed = System.nanoTime();
 
@@ -138,7 +174,9 @@ class DeviceCommandServiceResolveUsersTest {
         user.setPassword("encoded-password");
         user.setActive(true);
         user.setUserInfo(info);
-        user.setRoles(List.of(role));
+        // Use a mutable list: Hibernate may call clear() on this collection during merge
+        // if the entity is already tracked in the persistence context.
+        user.setRoles(new java.util.ArrayList<>(List.of(role)));
         return userRepository.save(user);
     }
 }

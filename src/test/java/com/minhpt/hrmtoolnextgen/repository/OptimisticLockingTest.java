@@ -43,12 +43,12 @@ import jakarta.persistence.PersistenceUnit;
  * to the shared H2 database, making the stale-version conflict visible across
  * separate persistence contexts (TEST 1). Rows are cleaned up in @AfterEach.
  */
-@SpringBootTest(classes = {HrmToolNextGenApplication.class, OptimisticLockingTest.MailTestConfig.class})
+@SpringBootTest(classes = {HrmToolNextGenApplication.class, OptimisticLockingTest.TestConfig.class})
 class OptimisticLockingTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
+    static class TestConfig {
         @SuppressWarnings("unused")
         @Bean
         JavaMailSender javaMailSender() {

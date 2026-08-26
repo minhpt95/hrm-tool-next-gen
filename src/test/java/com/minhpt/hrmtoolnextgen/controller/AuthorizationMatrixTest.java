@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -33,77 +32,80 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.minhpt.hrmtoolnextgen.component.TokenBucketRateLimiter;
 import com.minhpt.hrmtoolnextgen.dto.holiday.HolidayDto;
 import com.minhpt.hrmtoolnextgen.service.HolidayService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * URL-level authorization matrix covering one representative endpoint per protected family.
  *
  * ACTUAL security config mappings (verified by running tests against live context):
  *
- *   ADMIN_ENDPOINTS (/api/admin/**, /api/v1/admin/**)
- *       → hasAnyAuthority(ADMIN, IT_ADMIN)
- *       BLOCKS: USER, PROJECT_MANAGER, HR
- *       ALLOWS: ADMIN, IT_ADMIN
+ * ADMIN_ENDPOINTS (/api/admin/**, /api/v1/admin/**)
+ * → hasAnyAuthority(ADMIN, IT_ADMIN)
+ * BLOCKS: USER, PROJECT_MANAGER, HR
+ * ALLOWS: ADMIN, IT_ADMIN
  *
- *   MANAGER_ENDPOINTS (/api/manager/**, /api/v1/manager/**)
- *       → hasAuthority(PROJECT_MANAGER)
- *       BLOCKS: USER, HR
- *       ALLOWS: PROJECT_MANAGER, ADMIN, IT_ADMIN
+ * MANAGER_ENDPOINTS (/api/manager/**, /api/v1/manager/**)
+ * → hasAuthority(PROJECT_MANAGER)
+ * BLOCKS: USER, HR
+ * ALLOWS: PROJECT_MANAGER, ADMIN, IT_ADMIN
  *
- *       NOTE — Role hierarchy IS applied in Spring Security 6 AuthorizationManagerRequestMatcherRegistry.
- *       WebSecurityConfig declares ADMIN > PROJECT_MANAGER and IT_ADMIN > PROJECT_MANAGER,
- *       so hasAuthority(PROJECT_MANAGER) also passes for ADMIN and IT_ADMIN at the URL level.
- *       This DIVERGES from a naive reading of "hasAuthority = exact match only"; the wired
- *       RoleHierarchy bean is picked up by the authorization manager.
+ * NOTE — Role hierarchy IS applied in Spring Security 6 AuthorizationManagerRequestMatcherRegistry.
+ * WebSecurityConfig declares ADMIN > PROJECT_MANAGER and IT_ADMIN > PROJECT_MANAGER,
+ * so hasAuthority(PROJECT_MANAGER) also passes for ADMIN and IT_ADMIN at the URL level.
+ * This DIVERGES from a naive reading of "hasAuthority = exact match only"; the wired
+ * RoleHierarchy bean is picked up by the authorization manager.
  *
- *   USER_ENDPOINTS (/api/user/**, /api/v1/user/**, /api/device/**, /api/v1/device/**)
- *       → hasAnyAuthority(USER, PROJECT_MANAGER, HR, ADMIN, IT_ADMIN)
- *       ALLOWS: all 5 roles
+ * USER_ENDPOINTS (/api/user/**, /api/v1/user/**, /api/device/**, /api/v1/device/**)
+ * → hasAnyAuthority(USER, PROJECT_MANAGER, HR, ADMIN, IT_ADMIN)
+ * ALLOWS: all 5 roles
  *
- *   HOLIDAY_ENDPOINTS (/api/holidays/**, /api/v1/holidays/**)
- *       → authenticated()
- *       ALLOWS: any authenticated user
+ * HOLIDAY_ENDPOINTS (/api/holidays/**, /api/v1/holidays/**)
+ * → authenticated()
+ * ALLOWS: any authenticated user
  *
- *   AUTH_ENDPOINTS (/api/auth/**, /api/v1/auth/**)
- *       → permitAll()
+ * AUTH_ENDPOINTS (/api/auth/**, /api/v1/auth/**)
+ * → permitAll()
  *
  * DIVERGENCE SUMMARY (requirement prose vs. actual code):
- *   1. HR on ADMIN_ENDPOINTS: requirement says ADMIN+HR; code enforces {ADMIN, IT_ADMIN} only.
- *      HR is BLOCKED on /api/v1/admin/**.
- *   2. ADMIN/IT_ADMIN on MANAGER_ENDPOINTS: code uses hasAuthority(PROJECT_MANAGER) but
- *      the RoleHierarchy bean causes ADMIN and IT_ADMIN to also pass this check at URL level.
- *      Method-level @AuthenticationPrincipal UserPrincipalDto still fails for @WithMockUser
- *      (String principal), producing 500 for GET handlers that inject the principal.
- *      The DELETE /manager/project/{id} (no @AuthenticationPrincipal) returns 404 for ADMIN/IT_ADMIN,
- *      confirming they are NOT blocked at the URL level.
+ * 1. HR on ADMIN_ENDPOINTS: requirement says ADMIN+HR; code enforces {ADMIN, IT_ADMIN} only.
+ *    HR is BLOCKED on /api/v1/admin/**.
+ * 2. ADMIN/IT_ADMIN on MANAGER_ENDPOINTS: code uses hasAuthority(PROJECT_MANAGER) but
+ *    the RoleHierarchy bean causes ADMIN and IT_ADMIN to also pass this check at URL level.
+ *    Method-level @AuthenticationPrincipal UserPrincipalDto still fails for @WithMockUser
+ *    (String principal), producing 500 for GET handlers that inject the principal.
+ *    The DELETE /manager/project/{id} (no @AuthenticationPrincipal) returns 404 for ADMIN/IT_ADMIN,
+ *    confirming they are NOT blocked at the URL level.
  *
  * Bidirectional proof technique:
- *   Wrong role  → 403 (blocked at URL filter chain)
- *   Correct role → NOT 401/403 (404 for non-existent id, 200/2xx for list endpoints —
- *                  proves the method was reached)
+ * Wrong role → 403 (blocked at URL filter chain)
+ * Correct role → NOT 401/403 (404 for non-existent id, 200/2xx for list endpoints —
+ * proves the method was reached)
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 class AuthorizationMatrixTest {
 
-    @SuppressWarnings("unused")
     @TestConfiguration
-    static class TestBeans {
+    static class TestConfig extends AbstractIntegrationTest {
         @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
+        TokenBucketRateLimiter tokenBucketRateLimiter() {
+            return mock(TokenBucketRateLimiter.class);
+        }
+
+        @Bean
+        HolidayService holidayService() {
+            return mock(HolidayService.class);
         }
     }
 
-    // Holiday endpoints carry @RateLimit — stub to always allow
-    @MockBean
-    private TokenBucketRateLimiter tokenBucketRateLimiter;
-
-    // HolidayService makes external Redis/Calendarific calls — stub to return empty list
-    @MockBean
-    private HolidayService holidayService;
-
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private TokenBucketRateLimiter tokenBucketRateLimiter;
+
+    @Autowired
+    private HolidayService holidayService;
 
     // =========================================================================
     // UNAUTHENTICATED → 401 for each protected family
@@ -339,8 +341,8 @@ class AuthorizationMatrixTest {
     void authLogin_unauthenticated_doesNotReturn401() throws Exception {
         // permitAll — malformed body returns 400 (validation), not 401
         mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
                 .andExpect(status().isBadRequest());
     }
 

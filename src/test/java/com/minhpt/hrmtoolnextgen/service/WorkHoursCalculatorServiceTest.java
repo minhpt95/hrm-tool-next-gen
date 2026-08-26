@@ -3,6 +3,7 @@ package com.minhpt.hrmtoolnextgen.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -221,6 +222,51 @@ class WorkHoursCalculatorServiceTest {
         Map<LocalDate, Double> result = calculator.calculateRemainingHours(start, end);
         assertEquals(0.0, result.get(saturday), DELTA);
         // Friday has some overlap, so it should be < 8.5 (not full)
+        assertTrue(result.get(friday) < DAILY_HOURS);
+    }
+
+    // -------------------------------------------------------------------------
+    // calculateRemainingHours — holiday returns 0.0
+    // -------------------------------------------------------------------------
+
+    @Test
+    void calculateRemainingHours_holidayInRange_returnsZeroForHoliday() {
+        LocalDate holiday = LocalDate.of(2026, 1, 1); // New Year's Day (Thursday)
+        LocalDateTime start = holiday.atTime(9, 0);
+        LocalDateTime end = holiday.atTime(18, 30);
+
+        when(holidayService.isHoliday(holiday)).thenReturn(true);
+
+        Map<LocalDate, Double> result = calculator.calculateRemainingHours(start, end);
+        assertEquals(0.0, result.get(holiday), DELTA);
+    }
+
+    @Test
+    void calculateRemainingHours_weekdayNotHoliday_returnsFullHours() {
+        when(holidayService.isHoliday(WEEKDAY)).thenReturn(false);
+
+        LocalDateTime start = WEEKDAY.atTime(9, 0);
+        LocalDateTime end = WEEKDAY.atTime(17, 0);
+        Map<LocalDate, Double> result = calculator.calculateRemainingHours(start, end);
+
+        // 09:00-17:00 overlaps morning (3h) + 3.5h of afternoon = 6.5h taken
+        // remaining = 8.0 - 6.5 = 1.5
+        assertEquals(1.5, result.get(WEEKDAY), DELTA);
+    }
+
+    @Test
+    void calculateRemainingHours_mixedHolidayAndWeekday_holidayIsZero() {
+        LocalDate friday = LocalDate.of(2026, 6, 26);
+        LocalDate saturday = LocalDate.of(2026, 6, 27);
+        LocalDateTime start = friday.atTime(9, 0);
+        LocalDateTime end = saturday.atTime(18, 30);
+
+        // Saturday is excluded by the weekend rule before isHoliday() is ever consulted,
+        // so only the weekday lookup is stubbed.
+        when(holidayService.isHoliday(friday)).thenReturn(false);
+
+        Map<LocalDate, Double> result = calculator.calculateRemainingHours(start, end);
+        assertEquals(0.0, result.get(saturday), DELTA);
         assertTrue(result.get(friday) < DAILY_HOURS);
     }
 }

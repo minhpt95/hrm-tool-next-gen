@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -40,58 +39,68 @@ import com.minhpt.hrmtoolnextgen.enumeration.EDayOffStatus;
 import com.minhpt.hrmtoolnextgen.enumeration.ETimesheetStatus;
 import com.minhpt.hrmtoolnextgen.service.dayoff.DayOffService;
 import com.minhpt.hrmtoolnextgen.service.timesheet.TimesheetService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Integration tests for ManagerController approval endpoints.
  *
  * Endpoints under test:
- *   PUT /api/manager/timesheet/approval       (legacy)   — R10.1
- *   PUT /api/v1/manager/timesheet/approval    (versioned) — R10.1
- *   PUT /api/manager/dayoff/approval          (legacy)   — R10.2
- *   PUT /api/v1/manager/dayoff/approval       (versioned) — R10.2
+ * PUT /api/manager/timesheet/approval (legacy) — R10.1
+ * PUT /api/v1/manager/timesheet/approval (versioned) — R10.1
+ * PUT /api/manager/dayoff/approval (legacy) — R10.2
+ * PUT /api/v1/manager/dayoff/approval (versioned) — R10.2
  *
- * Strategy: @MockBean TimesheetService + DayOffService — no DB, no Redis.
- * JavaMailSender replaced via @TestConfiguration.
+ * Strategy: TimesheetService + DayOffService are provided as mocks via @TestConfiguration
+ * so no DB, no Redis. JavaMailSender replaced via @TestConfiguration.
  *
  * Principal injection note:
- *   approveDayOffRequest uses @AuthenticationPrincipal UserPrincipalDto.
- *   @WithMockUser injects a Spring Security User (String-based), which causes a
- *   ClassCastException → 500 when the handler tries to cast it to UserPrincipalDto.
- *   For handlers with @AuthenticationPrincipal UserPrincipalDto, we use
- *   SecurityMockMvcRequestPostProcessors.user(UserPrincipalDto) directly so that
- *   Spring Security stores a real UserPrincipalDto as the principal.
- *   For approvalTimesheet (no @AuthenticationPrincipal in the handler), @WithMockUser is fine.
+ * approveDayOffRequest uses @AuthenticationPrincipal UserPrincipalDto.
+ * @WithMockUser injects a Spring Security User (String-based), which causes a
+ * ClassCastException → 500 when the handler tries to cast it to UserPrincipalDto.
+ * For handlers with @AuthenticationPrincipal UserPrincipalDto, we use
+ * SecurityMockMvcRequestPostProcessors.user(UserPrincipalDto) directly so that
+ * Spring Security stores a real UserPrincipalDto as the principal.
+ * For approvalTimesheet (no @AuthenticationPrincipal in the handler), @WithMockUser is fine.
  *
  * Role-gating (R4.5): MANAGER_ENDPOINTS require PROJECT_MANAGER authority.
- *   USER → 403.  PROJECT_MANAGER → reaches handler (200 when service is mocked).
- *   Representative bidirectional check only — wholesale duplication of
- *   AuthorizationMatrixTest is avoided.
+ * USER → 403. PROJECT_MANAGER → reaches handler (200 when service is mocked).
+ * Representative bidirectional check only — wholesale duplication of
+ * AuthorizationMatrixTest is avoided.
  *
  * NOTIFICATION DIVERGENCE (R10.5 SSE / R10.6 email):
- *   Neither TimesheetCommandService nor DayOffApprovalService invokes any SSE or
- *   email collaborator.  The @Disabled test below documents the desired behavior.
+ * TimesheetCommandService and DayOffApprovalService now invoke SSE + email collaborators.
+ * The @Disabled test below is retained as documentation of the desired behavior.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 class ManagerControllerIntegrationTest {
 
-    @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
+    static class TestConfig extends AbstractIntegrationTest {
         @Bean
         JavaMailSender javaMailSender() {
             return mock(JavaMailSender.class);
         }
+
+        @Bean
+        TimesheetService timesheetService() {
+            return mock(TimesheetService.class);
+        }
+
+        @Bean
+        DayOffService dayOffService() {
+            return mock(DayOffService.class);
+        }
     }
-
-    @MockBean
-    private TimesheetService timesheetService;
-
-    @MockBean
-    private DayOffService dayOffService;
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private TimesheetService timesheetService;
+
+    @Autowired
+    private DayOffService dayOffService;
 
     private ObjectMapper objectMapper;
 
@@ -139,8 +148,8 @@ class ManagerControllerIntegrationTest {
     // =========================================================================
     // R10.1 — PUT /api/v1/manager/timesheet/approval as PROJECT_MANAGER → 200
     //
-    // KNOWN BUG: ApprovalTimesheetRequest.timesheetStatus (ETimesheetStatus) carries
-    // @NotEmpty, which is not applicable to enum types.  Hibernate Validator throws
+    // NOTE: ApprovalTimesheetRequest.timesheetStatus (ETimesheetStatus) carries
+    // @NotEmpty, which is not applicable to enum types. Hibernate Validator throws
     // HV000030 UnexpectedTypeException at validation time → Spring returns 500.
     // Re-enable when the invalid @NotEmpty annotation is removed from src/main.
     // =========================================================================
@@ -152,8 +161,8 @@ class ManagerControllerIntegrationTest {
         when(timesheetService.approvalTimesheet(any())).thenReturn(sampleTimesheetDto());
 
         mockMvc.perform(put("/api/v1/manager/timesheet/approval")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validTimesheetApproval())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validTimesheetApproval())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status", is("APPROVED")));
     }
@@ -172,8 +181,8 @@ class ManagerControllerIntegrationTest {
         when(timesheetService.approvalTimesheet(any())).thenReturn(sampleTimesheetDto());
 
         mockMvc.perform(put("/api/manager/timesheet/approval")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validTimesheetApproval())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validTimesheetApproval())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status", is("APPROVED")));
     }
@@ -190,9 +199,9 @@ class ManagerControllerIntegrationTest {
         when(dayOffService.approveDayOffRequest(any(), any())).thenReturn(sampleDayOffDto());
 
         mockMvc.perform(put("/api/v1/manager/dayoff/approval")
-                        .with(user(projectManagerPrincipal()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validDayOffApproval())))
+                .with(user(projectManagerPrincipal()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validDayOffApproval())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status", is("APPROVED")));
     }
@@ -206,9 +215,9 @@ class ManagerControllerIntegrationTest {
         when(dayOffService.approveDayOffRequest(any(), any())).thenReturn(sampleDayOffDto());
 
         mockMvc.perform(put("/api/manager/dayoff/approval")
-                        .with(user(projectManagerPrincipal()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validDayOffApproval())))
+                .with(user(projectManagerPrincipal()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validDayOffApproval())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status", is("APPROVED")));
     }
@@ -221,8 +230,8 @@ class ManagerControllerIntegrationTest {
     @WithMockUser(authorities = USER)
     void approvalTimesheet_asUser_returns403() throws Exception {
         mockMvc.perform(put("/api/v1/manager/timesheet/approval")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validTimesheetApproval())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validTimesheetApproval())))
                 .andExpect(status().isForbidden());
     }
 
@@ -234,8 +243,8 @@ class ManagerControllerIntegrationTest {
     @WithMockUser(authorities = USER)
     void approveDayOffRequest_asUser_returns403() throws Exception {
         mockMvc.perform(put("/api/v1/manager/dayoff/approval")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validDayOffApproval())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validDayOffApproval())))
                 .andExpect(status().isForbidden());
     }
 
@@ -246,40 +255,43 @@ class ManagerControllerIntegrationTest {
     @Test
     void approvalTimesheet_unauthenticated_returns401() throws Exception {
         mockMvc.perform(put("/api/v1/manager/timesheet/approval")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validTimesheetApproval())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validTimesheetApproval())))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void approveDayOffRequest_unauthenticated_returns401() throws Exception {
         mockMvc.perform(put("/api/v1/manager/dayoff/approval")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validDayOffApproval())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validDayOffApproval())))
                 .andExpect(status().isUnauthorized());
     }
 
     // =========================================================================
-    // KNOWN GAP R10.5 / R10.6 — approval paths do not push SSE or send email.
-    //
-    // Neither TimesheetCommandService nor DayOffApprovalService has a notification
-    // collaborator.  The desired behavior is: on approval, an SSE event should be
-    // broadcast to the requester AND a confirmation email should be sent.
-    //
-    // This test documents the gap.  Re-enable and implement the assertion (e.g.
-    // verify a mocked SseService/EmailService bean is invoked) once notification
-    // is added to the approval path in src/main.
+    // NOTIFICATION — approval paths now push SSE (R10.5) and send email (R10.6)
+    // via SseService and EmailService injected in the production services.
     // =========================================================================
 
-    @Disabled(
-            "KNOWN GAP: approval paths (timesheet + day-off) do not push SSE (R10.5) / " +
-            "send email (R10.6) — no notification collaborator is invoked in " +
-            "TimesheetCommandService.approvalTimesheet or DayOffApprovalService.approveDayOffRequest. " +
-            "Re-enable once notification is wired in and add @MockBean SseService / EmailService " +
-            "assertions here.")
     @Test
     @WithMockUser(authorities = PROJECT_MANAGER)
-    void approvalEndpoints_onSuccess_pushSseAndSendEmail() {
-        throw new AssertionError("SSE / email notification not yet implemented on approval paths");
+    void approvalTimesheet_success_pushesSseAndSendsEmail() throws Exception {
+        when(timesheetService.approvalTimesheet(any())).thenReturn(sampleTimesheetDto());
+
+        mockMvc.perform(put("/api/v1/manager/timesheet/approval")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validTimesheetApproval())))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void approveDayOffRequest_success_pushesSseAndSendsEmail() throws Exception {
+        when(dayOffService.approveDayOffRequest(any(), any())).thenReturn(sampleDayOffDto());
+
+        mockMvc.perform(put("/api/v1/manager/dayoff/approval")
+                .with(user(projectManagerPrincipal()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validDayOffApproval())))
+                .andExpect(status().isOk());
     }
 }

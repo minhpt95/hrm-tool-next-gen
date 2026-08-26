@@ -34,6 +34,8 @@ import com.minhpt.hrmtoolnextgen.component.TokenBucketRateLimiter;
 import com.minhpt.hrmtoolnextgen.dto.request.LoginRequest;
 import com.minhpt.hrmtoolnextgen.exception.UnauthorizedException;
 import com.minhpt.hrmtoolnextgen.service.auth.AuthService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
+import com.minhpt.hrmtoolnextgen.HrmToolNextGenApplication;
 
 /**
  * Tests for i18n message resolution — R23.1 (vi), R23.2 (en / default), R23.3 (success + error).
@@ -57,7 +59,7 @@ import com.minhpt.hrmtoolnextgen.service.auth.AuthService;
  * which is populated by the resolver on each request. Default (no header) resolves to the
  * JVM default locale; for determinism the direct tests set the locale explicitly.
  */
-@SpringBootTest
+@SpringBootTest(classes = {HrmToolNextGenApplication.class, I18nMessageTest.TestConfig.class})
 @AutoConfigureMockMvc
 class I18nMessageTest {
 
@@ -79,11 +81,7 @@ class I18nMessageTest {
     private AuthService authService;
 
     @TestConfiguration
-    static class MailTestConfig {
-        @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
-        }
+    static class TestConfig extends AbstractIntegrationTest {
     }
 
     private Locale originalDefaultLocale;

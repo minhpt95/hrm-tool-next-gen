@@ -35,6 +35,7 @@ import com.minhpt.hrmtoolnextgen.dto.timesheet.TimesheetDto;
 import com.minhpt.hrmtoolnextgen.enumeration.ETimesheetStatus;
 import com.minhpt.hrmtoolnextgen.enumeration.ETimesheetType;
 import com.minhpt.hrmtoolnextgen.service.timesheet.TimesheetService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Integration tests for UserController timesheet endpoints.
@@ -69,11 +70,7 @@ class UserTimesheetIntegrationTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
-        @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
-        }
+    static class TestConfig extends AbstractIntegrationTest {
     }
 
     @MockBean

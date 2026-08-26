@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -41,12 +40,14 @@ import com.minhpt.hrmtoolnextgen.enumeration.EUserRole;
 import com.minhpt.hrmtoolnextgen.exception.NotFoundException;
 import com.minhpt.hrmtoolnextgen.service.project.ProjectService;
 import com.minhpt.hrmtoolnextgen.service.user.UserService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Integration tests for AdminController.
  *
- * Strategy: @MockBean UserService (and ProjectService) so no H2 writes, no S3, no Redis.
- * This keeps every scenario deterministic and independent of infrastructure.
+ * Strategy: UserService and ProjectService are provided as mocks via @TestConfiguration
+ * so no H2 writes, no S3, no Redis. This keeps every scenario deterministic and
+ * independent of infrastructure.
  *
  * Security: all admin endpoints require hasAnyAuthority(ADMIN, IT_ADMIN).
  * Wrong role → 403 at the URL filter; correct role → handler reached.
@@ -57,17 +58,22 @@ class AdminControllerIntegrationTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
+    static class TestConfig extends AbstractIntegrationTest {
         @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
+        UserService userService() {
+            return mock(UserService.class);
+        }
+
+        @Bean
+        ProjectService projectService() {
+            return mock(ProjectService.class);
         }
     }
 
-    @MockBean
+    @Autowired
     private UserService userService;
 
-    @MockBean
+    @Autowired
     private ProjectService projectService;
 
     @Autowired
@@ -92,7 +98,7 @@ class AdminControllerIntegrationTest {
 
     // -------------------------------------------------------------------------
     // R7.1 POST /api/v1/admin/user — multipart create → 201
-    // @MockBean UserService returns sampleUserDto; controller wraps in CommonSuccessResponse.
+    // @TestConfiguration UserService returns sampleUserDto; controller wraps in CommonSuccessResponse.
     // -------------------------------------------------------------------------
 
     @Test
@@ -101,9 +107,9 @@ class AdminControllerIntegrationTest {
         when(userService.createUser(any())).thenReturn(sampleUserDto);
 
         mockMvc.perform(multipart("/api/v1/admin/user")
-                        .param("email", "newuser@example.com")
-                        .param("roles", "USER")
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .param("email", "newuser@example.com")
+                .param("roles", "USER")
+                .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.email").value("admin-test@example.com"))
                 .andExpect(jsonPath("$.message").value("Successfully"));
@@ -245,8 +251,8 @@ class AdminControllerIntegrationTest {
         doNothing().when(userService).setUserPassword(1L, "newPassword123");
 
         mockMvc.perform(put("/api/v1/admin/user/1/password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"newPassword\":\"newPassword123\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"newPassword\":\"newPassword123\"}"))
                 .andExpect(status().isOk());
     }
 
@@ -254,8 +260,8 @@ class AdminControllerIntegrationTest {
     @WithMockUser(authorities = ADMIN)
     void setUserPassword_asAdmin_tooShortPassword_returns400() throws Exception {
         mockMvc.perform(put("/api/v1/admin/user/1/password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"newPassword\":\"abc\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"newPassword\":\"abc\"}"))
                 .andExpect(status().isBadRequest());
     }
 }

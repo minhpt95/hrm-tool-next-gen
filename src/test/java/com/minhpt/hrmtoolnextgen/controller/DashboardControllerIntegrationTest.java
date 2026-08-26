@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -29,6 +28,7 @@ import com.minhpt.hrmtoolnextgen.dto.dashboard.DashboardSummaryDto;
 import com.minhpt.hrmtoolnextgen.dto.dashboard.ProjectStatusCountDto;
 import com.minhpt.hrmtoolnextgen.enumeration.EProjectStatus;
 import com.minhpt.hrmtoolnextgen.service.DashboardService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Integration tests for DashboardController.
@@ -39,27 +39,29 @@ import com.minhpt.hrmtoolnextgen.service.DashboardService;
  * DIVERGENCE NOTE (R20.2): The requirement prose says "not an ADMIN → 403".
  * The actual gate is hasAnyAuthority(ADMIN, IT_ADMIN), so IT_ADMIN also passes.
  * Tests reflect the ACTUAL gate: both ADMIN and IT_ADMIN → 200; USER/HR/PROJECT_MANAGER → 403.
- *
- * @MockBean DashboardService keeps the test deterministic — no DB, no Redis.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 class DashboardControllerIntegrationTest {
 
-    @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
+    static class TestConfig extends AbstractIntegrationTest {
         @Bean
         JavaMailSender javaMailSender() {
             return mock(JavaMailSender.class);
         }
-    }
 
-    @MockBean
-    private DashboardService dashboardService;
+        @Bean
+        DashboardService dashboardService() {
+            return mock(DashboardService.class);
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private DashboardService dashboardService;
 
     private DashboardSummaryDto sampleSummary;
 

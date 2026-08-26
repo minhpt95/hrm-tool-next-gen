@@ -16,7 +16,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.minhpt.hrmtoolnextgen.component.TokenBucketRateLimiter;
@@ -27,6 +26,8 @@ import com.minhpt.hrmtoolnextgen.dto.response.LoginResponse;
 import com.minhpt.hrmtoolnextgen.dto.response.RefreshTokenResponse;
 import com.minhpt.hrmtoolnextgen.exception.UnauthorizedException;
 import com.minhpt.hrmtoolnextgen.service.auth.AuthService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
+import org.springframework.boot.test.context.TestConfiguration;
 
 /**
  * Integration tests for AuthController endpoints.
@@ -43,6 +44,10 @@ import com.minhpt.hrmtoolnextgen.service.auth.AuthService;
 @AutoConfigureMockMvc
 class AuthControllerIntegrationTest {
 
+    @TestConfiguration
+    static class TestConfig extends AbstractIntegrationTest {
+    }
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -51,9 +56,6 @@ class AuthControllerIntegrationTest {
 
     @MockBean
     private TokenBucketRateLimiter tokenBucketRateLimiter;
-
-    @MockBean
-    private JavaMailSender javaMailSender;
 
     // -------------------------------------------------------------------------
     // /api/auth/login — happy path

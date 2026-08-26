@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -26,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.minhpt.hrmtoolnextgen.component.TokenBucketRateLimiter;
 import com.minhpt.hrmtoolnextgen.constant.ApiConstant;
 import com.minhpt.hrmtoolnextgen.service.HolidayService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,22 +34,24 @@ class LegacyApiDeprecationHeadersIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private TokenBucketRateLimiter tokenBucketRateLimiter;
-
-    // Mocked so the holiday endpoints below resolve deterministically without
-    // Redis (@Cacheable) or a live Calendarific call — the interceptor headers
-    // are set in preHandle and are what these tests actually assert.
-    @MockBean
-    private HolidayService holidayService;
-
     @TestConfiguration
-    static class MailTestConfig {
+    static class TestConfig extends AbstractIntegrationTest {
         @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
+        TokenBucketRateLimiter tokenBucketRateLimiter() {
+            return mock(TokenBucketRateLimiter.class);
+        }
+
+        @Bean
+        HolidayService holidayService() {
+            return mock(HolidayService.class);
         }
     }
+
+    @Autowired
+    private TokenBucketRateLimiter tokenBucketRateLimiter;
+
+    @Autowired
+    private HolidayService holidayService;
 
     @BeforeEach
     void allowRateLimiter() {
@@ -64,8 +66,8 @@ class LegacyApiDeprecationHeadersIntegrationTest {
     @Test
     void legacyEndpointShouldExposeDeprecationHeaders() throws Exception {
         mockMvc.perform(post("/api/auth/login")
-                        .contentType("application/json")
-                        .content("{}"))
+                .contentType("application/json")
+                .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(header().string("Deprecation", "true"))
                 .andExpect(header().string("Sunset", "Wed, 31 Dec 2026 23:59:59 GMT"))
@@ -75,8 +77,8 @@ class LegacyApiDeprecationHeadersIntegrationTest {
     @Test
     void versionedEndpointShouldNotExposeDeprecationHeaders() throws Exception {
         mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType("application/json")
-                        .content("{}"))
+                .contentType("application/json")
+                .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(header().doesNotExist("Deprecation"))
                 .andExpect(header().doesNotExist("Sunset"))
@@ -91,7 +93,7 @@ class LegacyApiDeprecationHeadersIntegrationTest {
     @WithMockUser
     void legacyHolidayEndpointShouldExposeDeprecationHeaders() throws Exception {
         // /api/holidays/current is a legacy path — interceptor must add headers regardless of
-        // which endpoint family is used, confirming the behaviour is path-prefix driven (R6.1–6.3)
+        // which endpoint family is used, confirming the behaviour is path-prefix driven (R6.1-6.3)
         mockMvc.perform(get("/api/holidays/current"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Deprecation", "true"))
@@ -119,8 +121,8 @@ class LegacyApiDeprecationHeadersIntegrationTest {
         // Explicitly pins the Sunset value to "Wed, 31 Dec 2026 23:59:59 GMT" via the
         // constant so that a change to ApiConstant.LEGACY_API_SUNSET surfaces here.
         mockMvc.perform(post("/api/auth/login")
-                        .contentType("application/json")
-                        .content("{}"))
+                .contentType("application/json")
+                .content("{}"))
                 .andExpect(header().string("Sunset", ApiConstant.LEGACY_API_SUNSET));
     }
 }

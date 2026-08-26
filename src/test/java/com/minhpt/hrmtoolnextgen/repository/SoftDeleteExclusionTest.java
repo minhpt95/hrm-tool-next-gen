@@ -34,6 +34,7 @@ import com.minhpt.hrmtoolnextgen.support.Fixtures;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Verifies that @SQLRestriction("is_delete = false") excludes soft-deleted rows
@@ -43,17 +44,12 @@ import jakarta.persistence.PersistenceContext;
  * <p>NOT @Transactional — each persist/delete must commit so that the subsequent
  * read (in a new persistence context) sees the committed soft-delete state.
  */
-@SpringBootTest(classes = {HrmToolNextGenApplication.class, SoftDeleteExclusionTest.MailTestConfig.class})
+@SpringBootTest(classes = {HrmToolNextGenApplication.class, SoftDeleteExclusionTest.TestConfig.class})
 class SoftDeleteExclusionTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
-        @SuppressWarnings("unused")
-        @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
-        }
+    static class TestConfig extends AbstractIntegrationTest {
     }
 
     @Autowired

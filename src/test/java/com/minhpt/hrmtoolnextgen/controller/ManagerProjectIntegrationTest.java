@@ -45,6 +45,7 @@ import com.minhpt.hrmtoolnextgen.dto.request.PaginationRequest;
 import com.minhpt.hrmtoolnextgen.dto.response.PaginationResponse;
 import com.minhpt.hrmtoolnextgen.enumeration.EProjectStatus;
 import com.minhpt.hrmtoolnextgen.service.project.ProjectService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Integration tests for project endpoints in ManagerController and AdminController.
@@ -77,11 +78,7 @@ class ManagerProjectIntegrationTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
-        @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
-        }
+    static class TestConfig extends AbstractIntegrationTest {
     }
 
     @MockBean

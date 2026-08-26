@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.minhpt.hrmtoolnextgen.component.TokenBucketRateLimiter;
 import com.minhpt.hrmtoolnextgen.dto.holiday.HolidayDto;
 import com.minhpt.hrmtoolnextgen.service.HolidayService;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Integration tests for HolidayController.
@@ -53,11 +54,7 @@ class HolidayControllerIntegrationTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
-        @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
-        }
+    static class TestConfig extends AbstractIntegrationTest {
     }
 
     @MockBean

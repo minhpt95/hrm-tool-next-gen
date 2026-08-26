@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.minhpt.hrmtoolnextgen.component.TokenBucketRateLimiter;
 import com.minhpt.hrmtoolnextgen.constant.RoleConstant;
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Integration tests for SseController.
@@ -60,11 +61,7 @@ class SseControllerIntegrationTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
-        @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
-        }
+    static class TestConfig extends AbstractIntegrationTest {
     }
 
     @MockBean

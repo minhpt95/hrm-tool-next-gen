@@ -3,6 +3,7 @@ package com.minhpt.hrmtoolnextgen.config.actuator;
 import static com.minhpt.hrmtoolnextgen.constant.RoleConstant.ADMIN;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -14,12 +15,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.minhpt.hrmtoolnextgen.component.TokenBucketRateLimiter;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,11 +31,21 @@ class RateLimitMetricsIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private TokenBucketRateLimiter tokenBucketRateLimiter;
+    @TestConfiguration
+    static class TestConfig extends AbstractIntegrationTest {
+        @Bean
+        TokenBucketRateLimiter tokenBucketRateLimiter() {
+            return mock(TokenBucketRateLimiter.class);
+        }
 
-    @MockBean
-    private JavaMailSender javaMailSender;
+        @Bean
+        JavaMailSender javaMailSender() {
+            return mock(JavaMailSender.class);
+        }
+    }
+
+    @Autowired
+    private TokenBucketRateLimiter tokenBucketRateLimiter;
 
     @BeforeEach
     void setUp() {
@@ -43,13 +56,13 @@ class RateLimitMetricsIntegrationTest {
     @WithMockUser(authorities = ADMIN)
     void rejectedLoginShouldIncrementAndExposeRateLimitMetric() throws Exception {
         mockMvc.perform(post("/api/auth/login")
-                        .contentType("application/json")
-                        .content("""
-                                {
-                                  "username": "blocked@example.com",
-                                  "password": "password123"
-                                }
-                                """))
+                .contentType("application/json")
+                .content("""
+                {
+                "username": "blocked@example.com",
+                "password": "password123"
+                }
+                """))
                 .andExpect(status().isTooManyRequests());
 
         mockMvc.perform(get("/actuator/metrics/hrm.rate_limit.violations"))

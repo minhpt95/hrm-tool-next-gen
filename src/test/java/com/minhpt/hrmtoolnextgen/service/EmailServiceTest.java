@@ -2,6 +2,7 @@ package com.minhpt.hrmtoolnextgen.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -27,8 +28,8 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
  * Unit tests for EmailService — plain Mockito, no Spring context, no live SMTP.
  *
  * R22.1 sendPasswordResetEmail — renders "password-reset" template and dispatches via mailSender.
- * R22.1 sendWelcomeEmail      — renders "welcome-user" template and dispatches.
- * R22.1 sendBirthdayEmail     — renders "birthday" template and dispatches.
+ * R22.1 sendWelcomeEmail — renders "welcome-user" template and dispatches.
+ * R22.1 sendBirthdayEmail — renders "birthday" template and dispatches.
  * Swallow-vs-rethrow: all three methods catch MessagingException (and Exception) and
  * log without rethrowing — verified by assertDoesNotThrow on a throwing mailSender.send.
  * Early-return on empty fromEmail: when fromEmail is blank, mailSender is never called.
@@ -176,7 +177,7 @@ class EmailServiceTest {
     // -------------------------------------------------------------------------
     // sendBirthdayEmail — null/empty userName falls back to "Valued Employee"
     // (template context variable is set, not tested at template level, but
-    //  the call must still complete and dispatch)
+    // the call must still complete and dispatch)
     // -------------------------------------------------------------------------
 
     @Test
@@ -186,5 +187,63 @@ class EmailServiceTest {
 
         assertDoesNotThrow(() -> emailService.sendBirthdayEmail("user@example.com", null));
         verify(mailSender).send(mimeMessage);
+    }
+
+    // -------------------------------------------------------------------------
+    // sendApprovalNotificationEmail
+    // -------------------------------------------------------------------------
+
+    @Test
+    void sendApprovalNotificationEmail_configured_sendsEmail() {
+        when(emailTemplateEngine.process(eq("approval-notification"), any(Context.class)))
+                .thenReturn("<html>approved</html>");
+
+        emailService.sendApprovalNotificationEmail("user@example.com", "John", "Day Off Request", "APPROVED");
+
+        verify(emailTemplateEngine).process(eq("approval-notification"), any(Context.class));
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendApprovalNotificationEmail_notConfigured_doesNotCallMailSender() {
+        ReflectionTestUtils.setField(emailService, "fromEmail", "");
+
+        emailService.sendApprovalNotificationEmail("user@example.com", "John", "Day Off Request", "APPROVED");
+
+        verify(mailSender, never()).createMimeMessage();
+        verify(mailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendApprovalNotificationEmail_sendFailure_doesNotPropagateException() {
+        when(emailTemplateEngine.process(eq("approval-notification"), any(Context.class)))
+                .thenReturn("<html>approved</html>");
+        doThrow(new RuntimeException("SMTP down")).when(mailSender).send(any(MimeMessage.class));
+
+        assertDoesNotThrow(() ->
+                emailService.sendApprovalNotificationEmail("user@example.com", "John", "Day Off", "APPROVED"));
+    }
+
+    // -------------------------------------------------------------------------
+    // sendEmail helper — direct error swallowing
+    // -------------------------------------------------------------------------
+
+    // sendEmail is private; the shared catch blocks are exercised through a public caller.
+
+    @Test
+    void sendEmail_messagingException_doesNotPropagate() {
+        when(mailSender.createMimeMessage())
+                .thenThrow(new RuntimeException(new jakarta.mail.MessagingException("SMTP error")));
+
+        assertDoesNotThrow(() -> emailService.sendPasswordResetEmail("to@example.com", "token"));
+        verify(mailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendEmail_genericException_doesNotPropagate() {
+        when(mailSender.createMimeMessage()).thenThrow(new RuntimeException("Unexpected"));
+
+        assertDoesNotThrow(() -> emailService.sendPasswordResetEmail("to@example.com", "token"));
+        verify(mailSender, never()).send(any(MimeMessage.class));
     }
 }

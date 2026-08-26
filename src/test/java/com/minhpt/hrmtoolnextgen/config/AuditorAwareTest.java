@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.minhpt.hrmtoolnextgen.HrmToolNextGenApplication;
 import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
+import com.minhpt.hrmtoolnextgen.support.AbstractIntegrationTest;
 
 /**
  * Tests for {@link JpaAuditingConfig}'s SpringSecurityAuditorAware logic. _R18.1, R18.2_
@@ -29,17 +30,12 @@ import com.minhpt.hrmtoolnextgen.dto.principal.UserPrincipalDto;
  * the {@code AuditorAware<Long>} bean registered under name "auditorProvider" so no
  * reflection is needed. SecurityContextHolder is cleared in @AfterEach.
  */
-@SpringBootTest(classes = {HrmToolNextGenApplication.class, AuditorAwareTest.MailTestConfig.class})
+@SpringBootTest(classes = {HrmToolNextGenApplication.class, AuditorAwareTest.TestConfig.class})
 class AuditorAwareTest {
 
     @SuppressWarnings("unused")
     @TestConfiguration
-    static class MailTestConfig {
-        @SuppressWarnings("unused")
-        @Bean
-        JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
-        }
+    static class TestConfig extends AbstractIntegrationTest {
     }
 
     /** Injected from the application context — registered by JpaAuditingConfig.auditorProvider(). */
